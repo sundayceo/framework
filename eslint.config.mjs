@@ -602,6 +602,47 @@ export default defineConfig(
 	},
 
 	{
+		files: ["**/routes/**/*.ts", "**/routes/**/*.tsx"],
+		rules: {
+			"@typescript-eslint/naming-convention": [
+				"error",
+				{
+					selector: "typeAlias",
+					format: ["PascalCase"],
+				},
+				{
+					selector: "variable",
+					format: ["camelCase", "UPPER_CASE", "PascalCase"],
+					leadingUnderscore: "allow",
+				},
+				{
+					selector: "function",
+					format: ["camelCase", "PascalCase"],
+				},
+				{
+					selector: "parameter",
+					format: ["camelCase"],
+					leadingUnderscore: "allow",
+				},
+				{
+					selector: "method",
+					format: ["camelCase", "UPPER_CASE"],
+				},
+				{
+					selector: "property",
+					format: ["camelCase", "UPPER_CASE", "PascalCase"],
+					leadingUnderscore: "allow",
+					filter: { regex: "^(content-type|x-|Content-|Authorization).*", match: false },
+				},
+				{
+					selector: "objectLiteralProperty",
+					format: null,
+				},
+			],
+		},
+	},
+
+	{
 		files: ["**/*.mjs", "**/*.js", "**/*.cjs"],
 		extends: [tseslint.configs.disableTypeChecked],
 		rules: {
