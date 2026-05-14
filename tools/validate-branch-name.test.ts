@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { validateBranchName } from "./validate-branch-name.ts";
 
 test("accepts valid branch names like 31-release-infrastructure", () => {

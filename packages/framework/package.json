@@ -12,7 +12,9 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"build": "tsup",
 		"check-types": "tsc --noEmit",
