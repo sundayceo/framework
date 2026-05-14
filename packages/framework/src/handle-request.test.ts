@@ -142,7 +142,7 @@ describe("handleRequest", () => {
 				throw new HttpErrorResponse(404);
 			},
 			errorPages: {
-				404: () => new Response("Custom 404", { status: 404 }),
+				[404]: () => new Response("Custom 404", { status: 404 }),
 			},
 		});
 
@@ -175,7 +175,7 @@ describe("handleRequest", () => {
 				throw new Error("unexpected");
 			},
 			errorPages: {
-				500: () => new Response("Custom 500", { status: 500 }),
+				[500]: () => new Response("Custom 500", { status: 500 }),
 			},
 		});
 

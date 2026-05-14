@@ -32,7 +32,7 @@ describe("defaultServerErrorPage", () => {
 
 describe("resolveErrorPage", () => {
 	test("uses custom 404 page when provided in errorPages", async () => {
-		const custom404 = () => new Response("Custom Not Found", { status: 404 });
+		const custom404 = (): Response => new Response("Custom Not Found", { status: 404 });
 
 		const response = resolveErrorPage({
 			status: 404,
@@ -44,7 +44,7 @@ describe("resolveErrorPage", () => {
 	});
 
 	test("uses custom 500 page when provided in errorPages", async () => {
-		const custom500 = () => new Response("Custom Server Error", { status: 500 });
+		const custom500 = (): Response => new Response("Custom Server Error", { status: 500 });
 
 		const response = resolveErrorPage({
 			status: 500,
