@@ -1,4 +1,4 @@
-import { isValidElement, type ReactElement, type ReactNode } from "react";
+import { Children, isValidElement, type ReactNode } from "react";
 
 import type { TemplateComponent } from "./core/index";
 import { Slot } from "./slot";
@@ -8,53 +8,54 @@ type ExtractSlotsResult = {
 	requiredSlots: string[];
 };
 
-function walkTree(
-	node: ReactNode,
-	slots: string[],
-	requiredSlots: string[],
-	seen: Set<string>,
-): void {
-	if (!isValidElement(node)) {
+type SlotProps = {
+	id: string;
+	fallback?: ReactNode;
+	children?: ReactNode;
+};
+
+type WalkState = {
+	slots: string[];
+	requiredSlots: string[];
+	seen: Set<string>;
+};
+
+function walkTree(node: ReactNode, state: WalkState): void {
+	if (!isValidElement<SlotProps>(node)) {
 		return;
 	}
 
-	const element = node as ReactElement<Record<string, unknown>>;
+	if (node.type === Slot) {
+		const { id } = node.props;
 
-	if (element.type === Slot) {
-		const id = element.props.id as string;
-
-		if (seen.has(id)) {
+		if (state.seen.has(id)) {
 			throw new Error(`Duplicate slot ID: "${id}"`);
 		}
 
-		seen.add(id);
-		slots.push(id);
+		state.seen.add(id);
+		state.slots.push(id);
 
-		if (element.props.fallback === undefined) {
-			requiredSlots.push(id);
+		if (node.props.fallback === undefined) {
+			state.requiredSlots.push(id);
 		}
 	}
 
-	// Walk children
-	const children = element.props.children;
-
-	if (Array.isArray(children)) {
-		for (const child of children) {
-			walkTree(child, slots, requiredSlots, seen);
-		}
-	} else if (children !== undefined) {
-		walkTree(children as ReactNode, slots, requiredSlots, seen);
-	}
+	Children.forEach(node.props.children, (child) => {
+		walkTree(child, state);
+	});
 }
 
 export function extractSlots(template: TemplateComponent): ExtractSlotsResult {
-	const tree = template({ head: null }) as ReactNode;
+	const tree = template({ head: null });
+	const node: ReactNode = tree instanceof Promise ? null : tree;
 
-	const slots: string[] = [];
-	const requiredSlots: string[] = [];
-	const seen = new Set<string>();
+	const state: WalkState = {
+		slots: [],
+		requiredSlots: [],
+		seen: new Set<string>(),
+	};
 
-	walkTree(tree, slots, requiredSlots, seen);
+	walkTree(node, state);
 
-	return { slots, requiredSlots };
+	return { slots: state.slots, requiredSlots: state.requiredSlots };
 }
