@@ -5,7 +5,7 @@
 	"branchConcurrentLimit": 3,
 	"prHourlyLimit": 5,
 	"minimumReleaseAge": "2 days",
-	"rebaseWhen": "never",
+	"rebaseWhen": "auto",
 	"labels": ["dependencies"],
 	"ignoreDeps": ["@sundayceo/*"],
 	"packageRules": [
