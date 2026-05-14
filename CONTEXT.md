@@ -104,4 +104,3 @@ _Avoid_: SSR pipeline, page renderer
 ## Flagged ambiguities
 
 - "context" was used to mean React Context, the `ctx` object, and the `createApp` config function — resolved: **request context** for the `ctx` object, **context factory** for the `createApp` function. React Context is an implementation detail not in the domain language.
-

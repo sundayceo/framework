@@ -1,0 +1,4 @@
+changed_files=$(git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD 2>/dev/null)
+if echo "$changed_files" | grep -q "pnpm-lock.yaml"; then
+	pnpm install
+fi
