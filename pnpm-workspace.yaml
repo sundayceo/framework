@@ -4,7 +4,9 @@ minimumReleaseAgeExclude:
   - vite
   - rolldown
   - "@rolldown/*"
+  - "@rolldown/binding-linux-x64-gnu"
   - rolldown-plugin-dts
+  - tsx
 
 packages:
   - apps/*
@@ -32,6 +34,14 @@ catalog:
   typescript: 6.0.2
   typescript-eslint: ^8.33.1
   vitest: ^4.1.4
+
+supportedArchitectures:
+  os:
+    - current
+    - linux
+  cpu:
+    - current
+    - x64
 
 onlyBuiltDependencies:
   - esbuild
