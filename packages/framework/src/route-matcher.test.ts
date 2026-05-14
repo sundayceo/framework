@@ -83,7 +83,7 @@ describe("matchRoute", () => {
 		const result = matchRoute("/products/electronics/42", routes);
 
 		expect(result).toEqual({
-			route: routes[0],
+			route: routes.at(0),
 			params: { category: "electronics", id: "42" },
 		});
 	});
