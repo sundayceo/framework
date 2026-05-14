@@ -19,9 +19,6 @@ coverage
 # Build outputs
 dist
 
-# Generated declarations
-framework.gen.d.ts
-
 # Cloudflare
 .wrangler/
 .wrangler-shared
