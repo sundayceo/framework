@@ -24,4 +24,12 @@ export { matchRoute, type MatchResult } from "./route-matcher";
 export { resolveTemplate } from "./template-resolver";
 export { runLoader } from "./run-loader";
 export { scanRoutes, type RouteEntry } from "./route-scanner";
+export {
+	HttpErrorResponse,
+	RedirectResponse,
+	httpError,
+	isHttpErrorResponse,
+	isRedirectResponse,
+	redirect,
+} from "./throwable-response";
 export { validateSlots, type ValidationResult } from "./validate-slots";
