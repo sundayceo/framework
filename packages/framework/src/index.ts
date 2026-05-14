@@ -30,6 +30,11 @@ export { runLoader } from "./run-loader";
 export { scanRoutes, type RouteEntry } from "./route-scanner";
 export { renderMeta } from "./render-meta";
 export { renderPage } from "./render-page";
+export {
+	defaultNotFoundPage,
+	defaultServerErrorPage,
+	resolveErrorPage,
+} from "./resolve-error-page";
 export { resolveMeta } from "./resolve-meta";
 export {
 	HttpErrorResponse,

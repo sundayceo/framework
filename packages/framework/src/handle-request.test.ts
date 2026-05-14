@@ -29,7 +29,9 @@ describe("handleRequest", () => {
 		});
 
 		expect(result.status).toBe(404);
-		expect(await result.text()).toBe("Not Found");
+		const body = await result.text();
+		expect(body).toContain("Not Found");
+		expect(body).toContain("<!DOCTYPE html>");
 	});
 
 	test("calls onError with error and request when an unknown error is thrown", async () => {
@@ -80,7 +82,9 @@ describe("handleRequest", () => {
 		});
 
 		expect(result.status).toBe(500);
-		expect(await result.text()).toBe("Internal Server Error");
+		const body = await result.text();
+		expect(body).toContain("Internal Server Error");
+		expect(body).toContain("<!DOCTYPE html>");
 	});
 
 	test("returns successful response when render does not throw", async () => {
@@ -111,5 +115,71 @@ describe("handleRequest", () => {
 
 		expect(result.status).toBe(503);
 		expect(await result.text()).toBe("Async Error Page");
+	});
+
+	test("uses error page system when HttpErrorResponse 404 is thrown", async () => {
+		const request = new Request("https://example.com/missing");
+
+		const result = await handleRequest({
+			request,
+			render: () => {
+				throw new HttpErrorResponse(404);
+			},
+		});
+
+		expect(result.status).toBe(404);
+		const body = await result.text();
+		expect(body).toContain("<!DOCTYPE html>");
+		expect(body).toContain("Not Found");
+	});
+
+	test("uses custom error page for 404 when errorPages is provided", async () => {
+		const request = new Request("https://example.com/missing");
+
+		const result = await handleRequest({
+			request,
+			render: () => {
+				throw new HttpErrorResponse(404);
+			},
+			errorPages: {
+				404: () => new Response("Custom 404", { status: 404 }),
+			},
+		});
+
+		expect(result.status).toBe(404);
+		expect(await result.text()).toBe("Custom 404");
+	});
+
+	test("uses default 500 error page when unhandled error occurs and no onError", async () => {
+		const request = new Request("https://example.com/crash");
+
+		const result = await handleRequest({
+			request,
+			render: () => {
+				throw new Error("unexpected");
+			},
+		});
+
+		expect(result.status).toBe(500);
+		const body = await result.text();
+		expect(body).toContain("<!DOCTYPE html>");
+		expect(body).toContain("Internal Server Error");
+	});
+
+	test("uses custom 500 error page when errorPages is provided and no onError", async () => {
+		const request = new Request("https://example.com/crash");
+
+		const result = await handleRequest({
+			request,
+			render: () => {
+				throw new Error("unexpected");
+			},
+			errorPages: {
+				500: () => new Response("Custom 500", { status: 500 }),
+			},
+		});
+
+		expect(result.status).toBe(500);
+		expect(await result.text()).toBe("Custom 500");
 	});
 });
