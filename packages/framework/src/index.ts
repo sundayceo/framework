@@ -13,3 +13,5 @@ export type {
 	TemplateComponent,
 	TemplateRegistry,
 } from "./core/index";
+
+export { scanRoutes, type RouteEntry } from "./route-scanner";
