@@ -7,6 +7,10 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
+		},
+		"./vite": {
+			"types": "./dist/vite-plugin.d.ts",
+			"import": "./dist/vite-plugin.js"
 		}
 	},
 	"publishConfig": {
@@ -29,6 +33,7 @@
 		"react-dom": "catalog:",
 		"tsup": "catalog:",
 		"typescript": "catalog:",
+		"vite": "^8.0.13",
 		"vitest": "catalog:"
 	},
 	"peerDependencies": {

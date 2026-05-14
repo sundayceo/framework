@@ -19,6 +19,7 @@ export type {
 
 export { generateRouteMap } from "./codegen-routes";
 export { generateTemplateRegistry } from "./codegen-templates";
+export { generateDeclarations } from "./generate-declarations";
 export { isInteractive } from "./interactivity-inference";
 export { matchRoute, type MatchResult } from "./route-matcher";
 export { resolveTemplate } from "./template-resolver";
