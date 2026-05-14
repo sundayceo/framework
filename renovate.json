@@ -1,6 +1,10 @@
 {
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
-	"extends": ["config:recommended", "helpers:pinGitHubActionDigests", ":configMigration"],
+	"extends": [
+		"config:recommended",
+		"helpers:pinGitHubActionDigests",
+		":configMigration"
+	],
 	"prConcurrentLimit": 3,
 	"branchConcurrentLimit": 3,
 	"prHourlyLimit": 5,
@@ -11,13 +15,23 @@
 	"packageRules": [
 		{
 			"description": "React ecosystem",
-			"matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"],
+			"matchPackageNames": [
+				"react",
+				"react-dom",
+				"@types/react",
+				"@types/react-dom"
+			],
 			"groupName": "react"
 		},
 		{
 			"description": "ESLint ecosystem",
-			"matchPackageNames": ["eslint", "@eslint/js", "typescript-eslint", "globals"],
-			"matchPackagePatterns": ["eslint-plugin-*"],
+			"matchPackageNames": [
+				"eslint",
+				"@eslint/js",
+				"typescript-eslint",
+				"globals",
+				"/eslint-plugin-*/"
+			],
 			"groupName": "eslint"
 		},
 		{
@@ -37,7 +51,13 @@
 		},
 		{
 			"description": "Skip minimum release age for fast-moving build tools",
-			"matchPackageNames": ["vite", "rolldown", "@rolldown/*", "rolldown-plugin-dts", "tsx"],
+			"matchPackageNames": [
+				"vite",
+				"rolldown",
+				"@rolldown/*",
+				"rolldown-plugin-dts",
+				"tsx"
+			],
 			"minimumReleaseAge": "0 days"
 		}
 	],
