@@ -157,14 +157,14 @@ describe("renderPage", () => {
 		expect(response.headers.get("content-type")).toBe("text/html;charset=utf-8");
 	});
 
-	test("includes view-transition meta tag when viewTransition is true", async () => {
+	test("includes view-transition meta tag when hasViewTransition is true", async () => {
 		const response = renderPage({
 			pageModule: {
 				defineSlots: () => ({}),
 			},
 			template: makeTemplate(<div />),
 			loaderData: {},
-			viewTransition: true,
+			hasViewTransition: true,
 		});
 
 		const html = await response.text();
@@ -172,7 +172,7 @@ describe("renderPage", () => {
 		expect(html).toContain('content="same-origin"');
 	});
 
-	test("does not include view-transition meta tag when viewTransition is omitted", async () => {
+	test("does not include view-transition meta tag when hasViewTransition is omitted", async () => {
 		const response = renderPage({
 			pageModule: {
 				defineSlots: () => ({}),

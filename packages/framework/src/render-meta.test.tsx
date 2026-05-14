@@ -39,15 +39,15 @@ describe("renderMeta", () => {
 		expect(html).not.toContain('name="description"');
 	});
 
-	test("includes view-transition meta tag when viewTransition is true", () => {
-		const elements = renderMeta({ meta: {}, viewTransition: true });
+	test("includes view-transition meta tag when hasViewTransition is true", () => {
+		const elements = renderMeta({ meta: {}, hasViewTransition: true });
 		const html = renderToString(<>{elements}</>);
 
 		expect(html).toContain('name="view-transition"');
 		expect(html).toContain('content="same-origin"');
 	});
 
-	test("does not include view-transition meta tag when viewTransition is omitted", () => {
+	test("does not include view-transition meta tag when hasViewTransition is omitted", () => {
 		const elements = renderMeta({ meta: {} });
 		const html = renderToString(<>{elements}</>);
 
