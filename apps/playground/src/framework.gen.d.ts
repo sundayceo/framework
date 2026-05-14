@@ -14,5 +14,6 @@ declare module "@sundayceo/framework" {
 		"/500": {};
 		"/redirect-test": {};
 		"/error-test": {};
+		"/demo": {};
 	}
 }
