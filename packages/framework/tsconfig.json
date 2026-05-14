@@ -1,0 +1,9 @@
+{
+	"extends": "@sundayceo/typescript-config/react-library.json",
+	"compilerOptions": {
+		"outDir": "dist",
+		"rootDir": "src",
+		"ignoreDeprecations": "6.0"
+	},
+	"include": ["src"]
+}
