@@ -4,9 +4,9 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "echo 'no build yet'",
+		"build": "echo 'SSR app - no client build'",
 		"check-types": "tsc --noEmit",
-		"dev": "echo 'no dev server yet'"
+		"dev": "vite"
 	},
 	"dependencies": {
 		"@sundayceo/framework": "workspace:*",
@@ -17,6 +17,7 @@
 		"@sundayceo/typescript-config": "workspace:*",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
-		"typescript": "catalog:"
+		"typescript": "catalog:",
+		"vite": "^8.0.13"
 	}
 }
