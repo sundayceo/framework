@@ -22,5 +22,6 @@ export { generateTemplateRegistry } from "./codegen-templates";
 export { isInteractive } from "./interactivity-inference";
 export { matchRoute, type MatchResult } from "./route-matcher";
 export { resolveTemplate } from "./template-resolver";
+export { runLoader } from "./run-loader";
 export { scanRoutes, type RouteEntry } from "./route-scanner";
 export { validateSlots, type ValidationResult } from "./validate-slots";
