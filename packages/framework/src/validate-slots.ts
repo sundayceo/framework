@@ -26,28 +26,25 @@ type ValidateSlotsInput = {
 };
 
 function levenshtein(a: string, b: string): number {
-	const matrix: number[][] = [];
-
-	for (let i = 0; i <= a.length; i++) {
-		matrix[i] = [i];
-	}
-
-	for (let j = 0; j <= b.length; j++) {
-		matrix[0][j] = j;
-	}
+	const prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+	const curr = new Array<number>(b.length + 1);
 
 	for (let i = 1; i <= a.length; i++) {
+		curr[0] = i;
 		for (let j = 1; j <= b.length; j++) {
 			const cost = a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1;
-			matrix[i][j] = Math.min(
-				(matrix.at(i - 1)?.[j] ?? 0) + 1,
-				(matrix.at(i)?.[j - 1] ?? 0) + 1,
-				(matrix.at(i - 1)?.[j - 1] ?? 0) + cost,
+			curr[j] = Math.min(
+				(prev.at(j) ?? 0) + 1,
+				(curr.at(j - 1) ?? 0) + 1,
+				(prev.at(j - 1) ?? 0) + cost,
 			);
+		}
+		for (let j = 0; j <= b.length; j++) {
+			prev[j] = curr.at(j) ?? 0;
 		}
 	}
 
-	return matrix.at(a.length)?.at(b.length) ?? 0;
+	return prev.at(b.length) ?? 0;
 }
 
 function findClosestSlot(name: string, candidates: string[]): string | undefined {
