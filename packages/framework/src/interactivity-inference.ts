@@ -27,7 +27,7 @@ function extractImportSpecifiers(source: string): string[] {
 	let match;
 
 	while ((match = importRegex.exec(source)) !== null) {
-		specifiers.push(match[1]!);
+		specifiers.push(match.at(1) ?? "");
 	}
 
 	return specifiers;
