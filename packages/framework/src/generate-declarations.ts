@@ -9,5 +9,5 @@ type GenerateDeclarationsInput = {
 export function generateDeclarations(input: GenerateDeclarationsInput): string {
 	const templateBlock = generateTemplateRegistry(input.templatePaths);
 	const routeBlock = generateRouteMap(input.routePaths);
-	return `${templateBlock}\n${routeBlock}`;
+	return `export {};\n\n${templateBlock}\n${routeBlock}`;
 }

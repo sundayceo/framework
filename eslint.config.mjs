@@ -240,6 +240,8 @@ export default defineConfig(
 			"**/dist/**",
 			"**/.wrangler/**",
 			"**/.turbo/**",
+			"**/framework.gen.d.ts",
+			"**/vite.config.ts",
 			"**/vitest.config.ts",
 			"**/vitest.setup.ts",
 			"**/tsup.config.ts",
@@ -577,6 +579,13 @@ export default defineConfig(
 			"max-lines-per-function": "off",
 			"max-lines": "off",
 			"custom/no-comments": "off",
+		},
+	},
+
+	{
+		files: ["**/templates/**/*.tsx"],
+		rules: {
+			"no-restricted-exports": "off",
 		},
 	},
 
