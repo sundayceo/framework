@@ -246,6 +246,8 @@ export default defineConfig(
 			"**/vitest.setup.ts",
 			"**/tsup.config.ts",
 			"tools/**",
+			"templates/**",
+			"**/scripts/**",
 		],
 	},
 
