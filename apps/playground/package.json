@@ -4,7 +4,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "vite build",
+		"build": "echo 'SSR app - no client build'",
 		"check-types": "tsc --noEmit",
 		"dev": "vite"
 	},
