@@ -85,7 +85,7 @@ export function validateSlots(input: ValidateSlotsInput): ValidationResult {
 		if (!knownSet.has(provided)) {
 			const suggestion = findClosestSlot(provided, extractedSlots.slots);
 
-			if (suggestion) {
+			if (suggestion !== undefined) {
 				warnings.push({
 					type: "unknown-slot",
 					slotName: provided,
