@@ -4,6 +4,7 @@ import path from "node:path";
 import type { Plugin } from "vite";
 
 import { generateDeclarations } from "./generate-declarations";
+import { filePathToRoutePath, transformRouteModule } from "./transform-route-module";
 
 const TSX_EXTENSION = ".tsx";
 const PLUGIN_NAME = "sundayceo-framework";
@@ -44,6 +45,24 @@ export function frameworkPlugin(): Plugin {
 
 		buildStart() {
 			runCodegen(srcDir);
+		},
+
+		transform(code, id) {
+			const routesDir = path.join(srcDir, "routes");
+
+			if (!id.startsWith(routesDir) || !id.endsWith(TSX_EXTENSION)) {
+				return undefined;
+			}
+
+			const relativePath = path.relative(routesDir, id);
+			const routePath = filePathToRoutePath(relativePath);
+			const transformed = transformRouteModule({ source: code, routePath });
+
+			if (transformed === code) {
+				return undefined;
+			}
+
+			return transformed;
 		},
 
 		configureServer(server) {
