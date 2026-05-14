@@ -4,6 +4,7 @@ export { createApp } from "./create-app";
 export type { AppConfig } from "./create-app";
 export { defineHandler } from "./define-handler";
 export { definePage } from "./define-page";
+export { Slot, SlotContext, SlotProvider } from "./slot";
 
 export type {
 	Context,

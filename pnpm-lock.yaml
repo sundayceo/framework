@@ -160,13 +160,6 @@ importers:
         version: 6.0.2
 
   packages/framework:
-    dependencies:
-      react:
-        specifier: ^19.0.0
-        version: 19.2.6
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.2.6(react@19.2.6)
     devDependencies:
       "@sundayceo/typescript-config":
         specifier: workspace:*
@@ -177,6 +170,12 @@ importers:
       "@types/react-dom":
         specifier: "catalog:"
         version: 19.2.3(@types/react@19.2.14)
+      react:
+        specifier: "catalog:"
+        version: 19.2.6
+      react-dom:
+        specifier: "catalog:"
+        version: 19.2.6(react@19.2.6)
       tsup:
         specifier: "catalog:"
         version: 8.5.1(jiti@2.6.1)(postcss@8.5.14)(tsx@4.21.1)(typescript@6.0.2)
