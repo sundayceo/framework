@@ -23,7 +23,6 @@
 	},
 	"devDependencies": {
 		"@sundayceo/typescript-config": "workspace:*",
-		"@testing-library/react": "^16.3.2",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
 		"react": "catalog:",
