@@ -6,6 +6,9 @@
 	"bin": {
 		"create-sundayceo": "dist/index.js"
 	},
+	"publishConfig": {
+		"access": "public"
+	},
 	"files": ["dist"],
 	"scripts": {
 		"build": "tsup",

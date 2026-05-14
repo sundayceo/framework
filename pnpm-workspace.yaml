@@ -1,10 +1,17 @@
 minimumReleaseAge: 2880
 
+minimumReleaseAgeExclude:
+  - vite
+  - rolldown
+  - rolldown-plugin-dts
+
 packages:
   - apps/*
   - packages/*
 
 catalog:
+  "@commitlint/cli": 21.0.0
+  "@commitlint/config-conventional": 21.0.0
   "@eslint/js": ^9.28.0
   "@ianvs/prettier-plugin-sort-imports": ^4.4.1
   "@types/node": ^25.6.0
@@ -14,11 +21,13 @@ catalog:
   eslint-plugin-boundaries: ^5.0.1
   eslint-plugin-check-file: ^3.0.1
   globals: ^16.2.0
+  husky: ^9.1.7
   prettier: ^3.8.3
   react: ^19.2.5
   react-dom: ^19.2.5
   tsup: ^8.5.0
   turbo: ^2.9.6
+  tsx: ^4.21.0
   typescript: 6.0.2
   typescript-eslint: ^8.33.1
   vitest: ^4.1.4
