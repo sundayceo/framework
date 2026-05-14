@@ -7,13 +7,9 @@ describe("generateRouteMap", () => {
 		const result = generateRouteMap([]);
 
 		expect(result).toBe(
-			[
-				'declare module "@sundayceo/framework" {',
-				"  interface RouteMap {",
-				"  }",
-				"}",
-				"",
-			].join("\n"),
+			['declare module "@sundayceo/framework" {', "  interface RouteMap {", "  }", "}", ""].join(
+				"\n",
+			),
 		);
 	});
 
@@ -131,12 +127,7 @@ describe("generateRouteMap", () => {
 	});
 
 	test("filters out non-.tsx files", () => {
-		const result = generateRouteMap([
-			"about.tsx",
-			"utils.ts",
-			"styles.css",
-			"readme.md",
-		]);
+		const result = generateRouteMap(["about.tsx", "utils.ts", "styles.css", "readme.md"]);
 
 		expect(result).toBe(
 			[
