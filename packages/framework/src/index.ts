@@ -41,3 +41,4 @@ export {
 } from "./throwable-response";
 export { filePathToRoutePath, transformRouteModule } from "./transform-route-module";
 export { validateSlots, type ValidationResult } from "./validate-slots";
+export { viewTransitionName } from "./view-transition";

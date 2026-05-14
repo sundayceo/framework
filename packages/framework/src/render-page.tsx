@@ -18,26 +18,31 @@ type RenderPageInput = {
 	template: TemplateComponent;
 	loaderData: unknown;
 	cssHref?: string;
+	viewTransition?: boolean;
 };
 
-function buildHeadContent(input: { meta: MetaInfo; cssHref?: string }): ReactNode {
-	const { meta, cssHref } = input;
+function buildHeadContent(input: {
+	meta: MetaInfo;
+	cssHref?: string;
+	viewTransition?: boolean;
+}): ReactNode {
+	const { meta, cssHref, viewTransition } = input;
 	return (
 		<>
 			<meta charSet="utf-8" />
 			<meta name="viewport" content="width=device-width, initial-scale=1" />
-			{renderMeta({ meta })}
+			{renderMeta({ meta, viewTransition })}
 			{cssHref !== undefined && <link rel="stylesheet" href={cssHref} />}
 		</>
 	);
 }
 
 export function renderPage(input: RenderPageInput): Response {
-	const { pageModule, template: Template, loaderData, cssHref } = input;
+	const { pageModule, template: Template, loaderData, cssHref, viewTransition } = input;
 
 	const slotMap = pageModule.defineSlots({ loaderData });
 	const meta = resolveMeta({ meta: pageModule.meta, loaderData });
-	const headContent = buildHeadContent({ meta, cssHref });
+	const headContent = buildHeadContent({ meta, cssHref, viewTransition });
 
 	const html = renderToString(
 		<SlotProvider slots={slotMap}>
