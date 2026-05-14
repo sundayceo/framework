@@ -1,0 +1,25 @@
+/** @type {import("prettier").Config} */
+export default {
+	useTabs: true,
+	tabWidth: 2,
+	printWidth: 100,
+	semi: true,
+	singleQuote: false,
+	trailingComma: "all",
+	arrowParens: "always",
+	bracketSpacing: true,
+	endOfLine: "lf",
+	plugins: ["@ianvs/prettier-plugin-sort-imports"],
+	importOrder: [
+		"<BUILTIN_MODULES>",
+		"",
+		"<THIRD_PARTY_MODULES>",
+		"",
+		"^@sundayceo/(.*)$",
+		"",
+		"^[.]",
+	],
+	importOrderParserPlugins: ["typescript", "jsx", "decorators-legacy"],
+	importOrderTypeScriptVersion: "5.0.0",
+	importOrderCaseSensitive: false,
+};

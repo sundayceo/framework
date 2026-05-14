@@ -1,0 +1,22 @@
+{
+	"name": "@sundayceo/playground",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "echo 'no build yet'",
+		"check-types": "tsc --noEmit",
+		"dev": "echo 'no dev server yet'"
+	},
+	"dependencies": {
+		"@sundayceo/framework": "workspace:*",
+		"react": "catalog:",
+		"react-dom": "catalog:"
+	},
+	"devDependencies": {
+		"@sundayceo/typescript-config": "workspace:*",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"typescript": "catalog:"
+	}
+}
