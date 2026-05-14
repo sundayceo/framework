@@ -2,6 +2,8 @@ import React, { type ReactNode } from "react";
 import { renderToString } from "react-dom/server";
 
 import type { SlotMap, TemplateComponent } from "./core/index";
+import { renderMeta } from "./render-meta";
+import { resolveMeta } from "./resolve-meta";
 import { SlotProvider } from "./slot";
 
 type MetaInfo = { title?: string; description?: string };
@@ -18,25 +20,13 @@ type RenderPageInput = {
 	cssHref?: string;
 };
 
-function resolveMeta(input: { meta: RenderablePageModule["meta"]; loaderData: unknown }): MetaInfo {
-	const { meta, loaderData } = input;
-	if (meta === undefined) {
-		return {};
-	}
-	if (typeof meta === "function") {
-		return meta({ loaderData });
-	}
-	return meta;
-}
-
 function buildHeadContent(input: { meta: MetaInfo; cssHref?: string }): ReactNode {
 	const { meta, cssHref } = input;
 	return (
 		<>
 			<meta charSet="utf-8" />
 			<meta name="viewport" content="width=device-width, initial-scale=1" />
-			{meta.title !== undefined && <title>{meta.title}</title>}
-			{meta.description !== undefined && <meta name="description" content={meta.description} />}
+			{renderMeta({ meta })}
 			{cssHref !== undefined && <link rel="stylesheet" href={cssHref} />}
 		</>
 	);
