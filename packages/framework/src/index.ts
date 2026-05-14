@@ -17,6 +17,7 @@ export type {
 	TemplateRegistry,
 } from "./core/index";
 
+export { generateRouteMap } from "./codegen-routes";
 export { generateTemplateRegistry } from "./codegen-templates";
 export { isInteractive } from "./interactivity-inference";
 export { matchRoute, type MatchResult } from "./route-matcher";
