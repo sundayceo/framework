@@ -17,7 +17,7 @@ jobs:
       releases_created: ${{ steps.release.outputs.releases_created }}
       paths_released: ${{ steps.release.outputs.paths_released }}
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4
         id: release
         env:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -31,7 +31,7 @@ jobs:
     if: needs.release-please.outputs.releases_created == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - uses: ./.github/actions/prepare
 
