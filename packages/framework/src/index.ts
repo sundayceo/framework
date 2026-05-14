@@ -16,4 +16,5 @@ export type {
 	TemplateRegistry,
 } from "./core/index";
 
+export { matchRoute, type MatchResult } from "./route-matcher";
 export { scanRoutes, type RouteEntry } from "./route-scanner";
