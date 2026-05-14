@@ -1,15 +1,19 @@
+import { resolveErrorPage } from "./resolve-error-page";
 import { isHttpErrorResponse, isRedirectResponse } from "./throwable-response";
+
+type ErrorPageRenderer = () => Response;
 
 type HandleRequestInput = {
 	request: Request;
 	render: () => Response;
 	onError?: (error: unknown, request: Request) => Response | Promise<Response>;
+	errorPages?: Record<number, ErrorPageRenderer>;
 };
 
 const INTERNAL_SERVER_ERROR = 500;
 
 export function handleRequest(input: HandleRequestInput): Promise<Response> {
-	const { request, render, onError } = input;
+	const { request, render, onError, errorPages } = input;
 
 	return new Promise<Response>((resolve) => {
 		resolve(render());
@@ -19,13 +23,13 @@ export function handleRequest(input: HandleRequestInput): Promise<Response> {
 		}
 
 		if (isHttpErrorResponse(error)) {
-			return error.response;
+			return resolveErrorPage({ status: error.response.status, errorPages });
 		}
 
 		if (onError !== undefined) {
 			return onError(error, request);
 		}
 
-		return new Response("Internal Server Error", { status: INTERNAL_SERVER_ERROR });
+		return resolveErrorPage({ status: INTERNAL_SERVER_ERROR, errorPages });
 	});
 }
