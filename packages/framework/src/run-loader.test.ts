@@ -1,14 +1,14 @@
 import { describe, expect, test } from "vitest";
 
+import type { Context } from "./core/index";
 import { runLoader } from "./run-loader";
 
 describe("runLoader", () => {
 	test("calls loader with merged context including params and custom context", async () => {
 		const request = new Request("https://example.com/blog/hello");
 		const pageModule = {
-			loader: (ctx: { request: Request; params: Record<string, string>; db: string }) => ({
+			loader: (ctx: Context) => ({
 				title: `Post: ${ctx.params.slug}`,
-				db: ctx.db,
 			}),
 		};
 
@@ -19,13 +19,13 @@ describe("runLoader", () => {
 			appContext: { db: "test-db" },
 		});
 
-		expect(result).toEqual({ title: "Post: hello", db: "test-db" });
+		expect(result).toEqual({ title: "Post: hello" });
 	});
 
 	test("calls loader with empty params and request", async () => {
 		const request = new Request("https://example.com/");
 		const pageModule = {
-			loader: (ctx: { request: Request; params: Record<string, string> }) => ({
+			loader: (ctx: Context) => ({
 				url: ctx.request.url,
 				paramCount: Object.keys(ctx.params).length,
 			}),
@@ -76,7 +76,7 @@ describe("runLoader", () => {
 	test("handles async loaders", async () => {
 		const request = new Request("https://example.com/async");
 		const pageModule = {
-			loader: async (ctx: { request: Request; params: Record<string, string> }) => {
+			loader: async (ctx: Context) => {
 				return { url: ctx.request.url };
 			},
 		};
