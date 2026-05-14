@@ -17,6 +17,7 @@ export type {
 	TemplateRegistry,
 } from "./core/index";
 
+export { generateTemplateRegistry } from "./codegen-templates";
 export { matchRoute, type MatchResult } from "./route-matcher";
 export { resolveTemplate } from "./template-resolver";
 export { scanRoutes, type RouteEntry } from "./route-scanner";
