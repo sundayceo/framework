@@ -289,7 +289,6 @@ export default defineConfig(
 			"custom/no-conditional-spread": "error",
 			"custom/no-nested-destructuring": "error",
 			"custom/boolean-naming": "error",
-			"custom/no-index-file": "error",
 
 			"@typescript-eslint/consistent-type-imports": [
 				"error",
