@@ -18,6 +18,8 @@ export type {
 } from "./core/index";
 
 export { generateHydrationScript } from "./generate-hydration-script";
+export { createRequestHandler } from "./create-request-handler";
+export type { RequestHandlerOptions } from "./create-request-handler";
 export { handleRequest } from "./handle-request";
 export { generateRouteMap } from "./codegen-routes";
 export { generateTemplateRegistry } from "./codegen-templates";
