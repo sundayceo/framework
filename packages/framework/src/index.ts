@@ -17,6 +17,7 @@ export type {
 	TemplateRegistry,
 } from "./core/index";
 
+export { handleRequest } from "./handle-request";
 export { generateRouteMap } from "./codegen-routes";
 export { generateTemplateRegistry } from "./codegen-templates";
 export { generateDeclarations } from "./generate-declarations";
