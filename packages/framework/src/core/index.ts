@@ -12,10 +12,6 @@ export type SlotMap = Record<string, ReactNode>;
 
 export type TemplateComponent = React.FC<{ head: ReactNode }>;
 
-export type Meta =
-	| { title?: string; description?: string }
-	| undefined;
-
 export type PageModule<
 	TTemplate extends string = string,
 	TParams extends Record<string, string> = Record<string, string>,
@@ -46,8 +42,8 @@ export type HandlerModule<
 	DELETE?: MethodHandler<TParams, TCustom>;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
 export interface TemplateRegistry {}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
 export interface RouteMap {}

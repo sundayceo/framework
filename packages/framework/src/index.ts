@@ -8,4 +8,4 @@ export type {
 	SlotMap,
 	TemplateComponent,
 	TemplateRegistry,
-} from "./core/index.ts";
+} from "./core/index";
