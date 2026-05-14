@@ -1,0 +1,32 @@
+{
+	"name": "sundayceo-framework",
+	"private": true,
+	"scripts": {
+		"build": "turbo run build",
+		"dev": "turbo run dev",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"check-types": "turbo run check-types",
+		"test": "turbo run test",
+		"reset": "find . -type d \\( -name node_modules -o -name dist -o -name .turbo \\) -not -path './.git/*' -prune -exec rm -rf {} + && echo 'Cleaned. Run pnpm install to reinstall.'"
+	},
+	"devDependencies": {
+		"@eslint/js": "catalog:",
+		"@ianvs/prettier-plugin-sort-imports": "catalog:",
+		"eslint": "catalog:",
+		"eslint-plugin-boundaries": "catalog:",
+		"eslint-plugin-check-file": "catalog:",
+		"globals": "catalog:",
+		"prettier": "catalog:",
+		"turbo": "catalog:",
+		"typescript": "catalog:",
+		"typescript-eslint": "catalog:",
+		"vitest": "catalog:"
+	},
+	"packageManager": "pnpm@10.20.0",
+	"engines": {
+		"node": ">=18"
+	}
+}

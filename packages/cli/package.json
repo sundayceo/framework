@@ -1,0 +1,21 @@
+{
+	"name": "@sundayceo/create",
+	"version": "0.0.0",
+	"type": "module",
+	"license": "MIT",
+	"bin": {
+		"create-sundayceo": "dist/index.js"
+	},
+	"files": ["dist"],
+	"scripts": {
+		"build": "tsup",
+		"check-types": "tsc --noEmit",
+		"dev": "tsup --watch"
+	},
+	"devDependencies": {
+		"@sundayceo/typescript-config": "workspace:*",
+		"@types/node": "catalog:",
+		"tsup": "catalog:",
+		"typescript": "catalog:"
+	}
+}
