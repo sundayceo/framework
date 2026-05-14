@@ -157,6 +157,34 @@ describe("renderPage", () => {
 		expect(response.headers.get("content-type")).toBe("text/html;charset=utf-8");
 	});
 
+	test("includes view-transition meta tag when hasViewTransition is true", async () => {
+		const response = renderPage({
+			pageModule: {
+				defineSlots: () => ({}),
+			},
+			template: makeTemplate(<div />),
+			loaderData: {},
+			hasViewTransition: true,
+		});
+
+		const html = await response.text();
+		expect(html).toContain('name="view-transition"');
+		expect(html).toContain('content="same-origin"');
+	});
+
+	test("does not include view-transition meta tag when hasViewTransition is omitted", async () => {
+		const response = renderPage({
+			pageModule: {
+				defineSlots: () => ({}),
+			},
+			template: makeTemplate(<div />),
+			loaderData: {},
+		});
+
+		const html = await response.text();
+		expect(html).not.toContain('name="view-transition"');
+	});
+
 	test("passes loaderData to defineSlots", async () => {
 		const response = renderPage({
 			pageModule: {
