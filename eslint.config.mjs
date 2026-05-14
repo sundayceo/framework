@@ -590,6 +590,18 @@ export default defineConfig(
 	},
 
 	{
+		files: [
+			"**/routes/404.tsx",
+			"**/routes/404.test.tsx",
+			"**/routes/500.tsx",
+			"**/routes/500.test.tsx",
+		],
+		rules: {
+			"check-file/filename-naming-convention": "off",
+		},
+	},
+
+	{
 		files: ["**/*.mjs", "**/*.js", "**/*.cjs"],
 		extends: [tseslint.configs.disableTypeChecked],
 		rules: {

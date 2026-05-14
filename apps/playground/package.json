@@ -6,7 +6,8 @@
 	"scripts": {
 		"build": "echo 'SSR app - no client build'",
 		"check-types": "tsc --noEmit",
-		"dev": "vite"
+		"dev": "vite",
+		"test": "vitest run"
 	},
 	"dependencies": {
 		"@sundayceo/framework": "workspace:*",
@@ -18,6 +19,7 @@
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
 		"typescript": "catalog:",
-		"vite": "^8.0.13"
+		"vite": "^8.0.13",
+		"vitest": "catalog:"
 	}
 }
