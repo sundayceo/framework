@@ -13,14 +13,20 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "tsup",
+		"build": "tsup && node --import tsx/esm scripts/copy-templates.ts",
 		"check-types": "tsc --noEmit",
-		"dev": "tsup --watch"
+		"dev": "tsup --watch",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"@clack/prompts": "^0.11.0"
 	},
 	"devDependencies": {
 		"@sundayceo/typescript-config": "workspace:*",
 		"@types/node": "catalog:",
 		"tsup": "catalog:",
-		"typescript": "catalog:"
+		"tsx": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
 	}
 }
