@@ -48,7 +48,7 @@ function walkTree(
 }
 
 export function extractSlots(template: TemplateComponent): ExtractSlotsResult {
-	const tree = template({ head: null });
+	const tree = template({ head: null }) as ReactNode;
 
 	const slots: string[] = [];
 	const requiredSlots: string[] = [];
