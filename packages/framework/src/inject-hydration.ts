@@ -8,7 +8,7 @@ type InjectHydrationInput = {
 };
 
 function buildSlotPattern(slotId: string): RegExp {
-	return new RegExp(`(<div data-slot="${slotId}">)(.*?)(</div>)`, "s");
+	return new RegExp(`<div data-slot="${slotId}">(.*?)</div>`, "s");
 }
 
 function wrapWithBoundary(input: { content: string; slotId: string }): string {
@@ -43,7 +43,7 @@ export function injectHydration(input: InjectHydrationInput): string {
 
 	for (const slotId of interactiveSlotIds) {
 		const pattern = buildSlotPattern(slotId);
-		result = result.replace(pattern, (_match, _open, content: string, _close) => {
+		result = result.replace(pattern, (_match, content: string) => {
 			return wrapWithBoundary({ content, slotId });
 		});
 

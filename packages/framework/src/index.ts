@@ -17,10 +17,12 @@ export type {
 	TemplateRegistry,
 } from "./core/index";
 
+export { generateHydrationScript } from "./generate-hydration-script";
 export { handleRequest } from "./handle-request";
 export { generateRouteMap } from "./codegen-routes";
 export { generateTemplateRegistry } from "./codegen-templates";
 export { generateDeclarations } from "./generate-declarations";
+export { injectHydration } from "./inject-hydration";
 export { isInteractive } from "./interactivity-inference";
 export { matchRoute, type MatchResult } from "./route-matcher";
 export { resolveTemplate } from "./template-resolver";
