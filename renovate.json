@@ -1,71 +1,48 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    "helpers:pinGitHubActionDigests",
-    ":configMigration"
-  ],
-  "prConcurrentLimit": 3,
-  "branchConcurrentLimit": 3,
-  "prHourlyLimit": 5,
-  "minimumReleaseAge": "2 days",
-  "rebaseWhen": "never",
-  "labels": ["dependencies"],
-  "ignoreDeps": ["@sundayceo/*"],
-  "packageRules": [
-    {
-      "description": "React ecosystem",
-      "matchPackageNames": [
-        "react",
-        "react-dom",
-        "@types/react",
-        "@types/react-dom"
-      ],
-      "groupName": "react"
-    },
-    {
-      "description": "ESLint ecosystem",
-      "matchPackageNames": [
-        "eslint",
-        "@eslint/js",
-        "typescript-eslint",
-        "globals"
-      ],
-      "matchPackagePatterns": ["eslint-plugin-*"],
-      "groupName": "eslint"
-    },
-    {
-      "description": "Commitlint ecosystem",
-      "matchPackageNames": [
-        "@commitlint/cli",
-        "@commitlint/config-conventional"
-      ],
-      "groupName": "commitlint"
-    },
-    {
-      "description": "Group all remaining patch updates",
-      "matchUpdateTypes": ["patch"],
-      "groupName": "patch dependencies"
-    },
-    {
-      "description": "Group all remaining minor updates",
-      "matchUpdateTypes": ["minor"],
-      "groupName": "minor dependencies"
-    },
-    {
-      "description": "Skip minimum release age for fast-moving build tools",
-      "matchPackageNames": [
-        "vite",
-        "rolldown",
-        "@rolldown/*",
-        "rolldown-plugin-dts",
-        "tsx"
-      ],
-      "minimumReleaseAge": "0 days"
-    }
-  ],
-  "vulnerabilityAlerts": {
-    "enabled": true,
-    "labels": ["dependencies", "security"]
-  }
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["config:recommended", "helpers:pinGitHubActionDigests", ":configMigration"],
+	"prConcurrentLimit": 3,
+	"branchConcurrentLimit": 3,
+	"prHourlyLimit": 5,
+	"minimumReleaseAge": "2 days",
+	"rebaseWhen": "never",
+	"labels": ["dependencies"],
+	"ignoreDeps": ["@sundayceo/*"],
+	"packageRules": [
+		{
+			"description": "React ecosystem",
+			"matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"],
+			"groupName": "react"
+		},
+		{
+			"description": "ESLint ecosystem",
+			"matchPackageNames": ["eslint", "@eslint/js", "typescript-eslint", "globals"],
+			"matchPackagePatterns": ["eslint-plugin-*"],
+			"groupName": "eslint"
+		},
+		{
+			"description": "Commitlint ecosystem",
+			"matchPackageNames": ["@commitlint/cli", "@commitlint/config-conventional"],
+			"groupName": "commitlint"
+		},
+		{
+			"description": "Group all remaining patch updates",
+			"matchUpdateTypes": ["patch"],
+			"groupName": "patch dependencies"
+		},
+		{
+			"description": "Group all remaining minor updates",
+			"matchUpdateTypes": ["minor"],
+			"groupName": "minor dependencies"
+		},
+		{
+			"description": "Skip minimum release age for fast-moving build tools",
+			"matchPackageNames": ["vite", "rolldown", "@rolldown/*", "rolldown-plugin-dts", "tsx"],
+			"minimumReleaseAge": "0 days"
+		}
+	],
+	"vulnerabilityAlerts": {
+		"enabled": true,
+		"labels": ["dependencies", "security"]
+	}
 }
