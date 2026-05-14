@@ -76,8 +76,8 @@ describe("runLoader", () => {
 	test("handles async loaders", async () => {
 		const request = new Request("https://example.com/async");
 		const pageModule = {
-			loader: async (ctx: Context) => {
-				return { url: ctx.request.url };
+			loader: (ctx: Context) => {
+				return Promise.resolve({ url: ctx.request.url });
 			},
 		};
 
