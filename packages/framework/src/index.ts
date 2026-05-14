@@ -35,3 +35,5 @@ export {
 	redirect,
 } from "./throwable-response";
 export { validateSlots, type ValidationResult } from "./validate-slots";
+export { generateHydrationScript } from "./generate-hydration-script";
+export { injectHydration } from "./inject-hydration";
