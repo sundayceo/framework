@@ -24,6 +24,7 @@ export { matchRoute, type MatchResult } from "./route-matcher";
 export { resolveTemplate } from "./template-resolver";
 export { runLoader } from "./run-loader";
 export { scanRoutes, type RouteEntry } from "./route-scanner";
+export { renderPage } from "./render-page";
 export {
 	HttpErrorResponse,
 	RedirectResponse,
