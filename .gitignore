@@ -19,6 +19,9 @@ coverage
 # Build outputs
 dist
 
+# Generated files
+routes.gen.ts
+
 # Cloudflare
 .wrangler/
 .wrangler-shared

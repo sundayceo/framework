@@ -44,9 +44,9 @@ export function generateRouteMap(filePaths: string[]): string {
 
 	const lines = [
 		'declare module "@sundayceo/framework" {',
-		"  interface RouteMap {",
-		...routes.map((r) => `    "${r.route}": ${formatParamType(r.params)};`),
-		"  }",
+		"\tinterface RouteMap {",
+		...routes.map((r) => `\t\t"${r.route}": ${formatParamType(r.params)};`),
+		"\t}",
 		"}",
 		"",
 	];

@@ -26,12 +26,12 @@ export function generateRouteManifest(input: GenerateRouteManifestInput): string
 		.filter((f) => f.endsWith(".tsx"))
 		.map((f) => ({
 			name: f.replace(/\.tsx$/, ""),
-			filePath: f,
+			importPath: stripExtension(f),
 		}))
 		.sort((a, b) => a.name.localeCompare(b.name));
 
 	const templateLines = templateEntries.map(
-		(t) => `  ${t.name}: () => import("./templates/${stripExtension(t.filePath)}"),`,
+		(t) => `  ${t.name}: () => import("./templates/${t.importPath}"),`,
 	);
 
 	const lines = [
