@@ -12,14 +12,14 @@ Replaces both `createRequestHandler` and the `cloudflare` adapter. Accepts the c
 
 ```ts
 type HandlerOptions<TPlatform> = {
-  app: AppConfig<TPlatform>;
-  routes: GeneratedRoute[];
-  templates: GeneratedTemplates;
+	app: AppConfig<TPlatform>;
+	routes: GeneratedRoute[];
+	templates: GeneratedTemplates;
 };
 
-function createHandler<TPlatform>(
-  options: HandlerOptions<TPlatform>
-): { fetch(request: Request, platform?: TPlatform): Promise<Response> }
+function createHandler<TPlatform>(options: HandlerOptions<TPlatform>): {
+	fetch(request: Request, platform?: TPlatform): Promise<Response>;
+};
 ```
 
 Internally owns: route matching, module loading (unwraps dynamic imports), context assembly, page vs handler dispatch, the full render pipeline, and error page recovery with circuit breaker.
@@ -30,9 +30,9 @@ The context factory receives the platform context as its second argument:
 
 ```ts
 const app = createApp<{ env: Env; ctx: ExecutionContext }>({
-  context: (request, platform) => ({
-    db: platform.env.DB,
-  }),
+	context: (request, platform) => ({
+		db: platform.env.DB,
+	}),
 });
 ```
 
@@ -45,8 +45,9 @@ Each platform has a thin shim that maps its calling convention to `handler.fetch
 ```ts
 // entry.cloudflare.ts
 import handler from "@sundayceo/framework/server-entry";
+
 export default {
-  fetch: (req, env, ctx) => handler.fetch(req, { env, ctx }),
+	fetch: (req, env, ctx) => handler.fetch(req, { env, ctx }),
 };
 ```
 
