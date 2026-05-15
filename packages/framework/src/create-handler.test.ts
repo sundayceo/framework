@@ -2,13 +2,13 @@ import { describe, expect, test, vi } from "vitest";
 
 import type { PageModule, SlotMap, TemplateComponent } from "./core/index";
 import type { AppConfig } from "./create-app";
-import type { ErrorContext } from "./define-error-page";
 import {
 	createHandler,
 	type GeneratedErrorPages,
 	type GeneratedRoute,
 	type GeneratedTemplates,
 } from "./create-handler";
+import type { ErrorContext } from "./define-error-page";
 import { HttpErrorResponse, RedirectResponse } from "./throwable-response";
 
 const fakeTemplate: TemplateComponent = () => null;
@@ -333,11 +333,15 @@ describe("createHandler", () => {
 	});
 
 	describe("error pages", () => {
+		type MetaValue =
+			| { title?: string; description?: string }
+			| ((args: { loaderData: unknown }) => { title?: string; description?: string });
+
 		type ErrorPageModuleShape = {
 			template: string;
 			loader?: (ctx: { error: ErrorContext }) => unknown;
 			defineSlots: (args: { loaderData: unknown }) => SlotMap;
-			meta?: unknown;
+			meta?: MetaValue;
 		};
 
 		function makeErrorPageModule(overrides?: Partial<ErrorPageModuleShape>): ErrorPageModuleShape {
@@ -352,9 +356,7 @@ describe("createHandler", () => {
 			};
 		}
 
-		function makeErrorPages(
-			pages: Record<number, ErrorPageModuleShape>,
-		): GeneratedErrorPages {
+		function makeErrorPages(pages: Record<number, ErrorPageModuleShape>): GeneratedErrorPages {
 			const result: GeneratedErrorPages = {};
 			for (const [status, mod] of Object.entries(pages)) {
 				result[Number(status)] = () => Promise.resolve({ page: mod });
@@ -384,7 +386,9 @@ describe("createHandler", () => {
 			expect(response.status).toBe(500);
 			expect(response.headers.get("content-type")).toBe("text/html;charset=utf-8");
 			expect(errorPageModule.loader).toHaveBeenCalled();
-			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls.at(0)!.at(0);
+			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls
+				.at(0)!
+				.at(0);
 			expect(loaderArg.error.status).toBe(500);
 			expect(loaderArg.error.message).toBe("Internal Server Error");
 		});
@@ -404,7 +408,9 @@ describe("createHandler", () => {
 			expect(response.status).toBe(404);
 			expect(response.headers.get("content-type")).toBe("text/html;charset=utf-8");
 			expect(errorPageModule.loader).toHaveBeenCalled();
-			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls.at(0)!.at(0);
+			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls
+				.at(0)!
+				.at(0);
 			expect(loaderArg.error.status).toBe(404);
 			expect(loaderArg.error.message).toBe("Not Found");
 		});
