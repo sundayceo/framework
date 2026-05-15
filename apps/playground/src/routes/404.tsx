@@ -2,9 +2,8 @@ import React from "react";
 
 import { defineErrorPage } from "@sundayceo/framework";
 
-const NOT_FOUND = 404;
-
-export const page = defineErrorPage(NOT_FOUND)({
+// eslint-disable-next-line @typescript-eslint/no-magic-numbers
+export const page = defineErrorPage(404)({
 	template: "default",
 	defineSlots: () => ({
 		header: <h1>404</h1>,

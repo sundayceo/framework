@@ -2,9 +2,8 @@ import React from "react";
 
 import { defineErrorPage, type ErrorContext } from "@sundayceo/framework";
 
-const INTERNAL_SERVER_ERROR = 500;
-
-export const page = defineErrorPage(INTERNAL_SERVER_ERROR)({
+// eslint-disable-next-line @typescript-eslint/no-magic-numbers
+export const page = defineErrorPage(500)({
 	template: "default",
 	loader: (ctx: { error: ErrorContext }) => ({
 		message: ctx.error.message,
