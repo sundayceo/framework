@@ -15,8 +15,9 @@ test("createApp returns the config object unchanged", () => {
 test("createApp accepts config with onError handler", () => {
 	const config = {
 		context: (_req: Request) => ({ db: "connection" as const }),
-		onError: (_error: unknown, _req: Request) =>
-			new Response("Internal Server Error", { status: 500 }),
+		onError: (_error: unknown, _req: Request): void => {
+			// side-effect only
+		},
 	};
 	const app = createApp(config);
 
@@ -62,7 +63,7 @@ test("AppConfig type preserves custom context type parameter", () => {
 	>();
 
 	expectTypeOf<NonNullable<MyConfig["onError"]>>().toEqualTypeOf<
-		(error: unknown, request: Request) => Response | Promise<Response>
+		(error: unknown, request: Request) => void | Promise<void>
 	>();
 });
 

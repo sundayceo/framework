@@ -223,7 +223,7 @@ describe("createRequestHandler", () => {
 		expect(body).toContain("Not Found");
 	});
 
-	test("unknown error uses onError if provided", async () => {
+	test("unknown error calls onError as side-effect then returns 500", async () => {
 		const thrownError = new Error("boom");
 		const getHandler = vi.fn().mockImplementation(() => {
 			throw thrownError;
@@ -231,7 +231,7 @@ describe("createRequestHandler", () => {
 		const handlerModule = makeHandlerModule({ GET: getHandler });
 		const loadRouteModule = vi.fn().mockResolvedValue(handlerModule);
 
-		const onError = vi.fn().mockReturnValue(new Response("custom error", { status: 503 }));
+		const onError = vi.fn();
 
 		const handler = createRequestHandler({
 			app: makeApp({ onError }),
@@ -244,7 +244,7 @@ describe("createRequestHandler", () => {
 		const response = await handler(request);
 
 		expect(onError).toHaveBeenCalledWith(thrownError, request);
-		expect(response.status).toBe(503);
+		expect(response.status).toBe(500);
 	});
 
 	test("unknown error falls back to 500 without onError", async () => {

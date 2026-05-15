@@ -3,7 +3,7 @@ export type AppConfig<
 	TPlatform = unknown,
 > = {
 	context: (request: Request, platform?: TPlatform) => TCustom | Promise<TCustom>;
-	onError?: (error: unknown, request: Request) => Response | Promise<Response>;
+	onError?: (error: unknown, request: Request) => void | Promise<void>;
 };
 
 export function createApp<

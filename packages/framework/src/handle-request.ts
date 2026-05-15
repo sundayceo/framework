@@ -6,7 +6,7 @@ type ErrorPageRenderer = () => Response;
 type HandleRequestInput = {
 	request: Request;
 	render: () => Response | Promise<Response>;
-	onError?: (error: unknown, request: Request) => Response | Promise<Response>;
+	onError?: (error: unknown, request: Request) => void | Promise<void>;
 	errorPages?: Record<number, ErrorPageRenderer>;
 };
 
@@ -17,7 +17,7 @@ export function handleRequest(input: HandleRequestInput): Promise<Response> {
 
 	return new Promise<Response>((resolve) => {
 		resolve(render());
-	}).catch((error: unknown) => {
+	}).catch(async (error: unknown) => {
 		if (isRedirectResponse(error)) {
 			return error.response;
 		}
@@ -27,7 +27,12 @@ export function handleRequest(input: HandleRequestInput): Promise<Response> {
 		}
 
 		if (onError !== undefined) {
-			return onError(error, request);
+			try {
+				await onError(error, request);
+			} catch (onErrorError) {
+				// eslint-disable-next-line no-console
+				console.error("onError hook failed:", onErrorError);
+			}
 		}
 
 		return resolveErrorPage({ status: INTERNAL_SERVER_ERROR, errorPages });
