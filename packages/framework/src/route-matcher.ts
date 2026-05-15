@@ -1,7 +1,7 @@
-import type { RouteEntry } from "./route-scanner";
+import type { MatchableRoute } from "./route-scanner";
 
-type MatchResult = {
-	route: RouteEntry;
+type MatchResult<T extends MatchableRoute = MatchableRoute> = {
+	route: T;
 	params: Record<string, string>;
 };
 
@@ -12,7 +12,7 @@ const normalize = (path: string): string => {
 	return path.endsWith("/") ? path.slice(0, -1) : path;
 };
 
-const tryMatch = (url: string, route: RouteEntry): MatchResult | null => {
+function tryMatch<T extends MatchableRoute>(url: string, route: T): MatchResult<T> | null {
 	const urlSegments = url.split("/").filter(Boolean);
 	const patternSegments = route.pattern.split("/").filter(Boolean);
 
@@ -34,9 +34,9 @@ const tryMatch = (url: string, route: RouteEntry): MatchResult | null => {
 	}
 
 	return { route, params };
-};
+}
 
-const matchRoute = (url: string, routes: RouteEntry[]): MatchResult | null => {
+function matchRoute<T extends MatchableRoute>(url: string, routes: T[]): MatchResult<T> | null {
 	const normalizedUrl = normalize(url);
 
 	for (const route of routes) {
@@ -47,6 +47,6 @@ const matchRoute = (url: string, routes: RouteEntry[]): MatchResult | null => {
 	}
 
 	return null;
-};
+}
 
 export { matchRoute, type MatchResult };
