@@ -2,7 +2,13 @@ import { describe, expect, test, vi } from "vitest";
 
 import type { PageModule, TemplateComponent } from "./core/index";
 import type { AppConfig } from "./create-app";
-import { createHandler, type GeneratedRoute, type GeneratedTemplates } from "./create-handler";
+import type { ErrorContext } from "./define-error-page";
+import {
+	createHandler,
+	type GeneratedErrorPages,
+	type GeneratedRoute,
+	type GeneratedTemplates,
+} from "./create-handler";
 import { HttpErrorResponse, RedirectResponse } from "./throwable-response";
 
 const fakeTemplate: TemplateComponent = () => null;
@@ -177,7 +183,7 @@ describe("createHandler", () => {
 		expect(body).toContain("Not Found");
 	});
 
-	test("unhandled error calls onError when provided", async () => {
+	test("unhandled error calls onError as side-effect then returns 500", async () => {
 		const thrownError = new Error("boom");
 		const getHandler = vi.fn().mockImplementation(() => {
 			throw thrownError;
@@ -187,7 +193,7 @@ describe("createHandler", () => {
 			load: vi.fn().mockResolvedValue({ GET: getHandler }),
 		});
 
-		const onError = vi.fn().mockReturnValue(new Response("custom error", { status: 503 }));
+		const onError = vi.fn();
 
 		const handler = createHandler({
 			app: makeApp({ onError }),
@@ -199,7 +205,9 @@ describe("createHandler", () => {
 		const response = await handler.fetch(request);
 
 		expect(onError).toHaveBeenCalledWith(thrownError, request);
-		expect(response.status).toBe(503);
+		expect(response.status).toBe(500);
+		const body = await response.text();
+		expect(body).toContain("Internal Server Error");
 	});
 
 	test("unhandled error returns 500 bare HTML without onError", async () => {
@@ -322,5 +330,227 @@ describe("createHandler", () => {
 		const response = await handler.fetch(new Request("https://example.com/api/test"));
 
 		expect(await response.text()).toBe("direct");
+	});
+
+	describe("error pages", () => {
+		type ErrorPageModuleShape = {
+			template: string;
+			loader?: (ctx: { error: ErrorContext }) => unknown;
+			defineSlots: (args: { loaderData: unknown }) => Record<string, unknown>;
+			meta?: unknown;
+		};
+
+		function makeErrorPageModule(overrides?: Partial<ErrorPageModuleShape>): ErrorPageModuleShape {
+			return {
+				template: "default",
+				loader: vi.fn(({ error }: { error: ErrorContext }) => ({
+					title: `${error.status} Error`,
+					message: error.message,
+				})),
+				defineSlots: vi.fn().mockReturnValue({}),
+				...overrides,
+			};
+		}
+
+		function makeErrorPages(
+			pages: Record<number, ErrorPageModuleShape>,
+		): GeneratedErrorPages {
+			const result: GeneratedErrorPages = {};
+			for (const [status, mod] of Object.entries(pages)) {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				result[Number(status)] = () => Promise.resolve({ page: mod as any });
+			}
+			return result;
+		}
+
+		test("500 error renders through error page when errorPages provided", async () => {
+			const errorPageModule = makeErrorPageModule();
+			const getHandler = vi.fn().mockImplementation(() => {
+				throw new Error("boom");
+			});
+			const route = makeRoute({
+				pattern: "/api/data",
+				load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			});
+
+			const handler = createHandler({
+				app: makeApp(),
+				routes: [route],
+				templates: makeTemplates(),
+				errorPages: makeErrorPages({ 500: errorPageModule }),
+			});
+
+			const response = await handler.fetch(new Request("https://example.com/api/data"));
+
+			expect(response.status).toBe(500);
+			expect(response.headers.get("content-type")).toBe("text/html;charset=utf-8");
+			expect(errorPageModule.loader).toHaveBeenCalled();
+			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls[0]![0];
+			expect(loaderArg.error.status).toBe(500);
+			expect(loaderArg.error.message).toBe("Internal Server Error");
+		});
+
+		test("404 renders through error page when errorPages has 404 entry", async () => {
+			const errorPageModule = makeErrorPageModule();
+
+			const handler = createHandler({
+				app: makeApp(),
+				routes: [],
+				templates: makeTemplates(),
+				errorPages: makeErrorPages({ 404: errorPageModule }),
+			});
+
+			const response = await handler.fetch(new Request("https://example.com/unknown"));
+
+			expect(response.status).toBe(404);
+			expect(response.headers.get("content-type")).toBe("text/html;charset=utf-8");
+			expect(errorPageModule.loader).toHaveBeenCalled();
+			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls[0]![0];
+			expect(loaderArg.error.status).toBe(404);
+			expect(loaderArg.error.message).toBe("Not Found");
+		});
+
+		test("circuit breaker: error page that throws falls back to bare HTML", async () => {
+			const brokenErrorPage = makeErrorPageModule({
+				loader: vi.fn().mockImplementation(() => {
+					throw new Error("error page broke");
+				}),
+			});
+			const getHandler = vi.fn().mockImplementation(() => {
+				throw new Error("boom");
+			});
+			const route = makeRoute({
+				pattern: "/api/data",
+				load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			});
+
+			const handler = createHandler({
+				app: makeApp(),
+				routes: [route],
+				templates: makeTemplates(),
+				errorPages: makeErrorPages({ 500: brokenErrorPage }),
+			});
+
+			const response = await handler.fetch(new Request("https://example.com/api/data"));
+
+			expect(response.status).toBe(500);
+			const body = await response.text();
+			expect(body).toContain("Internal Server Error");
+		});
+
+		test("onError called as side-effect before error page renders", async () => {
+			const callOrder: string[] = [];
+			const errorPageModule = makeErrorPageModule({
+				loader: vi.fn().mockImplementation(() => {
+					callOrder.push("loader");
+					return { title: "Error" };
+				}),
+			});
+			const thrownError = new Error("boom");
+			const getHandler = vi.fn().mockImplementation(() => {
+				throw thrownError;
+			});
+			const route = makeRoute({
+				pattern: "/api/data",
+				load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			});
+
+			const onError = vi.fn().mockImplementation(() => {
+				callOrder.push("onError");
+			});
+
+			const handler = createHandler({
+				app: makeApp({ onError }),
+				routes: [route],
+				templates: makeTemplates(),
+				errorPages: makeErrorPages({ 500: errorPageModule }),
+			});
+
+			const request = new Request("https://example.com/api/data");
+			const response = await handler.fetch(request);
+
+			expect(onError).toHaveBeenCalledWith(thrownError, request);
+			expect(callOrder).toEqual(["onError", "loader"]);
+			expect(response.status).toBe(500);
+			expect(errorPageModule.defineSlots).toHaveBeenCalled();
+		});
+
+		test("onError throwing does not prevent error page rendering", async () => {
+			const errorPageModule = makeErrorPageModule();
+			const getHandler = vi.fn().mockImplementation(() => {
+				throw new Error("boom");
+			});
+			const route = makeRoute({
+				pattern: "/api/data",
+				load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			});
+
+			const onError = vi.fn().mockImplementation(() => {
+				throw new Error("onError broke");
+			});
+
+			const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+			const handler = createHandler({
+				app: makeApp({ onError }),
+				routes: [route],
+				templates: makeTemplates(),
+				errorPages: makeErrorPages({ 500: errorPageModule }),
+			});
+
+			const response = await handler.fetch(new Request("https://example.com/api/data"));
+
+			expect(response.status).toBe(500);
+			expect(errorPageModule.loader).toHaveBeenCalled();
+			expect(consoleSpy).toHaveBeenCalled();
+
+			consoleSpy.mockRestore();
+		});
+
+		test("falls back to bare HTML when no custom error page for status", async () => {
+			const getHandler = vi.fn().mockImplementation(() => {
+				throw new Error("boom");
+			});
+			const route = makeRoute({
+				pattern: "/api/data",
+				load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			});
+
+			const handler = createHandler({
+				app: makeApp(),
+				routes: [route],
+				templates: makeTemplates(),
+				errorPages: {},
+			});
+
+			const response = await handler.fetch(new Request("https://example.com/api/data"));
+
+			expect(response.status).toBe(500);
+			const body = await response.text();
+			expect(body).toContain("Internal Server Error");
+		});
+
+		test("httpError thrown renders through error page pipeline", async () => {
+			const errorPageModule = makeErrorPageModule();
+			const getHandler = vi.fn().mockImplementation(() => {
+				throw new HttpErrorResponse(404);
+			});
+			const route = makeRoute({
+				pattern: "/api/data",
+				load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			});
+
+			const handler = createHandler({
+				app: makeApp(),
+				routes: [route],
+				templates: makeTemplates(),
+				errorPages: makeErrorPages({ 404: errorPageModule }),
+			});
+
+			const response = await handler.fetch(new Request("https://example.com/api/data"));
+
+			expect(response.status).toBe(404);
+			expect(errorPageModule.loader).toHaveBeenCalled();
+		});
 	});
 });
