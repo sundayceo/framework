@@ -5,6 +5,7 @@ import { frameworkPlugin } from "./vite-plugin";
 const VIRTUAL_MODULE_ID = "@sundayceo/framework/server-entry";
 const RESOLVED_VIRTUAL_MODULE_ID = "\0@sundayceo/framework/server-entry";
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function createPlugin() {
 	const plugin = frameworkPlugin();
 	// Simulate configResolved so srcDir is set
