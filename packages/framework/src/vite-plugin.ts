@@ -45,19 +45,10 @@ export function frameworkPlugin(): Plugin {
 			srcDir = path.join(config.root, "src");
 		},
 
-		resolveId(source: string) {
-			if (source === VIRTUAL_MODULE_ID) {
-				return RESOLVED_VIRTUAL_MODULE_ID;
-			}
-			return undefined;
-		},
+		resolveId: (source: string) =>
+			source === VIRTUAL_MODULE_ID ? RESOLVED_VIRTUAL_MODULE_ID : undefined,
 
-		load(id: string) {
-			if (id === RESOLVED_VIRTUAL_MODULE_ID) {
-				return generateServerEntry();
-			}
-			return undefined;
-		},
+		load: (id: string) => (id === RESOLVED_VIRTUAL_MODULE_ID ? generateServerEntry() : undefined),
 
 		buildStart() {
 			writeCodegen(srcDir);
