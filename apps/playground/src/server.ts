@@ -1,4 +1,9 @@
-import { createRequestHandler } from "@sundayceo/framework";
+import {
+	createRequestHandler,
+	type HandlerModule,
+	type PageModule,
+	type TemplateComponent,
+} from "@sundayceo/framework";
 
 import { app } from "./app";
 import { routes, templates } from "./routes.gen";
@@ -9,17 +14,42 @@ function isTemplateId(id: string): id is TemplateId {
 	return id in templates;
 }
 
-function loadTemplate(id: string) {
-	if (!isTemplateId(id)) {
-		return Promise.reject(new Error(`Unknown template: ${id}`));
+function isPageModule(value: unknown): value is PageModule {
+	return typeof value === "object" && value !== null && "template" in value;
+}
+
+function isHandlerModule(value: unknown): value is HandlerModule {
+	if (typeof value !== "object" || value === null) {
+		return false;
 	}
-	return templates[id]().then((m) => m.default);
+	const methods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+	return methods.some((m) => m in value);
+}
+
+function pickRouteModule(mod: Record<string, unknown>): PageModule | HandlerModule {
+	for (const value of Object.values(mod)) {
+		if (isPageModule(value)) {
+			return value;
+		}
+		if (isHandlerModule(value)) {
+			return value;
+		}
+	}
+	throw new Error("Route module must export a page or handler");
+}
+
+async function loadTemplate(id: string): Promise<TemplateComponent> {
+	if (!isTemplateId(id)) {
+		throw new Error(`Unknown template: ${id}`);
+	}
+	const mod = await templates[id]();
+	return mod.default;
 }
 
 const handler = createRequestHandler({
 	app,
 	getRoutes: () => routes,
-	loadRouteModule: (route) => route.load(),
+	loadRouteModule: async (route) => pickRouteModule(await route.load()),
 	loadTemplate,
 });
 

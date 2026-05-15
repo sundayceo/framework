@@ -586,7 +586,7 @@ export default defineConfig(
 	},
 
 	{
-		files: ["**/templates/**/*.tsx"],
+		files: ["**/templates/**/*.tsx", "**/server.ts"],
 		rules: {
 			"no-restricted-exports": "off",
 		},
