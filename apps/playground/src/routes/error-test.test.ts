@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 
 import { handleRequest, HttpErrorResponse } from "@sundayceo/framework";
 
-import { handler } from "./error-test";
+import handler from "./error-test";
 
 const NOT_FOUND = 404;
 

@@ -1,5 +1,6 @@
 import { expect, expectTypeOf, test } from "vitest";
 
+import { RouteKind } from "./core/index";
 import { defineErrorPage, type ErrorContext } from "./define-error-page";
 
 declare module "./index" {
@@ -9,7 +10,7 @@ declare module "./index" {
 	}
 }
 
-test("defineErrorPage returns the config unchanged (runtime identity)", () => {
+test("defineErrorPage stamps RouteKind brand on the config", () => {
 	const config = {
 		template: "marketing" as const,
 		loader: () => ({ heading: "Not Found" }),
@@ -18,7 +19,10 @@ test("defineErrorPage returns the config unchanged (runtime identity)", () => {
 
 	const result = defineErrorPage(404)(config);
 
-	expect(result).toBe(config);
+	expect(result[RouteKind]).toBe("page");
+	expect(result.template).toBe(config.template);
+	expect(result.loader).toBe(config.loader);
+	expect(result.defineSlots).toBe(config.defineSlots);
 });
 
 test("loader receives non-optional error: ErrorContext", () => {

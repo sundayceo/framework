@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { handler } from "./health";
+import handler from "./health";
 
 const HTTP_OK = 200;
 

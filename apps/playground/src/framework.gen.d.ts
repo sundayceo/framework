@@ -9,8 +9,6 @@ declare module "@sundayceo/framework" {
 declare module "@sundayceo/framework" {
 	interface RouteMap {
 		"/": {};
-		"/404": {};
-		"/500": {};
 		"/api/health": {};
 		"/demo": {};
 		"/error-test": {};

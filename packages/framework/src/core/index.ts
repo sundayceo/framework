@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
 
+export const RouteKind = Symbol.for("sundayceo.routeKind");
+export type RouteKind = typeof RouteKind;
+
 export type Context<
 	TParams extends Record<string, string> = Record<string, string>,
 	TCustom extends Record<string, unknown> = CustomContext,
@@ -18,6 +21,7 @@ export type PageModule<
 	TCustom extends Record<string, unknown> = Record<string, unknown>,
 	TLoaderData = unknown,
 > = {
+	[RouteKind]: "page";
 	template: TTemplate;
 	loader: (ctx: Context<TParams, TCustom>) => TLoaderData | Promise<TLoaderData>;
 	defineSlots: (args: { loaderData: TLoaderData }) => SlotMap;
@@ -35,6 +39,7 @@ export type HandlerModule<
 	TParams extends Record<string, string> = Record<string, string>,
 	TCustom extends Record<string, unknown> = CustomContext,
 > = {
+	[RouteKind]: "handler";
 	GET?: MethodHandler<TParams, TCustom>;
 	POST?: MethodHandler<TParams, TCustom>;
 	PUT?: MethodHandler<TParams, TCustom>;

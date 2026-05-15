@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 
 import { handleRequest, RedirectResponse } from "@sundayceo/framework";
 
-import { handler } from "./redirect-test";
+import handler from "./redirect-test";
 
 const REDIRECT_STATUS = 302;
 

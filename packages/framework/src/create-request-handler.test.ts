@@ -1,6 +1,11 @@
 import { describe, expect, test, vi } from "vitest";
 
-import type { HandlerModule, PageModule, TemplateComponent } from "./core/index";
+import {
+	RouteKind,
+	type HandlerModule,
+	type PageModule,
+	type TemplateComponent,
+} from "./core/index";
 import type { AppConfig } from "./create-app";
 import { createRequestHandler } from "./create-request-handler";
 import type { RouteEntry } from "./route-scanner";
@@ -26,6 +31,7 @@ const handlerRoute: RouteEntry = {
 
 function makePageModule(overrides?: Partial<PageModule>): PageModule {
 	return {
+		[RouteKind]: "page",
 		template: "default",
 		loader: vi.fn().mockResolvedValue({ title: "Hello" }),
 		defineSlots: vi.fn().mockReturnValue({}),
@@ -35,6 +41,7 @@ function makePageModule(overrides?: Partial<PageModule>): PageModule {
 
 function makeHandlerModule(methods: Partial<HandlerModule> = {}): HandlerModule {
 	return {
+		[RouteKind]: "handler",
 		GET: vi.fn().mockResolvedValue(new Response("ok")),
 		...methods,
 	};

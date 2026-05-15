@@ -1,4 +1,4 @@
-import type { SlotMap, TemplateRegistry } from "./core/index";
+import { RouteKind, type SlotMap, type TemplateRegistry } from "./core/index";
 
 export type ErrorContext = {
 	status: number;
@@ -30,10 +30,13 @@ type ErrorPageConfigWithoutLoader<TTemplate extends keyof TemplateRegistry> = {
 export function defineErrorPage(_status: number): {
 	<TTemplate extends keyof TemplateRegistry, TLoaderData>(
 		config: ErrorPageConfigWithLoader<TTemplate, TLoaderData>,
-	): ErrorPageConfigWithLoader<TTemplate, TLoaderData>;
+	): ErrorPageConfigWithLoader<TTemplate, TLoaderData> & { [RouteKind]: "page" };
 	<TTemplate extends keyof TemplateRegistry>(
 		config: ErrorPageConfigWithoutLoader<TTemplate>,
-	): ErrorPageConfigWithoutLoader<TTemplate>;
+	): ErrorPageConfigWithoutLoader<TTemplate> & { [RouteKind]: "page" };
 } {
-	return <T>(config: T): T => config;
+	return <T>(config: T): T & { [RouteKind]: "page" } => ({
+		...config,
+		[RouteKind]: "page" as const,
+	});
 }

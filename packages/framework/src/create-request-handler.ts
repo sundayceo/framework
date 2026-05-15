@@ -1,4 +1,10 @@
-import type { Context, HandlerModule, PageModule, TemplateComponent } from "./core/index";
+import {
+	RouteKind,
+	type Context,
+	type HandlerModule,
+	type PageModule,
+	type TemplateComponent,
+} from "./core/index";
 import type { AppConfig } from "./create-app";
 import { handleRequest } from "./handle-request";
 import { renderPage } from "./render-page";
@@ -19,10 +25,12 @@ const NOT_FOUND = 404;
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"]);
 
 function isPageModule(module: PageModule | HandlerModule): module is PageModule {
-	return "template" in module;
+	return module[RouteKind] === "page";
 }
 
-function isHttpMethod(method: string): method is keyof HandlerModule {
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+function isHttpMethod(method: string): method is HttpMethod {
 	return HTTP_METHODS.has(method);
 }
 

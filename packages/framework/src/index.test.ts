@@ -6,6 +6,7 @@ import {
 	type Context,
 	type HandlerModule,
 	type PageModule,
+	type RouteKind,
 	type RouteMap,
 	type SlotMap,
 	type TemplateComponent,
@@ -52,9 +53,10 @@ test("TemplateComponent accepts head prop with ReactNode", () => {
 	expectTypeOf<TemplateComponent>().toEqualTypeOf<React.FC<{ head: React.ReactNode }>>();
 });
 
-test("PageModule has template, loader, defineSlots, and meta", () => {
+test("PageModule has RouteKind, template, loader, defineSlots, and meta", () => {
 	type Page = PageModule<"default", { id: string }, Record<string, unknown>, { title: string }>;
 
+	expectTypeOf<Page[RouteKind]>().toEqualTypeOf<"page">();
 	expectTypeOf<Page["template"]>().toEqualTypeOf<"default">();
 	expectTypeOf<Page["loader"]>().toBeFunction();
 	expectTypeOf<Page["defineSlots"]>().toBeFunction();
@@ -65,9 +67,10 @@ test("PageModule has template, loader, defineSlots, and meta", () => {
 	>();
 });
 
-test("HandlerModule has HTTP method handlers", () => {
+test("HandlerModule has RouteKind and HTTP method handlers", () => {
 	type Handler = HandlerModule<{ id: string }>;
 
+	expectTypeOf<Handler[RouteKind]>().toEqualTypeOf<"handler">();
 	expectTypeOf<NonNullable<Handler["GET"]>>().toBeFunction();
 	expectTypeOf<NonNullable<Handler["POST"]>>().toBeFunction();
 	expectTypeOf<NonNullable<Handler["PUT"]>>().toBeFunction();
