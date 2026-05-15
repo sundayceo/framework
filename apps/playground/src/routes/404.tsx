@@ -1,8 +1,8 @@
 import React from "react";
 
-import { definePage } from "@sundayceo/framework";
+import { defineErrorPage } from "@sundayceo/framework";
 
-export const page = definePage("/404")({
+export const page = defineErrorPage(404)({
 	template: "default",
 	defineSlots: () => ({
 		header: <h1>404</h1>,
