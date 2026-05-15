@@ -61,10 +61,11 @@ const isRouteFile = (fp: string): boolean => hasRouteExtension(fp) && !TEST_PATT
 
 const getErrorStatus = (filePath: string): number | null => {
 	const match = ERROR_PAGE_PATTERN.exec(filePath);
-	if (match === null) {
+	const status = match?.at(1);
+	if (status === undefined) {
 		return null;
 	}
-	return Number(match[1]);
+	return Number(status);
 };
 
 const scanRoutes = (filePaths: string[]): ScanResult => {
