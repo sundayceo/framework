@@ -10,7 +10,7 @@ describe("generateRouteManifest", () => {
 		});
 
 		expect(result).toContain(
-			'{ pattern: "/", params: [], load: () => import("./routes/index.tsx") },',
+			'{ pattern: "/", params: [], load: () => import("./routes/index") },',
 		);
 	});
 
@@ -21,7 +21,7 @@ describe("generateRouteManifest", () => {
 		});
 
 		expect(result).toContain(
-			'{ pattern: "/api/health", params: [], load: () => import("./routes/api/health.tsx") },',
+			'{ pattern: "/api/health", params: [], load: () => import("./routes/api/health") },',
 		);
 	});
 
@@ -32,7 +32,7 @@ describe("generateRouteManifest", () => {
 		});
 
 		expect(result).toContain(
-			'{ pattern: "/blog/:slug", params: ["slug"], load: () => import("./routes/blog/[slug].tsx") },',
+			'{ pattern: "/blog/:slug", params: ["slug"], load: () => import("./routes/blog/[slug]") },',
 		);
 	});
 
@@ -56,7 +56,7 @@ describe("generateRouteManifest", () => {
 			templatePaths: ["default.tsx"],
 		});
 
-		expect(result).toContain('default: () => import("./templates/default.tsx"),');
+		expect(result).toContain('default: () => import("./templates/default"),');
 	});
 
 	test("generates complete valid output", () => {
@@ -68,13 +68,13 @@ describe("generateRouteManifest", () => {
 		const expected = [
 			"// src/routes.gen.ts (generated — do not edit)",
 			"export const routes = [",
-			'  { pattern: "/", params: [], load: () => import("./routes/index.tsx") },',
-			'  { pattern: "/api/health", params: [], load: () => import("./routes/api/health.tsx") },',
-			'  { pattern: "/demo", params: [], load: () => import("./routes/demo.tsx") },',
+			'  { pattern: "/", params: [], load: () => import("./routes/index") },',
+			'  { pattern: "/api/health", params: [], load: () => import("./routes/api/health") },',
+			'  { pattern: "/demo", params: [], load: () => import("./routes/demo") },',
 			"];",
 			"",
 			"export const templates = {",
-			'  default: () => import("./templates/default.tsx"),',
+			'  default: () => import("./templates/default"),',
 			"};",
 			"",
 		].join("\n");
@@ -89,7 +89,7 @@ describe("generateRouteManifest", () => {
 		});
 
 		expect(result).toContain(
-			'{ pattern: "/products/:category/:id", params: ["category", "id"], load: () => import("./routes/products/[category]/[id].tsx") },',
+			'{ pattern: "/products/:category/:id", params: ["category", "id"], load: () => import("./routes/products/[category]/[id]") },',
 		);
 	});
 

@@ -5,6 +5,8 @@ type GenerateRouteManifestInput = {
 	templatePaths: string[];
 };
 
+const stripExtension = (filePath: string): string => filePath.replace(/\.tsx$/, "");
+
 function formatParams(params: string[]): string {
 	if (params.length === 0) {
 		return "[]";
@@ -17,7 +19,7 @@ export function generateRouteManifest(input: GenerateRouteManifestInput): string
 
 	const routeLines = entries.map(
 		(entry) =>
-			`  { pattern: "${entry.pattern}", params: ${formatParams(entry.params)}, load: () => import("./routes/${entry.filePath}") },`,
+			`  { pattern: "${entry.pattern}", params: ${formatParams(entry.params)}, load: () => import("./routes/${stripExtension(entry.filePath)}") },`,
 	);
 
 	const templateEntries = input.templatePaths
@@ -29,7 +31,7 @@ export function generateRouteManifest(input: GenerateRouteManifestInput): string
 		.sort((a, b) => a.name.localeCompare(b.name));
 
 	const templateLines = templateEntries.map(
-		(t) => `  ${t.name}: () => import("./templates/${t.filePath}"),`,
+		(t) => `  ${t.name}: () => import("./templates/${stripExtension(t.filePath)}"),`,
 	);
 
 	const lines = [
