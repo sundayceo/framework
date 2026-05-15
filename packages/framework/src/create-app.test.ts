@@ -69,7 +69,7 @@ test("omitting TPlatform defaults platform to unknown", () => {
 	type DefaultConfig = AppConfig<{ value: number }>;
 
 	expectTypeOf<Parameters<DefaultConfig["context"]>>().toEqualTypeOf<
-		[Request, (unknown | undefined)?]
+		[Request, unknown?]
 	>();
 });
 
@@ -86,7 +86,7 @@ test("context factory receives typed platform as second arg", () => {
 test("platform type flows from createApp generic to context factory", () => {
 	type Env = { API_KEY: string };
 
-	const app = createApp<Env>({
+	const _app = createApp<Env>({
 		context: (_req, platform) => ({
 			key: platform?.API_KEY ?? "",
 		}),
