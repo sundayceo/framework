@@ -40,9 +40,7 @@ function makeHandlerModule(methods: Partial<HandlerModule> = {}): HandlerModule 
 	};
 }
 
-function makeApp(
-	overrides?: Partial<AppConfig>,
-): AppConfig {
+function makeApp(overrides?: Partial<AppConfig>): AppConfig {
 	return {
 		context: vi.fn().mockResolvedValue({}),
 		...overrides,
