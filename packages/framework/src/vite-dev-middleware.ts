@@ -6,7 +6,7 @@ import type { ViteDevServer } from "vite";
 
 import type { HandlerModule, PageModule, TemplateComponent } from "./core/index";
 import type { AppConfig } from "./create-app";
-import { createRequestHandler } from "./create-request-handler";
+import type { RequestHandlerOptions } from "./create-request-handler";
 import { scanRoutes, type RouteEntry } from "./route-scanner";
 
 const PROTOCOL = "http";
@@ -229,11 +229,29 @@ type HandleInput = {
 	next: () => void;
 };
 
+type CreateRequestHandlerFn = (
+	options: RequestHandlerOptions,
+) => (request: Request) => Promise<Response>;
+
+function isCreateRequestHandlerFn(value: unknown): value is CreateRequestHandlerFn {
+	return typeof value === "function";
+}
+
+async function loadCreateRequestHandler(server: ViteDevServer): Promise<CreateRequestHandlerFn> {
+	const mod: Record<string, unknown> = await server.ssrLoadModule("@sundayceo/framework");
+	const fn = mod.createRequestHandler;
+	if (!isCreateRequestHandlerFn(fn)) {
+		throw new Error("@sundayceo/framework must export createRequestHandler");
+	}
+	return fn;
+}
+
 async function dispatchRequest(input: HandleInput): Promise<void> {
 	const { server, srcDir, routes, req, res, next } = input;
 	try {
 		const app = await loadAppConfig({ server, srcDir });
-		const handler = createRequestHandler({
+		const createHandler = await loadCreateRequestHandler(server);
+		const handler = createHandler({
 			app,
 			getRoutes: () => routes,
 			loadRouteModule: createRouteModuleLoader({ server, srcDir }),
