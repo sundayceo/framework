@@ -51,6 +51,14 @@ After the PR is opened, the agent's job is done. CI runs automatically and, on
 success, the `ci-status-labels` workflow removes `in-progress` and adds
 `ready-for-review` to the linked issue. Do not wait for CI or merge the PR.
 
+## 7. Clean up
+
+If you worked in a git worktree, remove it after the PR is merged:
+
+```sh
+git worktree remove <path>
+```
+
 ## Escalation: underspecified issues
 
 If the issue is underspecified or touches unclear domain territory, **do not
