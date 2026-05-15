@@ -4,13 +4,13 @@ import { handleRequest } from "./handle-request";
 import { renderPage } from "./render-page";
 import { resolveErrorPage } from "./resolve-error-page";
 import { matchRoute, type MatchResult } from "./route-matcher";
-import type { RouteEntry } from "./route-scanner";
+import type { MatchableRoute } from "./route-scanner";
 import { runLoader } from "./run-loader";
 
-type RequestHandlerOptions = {
+type RequestHandlerOptions<T extends MatchableRoute = MatchableRoute> = {
 	app: AppConfig<Record<string, unknown>>;
-	getRoutes: () => RouteEntry[];
-	loadRouteModule: (route: RouteEntry) => Promise<PageModule | HandlerModule>;
+	getRoutes: () => T[];
+	loadRouteModule: (route: T) => Promise<PageModule | HandlerModule>;
 	loadTemplate: (templateId: string) => Promise<TemplateComponent>;
 };
 
@@ -27,8 +27,8 @@ function isHttpMethod(method: string): method is keyof HandlerModule {
 	return HTTP_METHODS.has(method);
 }
 
-type RouteHandlerInput = {
-	match: MatchResult;
+type RouteHandlerInput<T extends MatchableRoute = MatchableRoute> = {
+	match: MatchResult<T>;
 	request: Request;
 	appContext: Record<string, unknown>;
 	onError: AppConfig<Record<string, unknown>>["onError"];
@@ -85,8 +85,8 @@ function handleHandlerRoute(
 	});
 }
 
-function createRequestHandler(
-	options: RequestHandlerOptions,
+function createRequestHandler<T extends MatchableRoute>(
+	options: RequestHandlerOptions<T>,
 ): (request: Request) => Promise<Response> {
 	const { app, getRoutes, loadRouteModule, loadTemplate } = options;
 
@@ -101,7 +101,7 @@ function createRequestHandler(
 		const routeModule = await loadRouteModule(match.route);
 		const appContext = await app.context(request);
 
-		const input: RouteHandlerInput = { match, request, appContext, onError: app.onError };
+		const input: RouteHandlerInput<T> = { match, request, appContext, onError: app.onError };
 
 		if (isPageModule(routeModule)) {
 			return handlePageRoute(routeModule, loadTemplate, input);

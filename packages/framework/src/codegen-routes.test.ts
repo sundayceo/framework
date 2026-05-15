@@ -7,7 +7,7 @@ describe("generateRouteMap", () => {
 		const result = generateRouteMap([]);
 
 		expect(result).toBe(
-			['declare module "@sundayceo/framework" {', "  interface RouteMap {", "  }", "}", ""].join(
+			['declare module "@sundayceo/framework" {', "\tinterface RouteMap {", "\t}", "}", ""].join(
 				"\n",
 			),
 		);
@@ -19,9 +19,9 @@ describe("generateRouteMap", () => {
 		expect(result).toBe(
 			[
 				'declare module "@sundayceo/framework" {',
-				"  interface RouteMap {",
-				'    "/": {};',
-				"  }",
+				"\tinterface RouteMap {",
+				'\t\t"/": {};',
+				"\t}",
 				"}",
 				"",
 			].join("\n"),
@@ -34,9 +34,9 @@ describe("generateRouteMap", () => {
 		expect(result).toBe(
 			[
 				'declare module "@sundayceo/framework" {',
-				"  interface RouteMap {",
-				'    "/about": {};',
-				"  }",
+				"\tinterface RouteMap {",
+				'\t\t"/about": {};',
+				"\t}",
 				"}",
 				"",
 			].join("\n"),
@@ -49,9 +49,9 @@ describe("generateRouteMap", () => {
 		expect(result).toBe(
 			[
 				'declare module "@sundayceo/framework" {',
-				"  interface RouteMap {",
-				'    "/blog/[slug]": { slug: string };',
-				"  }",
+				"\tinterface RouteMap {",
+				'\t\t"/blog/[slug]": { slug: string };',
+				"\t}",
 				"}",
 				"",
 			].join("\n"),
@@ -64,9 +64,9 @@ describe("generateRouteMap", () => {
 		expect(result).toBe(
 			[
 				'declare module "@sundayceo/framework" {',
-				"  interface RouteMap {",
-				'    "/products/[category]/[id]": { category: string; id: string };',
-				"  }",
+				"\tinterface RouteMap {",
+				'\t\t"/products/[category]/[id]": { category: string; id: string };',
+				"\t}",
 				"}",
 				"",
 			].join("\n"),
@@ -79,9 +79,9 @@ describe("generateRouteMap", () => {
 		expect(result).toBe(
 			[
 				'declare module "@sundayceo/framework" {',
-				"  interface RouteMap {",
-				'    "/docs/getting-started": {};',
-				"  }",
+				"\tinterface RouteMap {",
+				'\t\t"/docs/getting-started": {};',
+				"\t}",
 				"}",
 				"",
 			].join("\n"),
@@ -94,9 +94,9 @@ describe("generateRouteMap", () => {
 		expect(result).toBe(
 			[
 				'declare module "@sundayceo/framework" {',
-				"  interface RouteMap {",
-				'    "/blog": {};',
-				"  }",
+				"\tinterface RouteMap {",
+				'\t\t"/blog": {};',
+				"\t}",
 				"}",
 				"",
 			].join("\n"),
@@ -114,12 +114,12 @@ describe("generateRouteMap", () => {
 		expect(result).toBe(
 			[
 				'declare module "@sundayceo/framework" {',
-				"  interface RouteMap {",
-				'    "/": {};',
-				'    "/about": {};',
-				'    "/blog/[slug]": { slug: string };',
-				'    "/products/[category]/[id]": { category: string; id: string };',
-				"  }",
+				"\tinterface RouteMap {",
+				'\t\t"/": {};',
+				'\t\t"/about": {};',
+				'\t\t"/blog/[slug]": { slug: string };',
+				'\t\t"/products/[category]/[id]": { category: string; id: string };',
+				"\t}",
 				"}",
 				"",
 			].join("\n"),
@@ -132,10 +132,10 @@ describe("generateRouteMap", () => {
 		expect(result).toBe(
 			[
 				'declare module "@sundayceo/framework" {',
-				"  interface RouteMap {",
-				'    "/about": {};',
-				'    "/api/health": {};',
-				"  }",
+				"\tinterface RouteMap {",
+				'\t\t"/about": {};',
+				'\t\t"/api/health": {};',
+				"\t}",
 				"}",
 				"",
 			].join("\n"),
@@ -148,9 +148,9 @@ describe("generateRouteMap", () => {
 		expect(result).toBe(
 			[
 				'declare module "@sundayceo/framework" {',
-				"  interface RouteMap {",
-				'    "/about": {};',
-				"  }",
+				"\tinterface RouteMap {",
+				'\t\t"/about": {};',
+				"\t}",
 				"}",
 				"",
 			].join("\n"),

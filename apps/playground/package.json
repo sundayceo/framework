@@ -4,7 +4,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "echo 'SSR app - no client build'",
+		"build": "vite build --ssr src/server.ts",
 		"check-types": "tsc --noEmit",
 		"dev": "vite",
 		"test": "vitest run"
@@ -16,6 +16,7 @@
 	},
 	"devDependencies": {
 		"@sundayceo/typescript-config": "workspace:*",
+		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
 		"typescript": "catalog:",

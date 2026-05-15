@@ -9,9 +9,9 @@ describe("generateTemplateRegistry", () => {
 		expect(result).toBe(
 			[
 				'declare module "@sundayceo/framework" {',
-				"  interface TemplateRegistry {",
-				'    marketing: typeof import("./templates/marketing").default;',
-				"  }",
+				"\tinterface TemplateRegistry {",
+				'\t\tmarketing: typeof import("./templates/marketing").default;',
+				"\t}",
 				"}",
 				"",
 			].join("\n"),
@@ -24,11 +24,11 @@ describe("generateTemplateRegistry", () => {
 		expect(result).toBe(
 			[
 				'declare module "@sundayceo/framework" {',
-				"  interface TemplateRegistry {",
-				'    blog: typeof import("./templates/blog").default;',
-				'    marketing: typeof import("./templates/marketing").default;',
-				'    minimal: typeof import("./templates/minimal").default;',
-				"  }",
+				"\tinterface TemplateRegistry {",
+				'\t\tblog: typeof import("./templates/blog").default;',
+				'\t\tmarketing: typeof import("./templates/marketing").default;',
+				'\t\tminimal: typeof import("./templates/minimal").default;',
+				"\t}",
 				"}",
 				"",
 			].join("\n"),
@@ -41,8 +41,8 @@ describe("generateTemplateRegistry", () => {
 		expect(result).toBe(
 			[
 				'declare module "@sundayceo/framework" {',
-				"  interface TemplateRegistry {",
-				"  }",
+				"\tinterface TemplateRegistry {",
+				"\t}",
 				"}",
 				"",
 			].join("\n"),
@@ -61,10 +61,10 @@ describe("generateTemplateRegistry", () => {
 		expect(result).toBe(
 			[
 				'declare module "@sundayceo/framework" {',
-				"  interface TemplateRegistry {",
-				'    marketing: typeof import("./templates/marketing").default;',
-				'    minimal: typeof import("./templates/minimal").default;',
-				"  }",
+				"\tinterface TemplateRegistry {",
+				'\t\tmarketing: typeof import("./templates/marketing").default;',
+				'\t\tminimal: typeof import("./templates/minimal").default;',
+				"\t}",
 				"}",
 				"",
 			].join("\n"),

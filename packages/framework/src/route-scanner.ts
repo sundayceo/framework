@@ -1,7 +1,14 @@
-type RouteEntry = {
+type MatchableRoute = {
 	pattern: string;
 	params: string[];
+};
+
+type RouteEntry = MatchableRoute & {
 	filePath: string;
+};
+
+type ManifestRouteEntry = MatchableRoute & {
+	load: () => Promise<Record<string, unknown>>;
 };
 
 const PARAM_PATTERN = /\[([^\]]+)\]/g;
@@ -64,4 +71,4 @@ const scanRoutes = (filePaths: string[]): RouteEntry[] => {
 	});
 };
 
-export { scanRoutes, type RouteEntry };
+export { scanRoutes, type MatchableRoute, type ManifestRouteEntry, type RouteEntry };

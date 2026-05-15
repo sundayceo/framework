@@ -135,6 +135,9 @@ importers:
       '@sundayceo/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
+      '@types/node':
+        specifier: 'catalog:'
+        version: 25.7.0
       '@types/react':
         specifier: 'catalog:'
         version: 19.2.14

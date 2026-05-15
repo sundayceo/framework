@@ -226,7 +226,7 @@ type HandleInput = {
 };
 
 type CreateRequestHandlerFn = (
-	options: RequestHandlerOptions,
+	options: RequestHandlerOptions<RouteEntry>,
 ) => (request: Request) => Promise<Response>;
 
 function isCreateRequestHandlerFn(value: unknown): value is CreateRequestHandlerFn {

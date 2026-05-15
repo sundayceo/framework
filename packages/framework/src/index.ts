@@ -33,7 +33,12 @@ export { isInteractive } from "./interactivity-inference";
 export { matchRoute, type MatchResult } from "./route-matcher";
 export { resolveTemplate } from "./template-resolver";
 export { runLoader } from "./run-loader";
-export { scanRoutes, type RouteEntry } from "./route-scanner";
+export {
+	scanRoutes,
+	type ManifestRouteEntry,
+	type MatchableRoute,
+	type RouteEntry,
+} from "./route-scanner";
 export { renderMeta } from "./render-meta";
 export { renderPage } from "./render-page";
 export {
