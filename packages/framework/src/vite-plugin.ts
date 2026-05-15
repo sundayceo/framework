@@ -6,6 +6,7 @@ import type { Plugin } from "vite";
 import { generateDeclarations } from "./generate-declarations";
 import { generateRouteManifest } from "./generate-route-manifest";
 import { filePathToRoutePath, transformRouteModule } from "./transform-route-module";
+import { createDevMiddleware } from "./vite-dev-middleware";
 
 const TSX_EXTENSION = ".tsx";
 const PLUGIN_NAME = "sundayceo-framework";
@@ -82,6 +83,8 @@ export function frameworkPlugin(): Plugin {
 					runCodegen(srcDir);
 				}
 			});
+
+			return createDevMiddleware({ server, srcDir });
 		},
 	};
 }
