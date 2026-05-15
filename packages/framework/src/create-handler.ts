@@ -1,4 +1,11 @@
-import type { Context, HandlerModule, PageModule, SlotMap, TemplateComponent } from "./core/index";
+import {
+	RouteKind,
+	type Context,
+	type HandlerModule,
+	type PageModule,
+	type SlotMap,
+	type TemplateComponent,
+} from "./core/index";
 import type { AppConfig } from "./create-app";
 import type { ErrorContext } from "./define-error-page";
 import { renderPage } from "./render-page";
@@ -6,7 +13,7 @@ import { defaultNotFoundPage, defaultServerErrorPage } from "./resolve-error-pag
 import { matchRoute, type MatchResult } from "./route-matcher";
 import { isHttpErrorResponse, isRedirectResponse } from "./throwable-response";
 
-type RouteNamespace = Record<string, unknown>;
+type RouteNamespace = { default: PageModule | HandlerModule };
 
 type ErrorPageModule = {
 	template: string;
@@ -17,7 +24,7 @@ type ErrorPageModule = {
 		| ((args: { loaderData: unknown }) => { title?: string; description?: string });
 };
 
-type GeneratedErrorPages = Record<number, () => Promise<{ page: ErrorPageModule }>>;
+type GeneratedErrorPages = Record<number, () => Promise<{ default: ErrorPageModule }>>;
 
 type GeneratedRoute = {
 	pattern: string;
@@ -53,20 +60,18 @@ function statusMessage(status: number): string {
 	return STATUS_MESSAGES[status] ?? "Internal Server Error";
 }
 
-function isHttpMethod(method: string): method is keyof HandlerModule {
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+function isHttpMethod(method: string): method is HttpMethod {
 	return HTTP_METHODS.has(method);
 }
 
-function isPageNamespace(ns: RouteNamespace): ns is { page: PageModule } {
-	return "page" in ns;
-}
-
 function isPageModule(module: PageModule | HandlerModule): module is PageModule {
-	return "template" in module;
+	return module[RouteKind] === "page";
 }
 
 function extractModule(namespace: RouteNamespace): PageModule | HandlerModule {
-	return isPageNamespace(namespace) ? namespace.page : namespace;
+	return namespace.default;
 }
 
 function bareErrorPage(status: number): Response {
@@ -107,7 +112,7 @@ async function renderErrorPage(input: {
 	}
 
 	try {
-		const { page: errorModule } = await loadErrorPage();
+		const { default: errorModule } = await loadErrorPage();
 		const loadTemplate = templates[errorModule.template];
 		if (loadTemplate === undefined) {
 			return bareErrorPage(status);

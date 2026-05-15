@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 
 import { renderPage, Slot, type TemplateComponent } from "@sundayceo/framework";
 
-import { page } from "./demo";
+import page from "./demo";
 
 const TestTemplate: TemplateComponent = ({ head }) => (
 	<html lang="en">

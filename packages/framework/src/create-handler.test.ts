@@ -1,6 +1,12 @@
 import { describe, expect, test, vi } from "vitest";
 
-import type { PageModule, SlotMap, TemplateComponent } from "./core/index";
+import {
+	RouteKind,
+	type HandlerModule,
+	type PageModule,
+	type SlotMap,
+	type TemplateComponent,
+} from "./core/index";
 import type { AppConfig } from "./create-app";
 import {
 	createHandler,
@@ -15,11 +21,16 @@ const fakeTemplate: TemplateComponent = () => null;
 
 function makePageModule(overrides?: Partial<PageModule>): PageModule {
 	return {
+		[RouteKind]: "page",
 		template: "default",
 		loader: vi.fn().mockResolvedValue({ title: "Hello" }),
 		defineSlots: vi.fn().mockReturnValue({}),
 		...overrides,
 	};
+}
+
+function makeHandlerModule(methods: Omit<HandlerModule, RouteKind>): HandlerModule {
+	return { [RouteKind]: "handler", ...methods };
 }
 
 function makeApp(overrides?: Partial<AppConfig>): AppConfig {
@@ -50,7 +61,7 @@ describe("createHandler", () => {
 		const pageModule = makePageModule();
 		const route = makeRoute({
 			pattern: "/home",
-			load: vi.fn().mockResolvedValue({ page: pageModule }),
+			load: vi.fn().mockResolvedValue({ default: pageModule }),
 		});
 
 		const handler = createHandler({
@@ -69,7 +80,7 @@ describe("createHandler", () => {
 		const getHandler = vi.fn().mockReturnValue(new Response("get result"));
 		const route = makeRoute({
 			pattern: "/api/data",
-			load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 		});
 
 		const handler = createHandler({
@@ -88,7 +99,7 @@ describe("createHandler", () => {
 		const postHandler = vi.fn().mockReturnValue(new Response("post result"));
 		const route = makeRoute({
 			pattern: "/api/data",
-			load: vi.fn().mockResolvedValue({ POST: postHandler }),
+			load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ POST: postHandler }) }),
 		});
 
 		const handler = createHandler({
@@ -122,7 +133,7 @@ describe("createHandler", () => {
 	test("returns 405 for unsupported handler methods", async () => {
 		const route = makeRoute({
 			pattern: "/api/data",
-			load: vi.fn().mockResolvedValue({ GET: vi.fn() }),
+			load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: vi.fn() }) }),
 		});
 
 		const handler = createHandler({
@@ -146,7 +157,7 @@ describe("createHandler", () => {
 		});
 		const route = makeRoute({
 			pattern: "/home",
-			load: vi.fn().mockResolvedValue({ page: pageModule }),
+			load: vi.fn().mockResolvedValue({ default: pageModule }),
 		});
 
 		const handler = createHandler({
@@ -167,7 +178,7 @@ describe("createHandler", () => {
 		});
 		const route = makeRoute({
 			pattern: "/api/data",
-			load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 		});
 
 		const handler = createHandler({
@@ -190,7 +201,7 @@ describe("createHandler", () => {
 		});
 		const route = makeRoute({
 			pattern: "/api/data",
-			load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 		});
 
 		const onError = vi.fn();
@@ -216,7 +227,7 @@ describe("createHandler", () => {
 		});
 		const route = makeRoute({
 			pattern: "/api/data",
-			load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 		});
 
 		const handler = createHandler({
@@ -237,7 +248,7 @@ describe("createHandler", () => {
 		const getHandler = vi.fn().mockReturnValue(new Response("ok"));
 		const route = makeRoute({
 			pattern: "/api/data",
-			load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 		});
 
 		const handler = createHandler({
@@ -258,7 +269,7 @@ describe("createHandler", () => {
 		const getHandler = vi.fn().mockReturnValue(new Response("ok"));
 		const route = makeRoute({
 			pattern: "/api/data",
-			load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 		});
 
 		const handler = createHandler({
@@ -280,7 +291,7 @@ describe("createHandler", () => {
 		const route = makeRoute({
 			pattern: "/posts/:id",
 			params: ["id"],
-			load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 		});
 
 		const handler = createHandler({
@@ -295,11 +306,11 @@ describe("createHandler", () => {
 		expect(ctx.params).toEqual({ id: "123" });
 	});
 
-	test("unwraps page module from ESM namespace with page export", async () => {
+	test("unwraps page module from ESM namespace default export", async () => {
 		const pageModule = makePageModule();
 		const route = makeRoute({
 			pattern: "/about",
-			load: vi.fn().mockResolvedValue({ page: pageModule }),
+			load: vi.fn().mockResolvedValue({ default: pageModule }),
 		});
 
 		const handler = createHandler({
@@ -314,11 +325,11 @@ describe("createHandler", () => {
 		expect(pageModule.loader).toHaveBeenCalled();
 	});
 
-	test("unwraps handler module from ESM namespace without page export", async () => {
+	test("unwraps handler module from ESM namespace default export", async () => {
 		const getHandler = vi.fn().mockReturnValue(new Response("direct"));
 		const route = makeRoute({
 			pattern: "/api/test",
-			load: vi.fn().mockResolvedValue({ GET: getHandler }),
+			load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 		});
 
 		const handler = createHandler({
@@ -359,7 +370,7 @@ describe("createHandler", () => {
 		function makeErrorPages(pages: Record<number, ErrorPageModuleShape>): GeneratedErrorPages {
 			const result: GeneratedErrorPages = {};
 			for (const [status, mod] of Object.entries(pages)) {
-				result[Number(status)] = () => Promise.resolve({ page: mod });
+				result[Number(status)] = () => Promise.resolve({ default: mod });
 			}
 			return result;
 		}
@@ -371,7 +382,7 @@ describe("createHandler", () => {
 			});
 			const route = makeRoute({
 				pattern: "/api/data",
-				load: vi.fn().mockResolvedValue({ GET: getHandler }),
+				load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 			});
 
 			const handler = createHandler({
@@ -426,7 +437,7 @@ describe("createHandler", () => {
 			});
 			const route = makeRoute({
 				pattern: "/api/data",
-				load: vi.fn().mockResolvedValue({ GET: getHandler }),
+				load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 			});
 
 			const handler = createHandler({
@@ -457,7 +468,7 @@ describe("createHandler", () => {
 			});
 			const route = makeRoute({
 				pattern: "/api/data",
-				load: vi.fn().mockResolvedValue({ GET: getHandler }),
+				load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 			});
 
 			const onError = vi.fn().mockImplementation(() => {
@@ -487,7 +498,7 @@ describe("createHandler", () => {
 			});
 			const route = makeRoute({
 				pattern: "/api/data",
-				load: vi.fn().mockResolvedValue({ GET: getHandler }),
+				load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 			});
 
 			const onError = vi.fn().mockImplementation(() => {
@@ -518,7 +529,7 @@ describe("createHandler", () => {
 			});
 			const route = makeRoute({
 				pattern: "/api/data",
-				load: vi.fn().mockResolvedValue({ GET: getHandler }),
+				load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 			});
 
 			const handler = createHandler({
@@ -542,7 +553,7 @@ describe("createHandler", () => {
 			});
 			const route = makeRoute({
 				pattern: "/api/data",
-				load: vi.fn().mockResolvedValue({ GET: getHandler }),
+				load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 			});
 
 			const handler = createHandler({

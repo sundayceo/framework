@@ -1,5 +1,8 @@
-import type { HandlerModule, RouteMap } from "./core/index";
+import { RouteKind, type HandlerModule, type RouteMap } from "./core/index";
 
 export function defineHandler<TPath extends keyof RouteMap>(_path: TPath) {
-	return (config: HandlerModule<RouteMap[TPath]>) => config;
+	return (config: Omit<HandlerModule<RouteMap[TPath]>, RouteKind>) => ({
+		...config,
+		[RouteKind]: "handler" as const,
+	});
 }

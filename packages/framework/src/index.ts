@@ -7,6 +7,7 @@ export { defineErrorPage, type ErrorContext } from "./define-error-page";
 export { definePage } from "./define-page";
 export { Slot, SlotContext, SlotProvider } from "./slot";
 
+export { RouteKind } from "./core/index";
 export type {
 	Context,
 	CustomContext,

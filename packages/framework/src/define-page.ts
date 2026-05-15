@@ -1,4 +1,10 @@
-import type { Context, RouteMap, SlotMap, TemplateRegistry } from "./core/index";
+import {
+	RouteKind,
+	type Context,
+	type RouteMap,
+	type SlotMap,
+	type TemplateRegistry,
+} from "./core/index";
 
 type MetaValue<TLoaderData> =
 	| { title?: string; description?: string }
@@ -33,10 +39,15 @@ export function definePage<TPath extends string>(
 ): {
 	<TTemplate extends keyof TemplateRegistry, TLoaderData>(
 		config: PageConfigWithLoader<TTemplate, InferParams<TPath>, TLoaderData>,
-	): PageConfigWithLoader<TTemplate, InferParams<TPath>, TLoaderData>;
+	): PageConfigWithLoader<TTemplate, InferParams<TPath>, TLoaderData> & {
+		[RouteKind]: "page";
+	};
 	<TTemplate extends keyof TemplateRegistry>(
 		config: PageConfigWithoutLoader<TTemplate>,
-	): PageConfigWithoutLoader<TTemplate>;
+	): PageConfigWithoutLoader<TTemplate> & { [RouteKind]: "page" };
 } {
-	return <T>(config: T): T => config;
+	return <T>(config: T): T & { [RouteKind]: "page" } => ({
+		...config,
+		[RouteKind]: "page" as const,
+	});
 }

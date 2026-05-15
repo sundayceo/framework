@@ -21,11 +21,11 @@ A URL pattern derived from a file in `/src/routes/`. The parent concept for both
 _Avoid_: Endpoint (for pages), path (when referring to the module)
 
 **Page**:
-A route that renders HTML by filling slots in a template. Defined with `definePage`.
+A route that renders HTML by filling slots in a template. Defined with `definePage` and exported as the default export of the route file.
 _Avoid_: View, screen, component
 
 **Handler**:
-A route that returns a raw `Response` (typically JSON). Defined with `defineHandler`. Has HTTP method handlers (GET, POST, etc.) instead of templates and slots.
+A route that returns a raw `Response` (typically JSON). Defined with `defineHandler` and exported as the default export of the route file. Has HTTP method handlers (GET, POST, etc.) instead of templates and slots.
 _Avoid_: API route, endpoint, controller
 
 **Loader**:
@@ -101,7 +101,7 @@ _Avoid_: Error data, error info
 - A **template** declares one or more **slots**
 - A **page** references exactly one **template** and provides **slot content** for its slots
 - A **handler** has no template or slots — it returns a Response directly
-- A **route** is either a **page** or a **handler**, determined by its export shape
+- A **route** is either a **page** or a **handler**, determined by its `RouteKind` brand (a symbol stamped by `definePage`/`defineHandler`)
 - A **loader** belongs to a **page** and produces data that flows into `defineSlots` as `loaderData`
 - The **context factory** (in `createApp`) receives a `Request` and the **platform context**, and produces custom properties included in every **request context**
 - The **request context** combines route params with context factory output

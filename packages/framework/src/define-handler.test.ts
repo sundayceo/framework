@@ -1,5 +1,6 @@
 import { expect, expectTypeOf, test } from "vitest";
 
+import { RouteKind } from "./core/index";
 import { defineHandler } from "./define-handler";
 import type { HandlerModule } from "./index";
 
@@ -15,7 +16,7 @@ declare module "./index" {
 
 // --- TDD Slice 1: identity at runtime ---
 
-test("defineHandler returns config unchanged (identity)", () => {
+test("defineHandler stamps RouteKind brand on the config", () => {
 	const config = {
 		// eslint-disable-next-line @typescript-eslint/naming-convention
 		GET: () => Response.json({ ok: true }),
@@ -23,7 +24,8 @@ test("defineHandler returns config unchanged (identity)", () => {
 
 	const result = defineHandler("/api/health")(config);
 
-	expect(result).toBe(config);
+	expect(result[RouteKind]).toBe("handler");
+	expect(result.GET).toBe(config.GET);
 });
 
 // --- TDD Slice 2: supports all HTTP methods ---
@@ -44,7 +46,12 @@ test("defineHandler accepts all HTTP method handlers", () => {
 
 	const result = defineHandler("/api/health")(config);
 
-	expect(result).toBe(config);
+	expect(result[RouteKind]).toBe("handler");
+	expect(result.GET).toBe(config.GET);
+	expect(result.POST).toBe(config.POST);
+	expect(result.PUT).toBe(config.PUT);
+	expect(result.PATCH).toBe(config.PATCH);
+	expect(result.DELETE).toBe(config.DELETE);
 });
 
 // --- TDD Slice 3: all methods are optional ---
@@ -52,7 +59,7 @@ test("defineHandler accepts all HTTP method handlers", () => {
 test("defineHandler allows omitting all methods", () => {
 	const result = defineHandler("/api/health")({});
 
-	expect(result).toEqual({});
+	expect(result[RouteKind]).toBe("handler");
 });
 
 // --- TDD Slice 4: type — params are typed from RouteMap ---
