@@ -353,6 +353,62 @@ describe("renderPage", () => {
 		expect(html).toContain('name="description"');
 	});
 
+	describe("slot validation", () => {
+		test("throws when a required slot is not provided", async () => {
+			function TwoSlotTemplate({ head }: { head: React.ReactNode }): React.ReactNode {
+				return (
+					<html lang="en">
+						<head>{head}</head>
+						<body>
+							<Slot id="header" />
+							<Slot id="content" />
+						</body>
+					</html>
+				);
+			}
+
+			await expect(
+				renderPage({
+					pageModule: {
+						defineSlots: () => ({ header: <h1>Hi</h1> }),
+					},
+					template: TwoSlotTemplate,
+					request: makeRequest(),
+					params: {},
+					appContext: {},
+				}),
+			).rejects.toThrow('Required slot "content" is missing');
+		});
+
+		test("does not throw when optional slot with fallback is not provided", async () => {
+			function OptionalSlotTemplate({ head }: { head: React.ReactNode }): React.ReactNode {
+				return (
+					<html lang="en">
+						<head>{head}</head>
+						<body>
+							<Slot id="content" />
+							<Slot id="sidebar" fallback={<nav>Default</nav>} />
+						</body>
+					</html>
+				);
+			}
+
+			const response = await renderPage({
+				pageModule: {
+					defineSlots: () => ({ content: <p>Main</p> }),
+				},
+				template: OptionalSlotTemplate,
+				request: makeRequest(),
+				params: {},
+				appContext: {},
+			});
+
+			const html = await response.text();
+			expect(html).toContain("<p>Main</p>");
+			expect(html).toContain("<nav>Default</nav>");
+		});
+	});
+
 	describe("hydration integration", () => {
 		const STATIC_SOURCE = "function Header() { return <h1>Hello</h1>; }";
 		const INTERACTIVE_SOURCE =

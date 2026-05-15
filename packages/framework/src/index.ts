@@ -5,7 +5,6 @@ export type { AppConfig } from "./create-app";
 export { defineHandler } from "./define-handler";
 export { defineErrorPage, type ErrorContext } from "./define-error-page";
 export { definePage } from "./define-page";
-export { extractSlots } from "./extract-slots";
 export { Slot, SlotContext, SlotProvider } from "./slot";
 
 export type {
@@ -52,5 +51,4 @@ export {
 	redirect,
 } from "./throwable-response";
 export { filePathToRoutePath, transformRouteModule } from "./transform-route-module";
-export { validateSlots, type ValidationResult } from "./validate-slots";
 export { viewTransitionName } from "./view-transition";

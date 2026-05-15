@@ -2,9 +2,11 @@ import React, { type ReactNode } from "react";
 import { renderToString } from "react-dom/server";
 
 import type { Context, SlotMap, TemplateComponent } from "./core/index";
+import { extractSlots } from "./extract-slots";
 import { injectHydration } from "./inject-hydration";
 import { isInteractive } from "./interactivity-inference";
 import { SlotProvider } from "./slot";
+import { validateSlots } from "./validate-slots";
 
 type MetaInfo = { title?: string; description?: string };
 
@@ -109,6 +111,15 @@ export async function renderPage(input: RenderPageInput): Promise<Response> {
 
 	const loaderData = await runLoader({ pageModule, request, params, appContext });
 	const slotMap = pageModule.defineSlots({ loaderData });
+
+	const extractedSlots = extractSlots(Template);
+	const providedSlots = Object.keys(slotMap);
+	const validation = validateSlots({ providedSlots, extractedSlots });
+
+	if (validation.errors.length > 0) {
+		throw new Error(validation.errors.map((e) => e.message).join("; "));
+	}
+
 	const meta = resolveMeta(pageModule.meta, loaderData);
 	const headContent = buildHeadContent({ meta, cssHref, hasViewTransition });
 
