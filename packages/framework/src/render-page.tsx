@@ -58,29 +58,37 @@ function buildHeadContent(input: {
 	);
 }
 
-async function runLoader(
-	pageModule: RenderablePageModule,
-	request: Request,
-	params: Record<string, string>,
-	appContext: Record<string, unknown>,
-): Promise<unknown> {
-	if (!pageModule.loader) {
+function runLoader(input: {
+	pageModule: RenderablePageModule;
+	request: Request;
+	params: Record<string, string>;
+	appContext: Record<string, unknown>;
+}): unknown {
+	if (!input.pageModule.loader) {
 		return undefined;
 	}
 
 	const ctx: Context = {
-		request,
-		params,
-		...appContext,
+		request: input.request,
+		params: input.params,
+		...input.appContext,
 	};
 
-	return pageModule.loader(ctx);
+	return input.pageModule.loader(ctx);
 }
 
 export async function renderPage(input: RenderPageInput): Promise<Response> {
-	const { pageModule, template: Template, request, params, appContext, cssHref, hasViewTransition } = input;
+	const {
+		pageModule,
+		template: Template,
+		request,
+		params,
+		appContext,
+		cssHref,
+		hasViewTransition,
+	} = input;
 
-	const loaderData = await runLoader(pageModule, request, params, appContext);
+	const loaderData = await runLoader({ pageModule, request, params, appContext });
 	const slotMap = pageModule.defineSlots({ loaderData });
 	const meta = resolveMeta(pageModule.meta, loaderData);
 	const headContent = buildHeadContent({ meta, cssHref, hasViewTransition });
