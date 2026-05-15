@@ -55,9 +55,10 @@ test("AppConfig type preserves custom context type parameter", () => {
 	type MyConfig = AppConfig<{ sdk: { call: () => string } }>;
 
 	expectTypeOf<MyConfig["context"]>().toEqualTypeOf<
-		(request: Request, platform?: unknown) =>
-			| { sdk: { call: () => string } }
-			| Promise<{ sdk: { call: () => string } }>
+		(
+			request: Request,
+			platform?: unknown,
+		) => { sdk: { call: () => string } } | Promise<{ sdk: { call: () => string } }>
 	>();
 
 	expectTypeOf<NonNullable<MyConfig["onError"]>>().toEqualTypeOf<
@@ -68,9 +69,7 @@ test("AppConfig type preserves custom context type parameter", () => {
 test("omitting TPlatform defaults platform to unknown", () => {
 	type DefaultConfig = AppConfig<{ value: number }>;
 
-	expectTypeOf<Parameters<DefaultConfig["context"]>>().toEqualTypeOf<
-		[Request, unknown?]
-	>();
+	expectTypeOf<Parameters<DefaultConfig["context"]>>().toEqualTypeOf<[Request, unknown?]>();
 });
 
 test("context factory receives typed platform as second arg", () => {
@@ -78,9 +77,7 @@ test("context factory receives typed platform as second arg", () => {
 
 	type EnvConfig = AppConfig<{ apiKey: string }, Env>;
 
-	expectTypeOf<Parameters<EnvConfig["context"]>>().toEqualTypeOf<
-		[Request, (Env | undefined)?]
-	>();
+	expectTypeOf<Parameters<EnvConfig["context"]>>().toEqualTypeOf<[Request, (Env | undefined)?]>();
 });
 
 test("platform type flows from createApp generic to context factory", () => {
@@ -92,6 +89,6 @@ test("platform type flows from createApp generic to context factory", () => {
 		}),
 	});
 
-	type ContextFn = (typeof app)["context"];
+	type ContextFn = (typeof _app)["context"];
 	expectTypeOf<ContextFn>().parameter(1).toEqualTypeOf<Env | undefined>();
 });
