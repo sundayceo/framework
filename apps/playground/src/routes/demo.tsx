@@ -4,7 +4,7 @@ import { definePage } from "@sundayceo/framework";
 
 import { Counter } from "../components/counter";
 
-export const page = definePage("/demo")({
+export default definePage("/demo")({
 	template: "default",
 	loader: () => ({
 		title: "Demo Page",

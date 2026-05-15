@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from "vitest";
 
-import type { SlotMap } from "./core/index";
+import { RouteKind, type SlotMap } from "./core/index";
 import { definePage } from "./define-page";
 
 declare module "./index" {
@@ -15,7 +15,7 @@ declare module "./index" {
 	}
 }
 
-test("definePage returns the config unchanged (runtime identity)", () => {
+test("definePage stamps RouteKind brand on the config", () => {
 	const config = {
 		template: "marketing" as const,
 		loader: () => ({ title: "hello" }),
@@ -24,7 +24,10 @@ test("definePage returns the config unchanged (runtime identity)", () => {
 
 	const result = definePage("/about")(config);
 
-	expect(result).toBe(config);
+	expect(result[RouteKind]).toBe("page");
+	expect(result.template).toBe(config.template);
+	expect(result.loader).toBe(config.loader);
+	expect(result.defineSlots).toBe(config.defineSlots);
 });
 
 test("curried call works: definePage('/path')({ template, loader, defineSlots })", () => {

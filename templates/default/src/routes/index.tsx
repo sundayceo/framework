@@ -2,7 +2,7 @@ import React from "react";
 
 import { definePage } from "@sundayceo/framework";
 
-export const page = definePage("/")({
+export default definePage("/")({
 	template: "default",
 	defineSlots: () => ({
 		header: <h1>{{name}}</h1>,

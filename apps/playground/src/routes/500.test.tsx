@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { page } from "./500";
+import page from "./500";
 
 test("500 page uses the default template", () => {
 	expect(page.template).toBe("default");
