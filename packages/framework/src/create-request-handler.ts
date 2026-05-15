@@ -1,11 +1,10 @@
-import type { AppConfig } from "./create-app";
 import type { Context, HandlerModule, PageModule, TemplateComponent } from "./core/index";
-import type { RouteEntry } from "./route-scanner";
-import type { MatchResult } from "./route-matcher";
+import type { AppConfig } from "./create-app";
 import { handleRequest } from "./handle-request";
-import { matchRoute } from "./route-matcher";
 import { renderPage } from "./render-page";
 import { resolveErrorPage } from "./resolve-error-page";
+import { matchRoute, type MatchResult } from "./route-matcher";
+import type { RouteEntry } from "./route-scanner";
 import { runLoader } from "./run-loader";
 
 type RequestHandlerOptions = {
@@ -56,7 +55,10 @@ function handlePageRoute(
 	});
 }
 
-function handleHandlerRoute(routeModule: HandlerModule, input: RouteHandlerInput): Promise<Response> {
+function handleHandlerRoute(
+	routeModule: HandlerModule,
+	input: RouteHandlerInput,
+): Promise<Response> {
 	const method = input.request.method.toUpperCase();
 
 	if (!isHttpMethod(method)) {
@@ -72,7 +74,11 @@ function handleHandlerRoute(routeModule: HandlerModule, input: RouteHandlerInput
 	return handleRequest({
 		request: input.request,
 		render: () => {
-			const ctx: Context = { request: input.request, params: input.match.params, ...input.appContext };
+			const ctx: Context = {
+				request: input.request,
+				params: input.match.params,
+				...input.appContext,
+			};
 			return methodHandler(ctx);
 		},
 		onError: input.onError,

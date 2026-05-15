@@ -1,9 +1,9 @@
 import { describe, expect, test, vi } from "vitest";
 
-import type { AppConfig } from "./create-app";
 import type { HandlerModule, PageModule, TemplateComponent } from "./core/index";
-import type { RouteEntry } from "./route-scanner";
+import type { AppConfig } from "./create-app";
 import { createRequestHandler } from "./create-request-handler";
+import type { RouteEntry } from "./route-scanner";
 import { HttpErrorResponse, RedirectResponse } from "./throwable-response";
 
 const pageRoute: RouteEntry = {
@@ -136,9 +136,7 @@ describe("createRequestHandler", () => {
 			loadTemplate: vi.fn(),
 		});
 
-		const response = await handler(
-			new Request("https://example.com/api/data", { method: "POST" }),
-		);
+		const response = await handler(new Request("https://example.com/api/data", { method: "POST" }));
 
 		expect(postHandler).toHaveBeenCalled();
 		expect(await response.text()).toBe("post result");
