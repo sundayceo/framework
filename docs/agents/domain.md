@@ -2,10 +2,10 @@
 
 ## Where things live
 
-| Artifact | Location | Purpose |
-|---|---|---|
+| Artifact                              | Location                 | Purpose                         |
+| ------------------------------------- | ------------------------ | ------------------------------- |
 | Domain glossary (ubiquitous language) | `CONTEXT.md` (repo root) | Canonical terms for the project |
-| Architecture Decision Records | `docs/adr/` | Rationale behind key decisions |
+| Architecture Decision Records         | `docs/adr/`              | Rationale behind key decisions  |
 
 ## How to use the glossary
 
