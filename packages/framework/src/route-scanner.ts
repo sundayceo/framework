@@ -22,8 +22,7 @@ const extractParams = (filePath: string): string[] => {
 
 const hasDynamicSegment = (pattern: string): boolean => pattern.includes(":");
 
-const stripExtension = (filePath: string): string =>
-	filePath.replace(/\.(tsx|ts)$/, "");
+const stripExtension = (filePath: string): string => filePath.replace(/\.(tsx|ts)$/, "");
 
 const buildPattern = (filePath: string): string => {
 	const withoutExtension = stripExtension(filePath);
@@ -38,11 +37,9 @@ const buildPattern = (filePath: string): string => {
 	return `/${joined}`;
 };
 
-const hasRouteExtension = (fp: string): boolean =>
-	ROUTE_EXTENSIONS.some((ext) => fp.endsWith(ext));
+const hasRouteExtension = (fp: string): boolean => ROUTE_EXTENSIONS.some((ext) => fp.endsWith(ext));
 
-const isRouteFile = (fp: string): boolean =>
-	hasRouteExtension(fp) && !TEST_PATTERN.test(fp);
+const isRouteFile = (fp: string): boolean => hasRouteExtension(fp) && !TEST_PATTERN.test(fp);
 
 const scanRoutes = (filePaths: string[]): RouteEntry[] => {
 	const routeFiles = filePaths.filter(isRouteFile);

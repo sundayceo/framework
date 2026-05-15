@@ -21,10 +21,7 @@ function scanDir(dir: string, extensions: string[]): string[] {
 
 	return fs
 		.readdirSync(dir, { recursive: true })
-		.filter(
-			(f): f is string =>
-				typeof f === "string" && extensions.some((ext) => f.endsWith(ext)),
-		);
+		.filter((f): f is string => typeof f === "string" && extensions.some((ext) => f.endsWith(ext)));
 }
 
 function isWatchedPath(file: string, srcDir: string): boolean {

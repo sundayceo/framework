@@ -87,8 +87,7 @@ function scanRoutesFromDisk(srcDir: string): RouteEntry[] {
 	const files = fs
 		.readdirSync(routesDir, { recursive: true })
 		.filter(
-			(f): f is string =>
-				typeof f === "string" && ROUTE_EXTENSIONS.some((ext) => f.endsWith(ext)),
+			(f): f is string => typeof f === "string" && ROUTE_EXTENSIONS.some((ext) => f.endsWith(ext)),
 		);
 
 	return scanRoutes(files);

@@ -9,9 +9,7 @@ describe("generateRouteManifest", () => {
 			templatePaths: [],
 		});
 
-		expect(result).toContain(
-			'{ pattern: "/", params: [], load: () => import("./routes/index") },',
-		);
+		expect(result).toContain('{ pattern: "/", params: [], load: () => import("./routes/index") },');
 	});
 
 	test("generates route entry for nested route", () => {

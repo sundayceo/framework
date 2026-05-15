@@ -92,8 +92,6 @@ describe("scanRoutes", () => {
 	test("excludes nested .test.tsx files", () => {
 		const result = scanRoutes(["api/health.tsx", "api/health.test.tsx"]);
 
-		expect(result).toEqual([
-			{ pattern: "/api/health", params: [], filePath: "api/health.tsx" },
-		]);
+		expect(result).toEqual([{ pattern: "/api/health", params: [], filePath: "api/health.tsx" }]);
 	});
 });
