@@ -200,9 +200,10 @@ describe("createDevMiddleware", () => {
 		expect(server.ssrLoadModule).toHaveBeenCalledWith("@sundayceo/framework");
 	});
 
-	test("calls createHandler with app, routes, and templates", async () => {
+	test("calls createHandler with app, routes, templates, and errorPages", async () => {
 		const mockRoutes = [{ pattern: "/", params: [], load: vi.fn() }];
 		const mockTemplates = { main: vi.fn() };
+		const mockErrorPages = { 404: vi.fn(), 500: vi.fn() };
 		const mockApp = { context: () => ({}) };
 		const createHandler = vi.fn().mockReturnValue({
 			fetch: () => Promise.resolve(new Response("OK")),
@@ -210,7 +211,7 @@ describe("createDevMiddleware", () => {
 
 		const server = createMockServer({
 			appModule: { app: mockApp },
-			routesModule: { routes: mockRoutes, templates: mockTemplates },
+			routesModule: { routes: mockRoutes, templates: mockTemplates, errorPages: mockErrorPages },
 			frameworkModule: { createHandler },
 		});
 
@@ -221,6 +222,7 @@ describe("createDevMiddleware", () => {
 			app: mockApp,
 			routes: mockRoutes,
 			templates: mockTemplates,
+			errorPages: mockErrorPages,
 		});
 	});
 

@@ -98,12 +98,14 @@ type CreateHandlerFn = (options: {
 	app: AppConfig;
 	routes: GeneratedRoute[];
 	templates: GeneratedTemplates;
+	errorPages?: Record<number, () => Promise<unknown>>;
 }) => { fetch: (request: Request) => Promise<Response> };
 
 type LoadedModules = {
 	app: AppConfig;
 	routes: GeneratedRoute[];
 	templates: GeneratedTemplates;
+	errorPages?: Record<number, () => Promise<unknown>>;
 	createHandler: CreateHandlerFn;
 };
 
@@ -117,6 +119,7 @@ async function loadModules(server: ViteDevServer, srcDir: string): Promise<Loade
 		app: (appModule.app ?? appModule.default) as AppConfig,
 		routes: routesModule.routes as GeneratedRoute[],
 		templates: routesModule.templates as GeneratedTemplates,
+		errorPages: routesModule.errorPages as Record<number, () => Promise<unknown>> | undefined,
 		createHandler: frameworkModule.createHandler as CreateHandlerFn,
 	};
 }
@@ -127,8 +130,8 @@ async function dispatchRequest(input: DispatchInput): Promise<void> {
 
 	try {
 		const request = await toWebRequest(req);
-		const { app, routes, templates, createHandler } = await loadModules(server, srcDir);
-		const handler = createHandler({ app, routes, templates });
+		const { app, routes, templates, errorPages, createHandler } = await loadModules(server, srcDir);
+		const handler = createHandler({ app, routes, templates, errorPages });
 		const response = await handler.fetch(request);
 
 		if (isHtmlResponse(response)) {
