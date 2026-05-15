@@ -13,7 +13,8 @@
 			"import": "./dist/vite-plugin.js"
 		},
 		"./server-entry": {
-			"types": "./src/server-entry.d.ts"
+			"types": "./src/server-entry.d.ts",
+			"import": "./src/server-entry-stub.js"
 		}
 	},
 	"publishConfig": {
