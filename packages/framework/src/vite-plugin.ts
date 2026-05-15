@@ -46,12 +46,16 @@ export function frameworkPlugin(): Plugin {
 		},
 
 		resolveId(source: string) {
-			if (source === VIRTUAL_MODULE_ID) { return RESOLVED_VIRTUAL_MODULE_ID; }
+			if (source === VIRTUAL_MODULE_ID) {
+				return RESOLVED_VIRTUAL_MODULE_ID;
+			}
 			return undefined;
 		},
 
 		load(id: string) {
-			if (id === RESOLVED_VIRTUAL_MODULE_ID) { return generateServerEntry(); }
+			if (id === RESOLVED_VIRTUAL_MODULE_ID) {
+				return generateServerEntry();
+			}
 			return undefined;
 		},
 
