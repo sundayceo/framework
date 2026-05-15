@@ -1,6 +1,7 @@
 const PARAM_PATTERN = /\[([^\]]+)\]/g;
 const ROUTE_EXTENSIONS = [".tsx", ".ts"];
 const TEST_PATTERN = /\.test\.[^.]+$/;
+const ERROR_PAGE_PATTERN = /^(?:.*\/)?[45]\d{2}\.[^.]+$/;
 
 function filePathToRoute(filePath: string): string {
 	const withoutExtension = filePath.replace(/\.(tsx|ts)$/, "");
@@ -34,7 +35,12 @@ function formatParamType(params: string[]): string {
 
 export function generateRouteMap(filePaths: string[]): string {
 	const routes = filePaths
-		.filter((f) => ROUTE_EXTENSIONS.some((ext) => f.endsWith(ext)) && !TEST_PATTERN.test(f))
+		.filter(
+			(f) =>
+				ROUTE_EXTENSIONS.some((ext) => f.endsWith(ext)) &&
+				!TEST_PATTERN.test(f) &&
+				!ERROR_PAGE_PATTERN.test(f),
+		)
 		.map((f) => {
 			const route = filePathToRoute(f);
 			const params = extractParams(route);
