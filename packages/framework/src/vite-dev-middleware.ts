@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
-import { Readable } from "node:stream";
 
 import type { ViteDevServer } from "vite";
 
@@ -26,21 +25,33 @@ function buildHeaders(req: IncomingMessage): Headers {
 	return headers;
 }
 
-function toWebRequest(req: IncomingMessage): Request {
+function collectBody(req: IncomingMessage): Promise<Buffer> {
+	return new Promise((resolve, reject) => {
+		const chunks: Buffer[] = [];
+		req.on("data", (chunk: Buffer) => {
+			chunks.push(chunk);
+		});
+		req.on("end", () => {
+			resolve(Buffer.concat(chunks));
+		});
+		req.on("error", (err) => {
+			reject(err);
+		});
+	});
+}
+
+async function toWebRequest(req: IncomingMessage): Promise<Request> {
 	const host = req.headers.host ?? "localhost";
 	const url = `${PROTOCOL}://${host}${req.url ?? "/"}`;
 	const method = req.method ?? "GET";
 	const headers = buildHeaders(req);
-	const hasBody = METHODS_WITH_BODY.has(method);
 
-	if (!hasBody) {
+	if (!METHODS_WITH_BODY.has(method)) {
 		return new Request(url, { method, headers });
 	}
 
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	const body = Readable.toWeb(req) as unknown as ReadableStream;
-	// @ts-expect-error duplex is required for streaming bodies but not in RequestInit type
-	return new Request(url, { method, headers, body, duplex: "half" });
+	const body = await collectBody(req);
+	return new Request(url, { method, headers, body: new Uint8Array(body) });
 }
 
 function collectHeaders(response: Response): Record<string, string> {
@@ -88,11 +99,43 @@ type SsrLoaderInput = {
 	srcDir: string;
 };
 
+function isAppConfig(value: unknown): value is AppConfig<Record<string, unknown>> {
+	return typeof value === "object" && value !== null && "context" in value;
+}
+
+function isPageModule(value: unknown): value is PageModule {
+	return typeof value === "object" && value !== null && "template" in value;
+}
+
+function isTemplateComponent(value: unknown): value is TemplateComponent {
+	return typeof value === "function";
+}
+
+function isHandlerModule(value: unknown): value is HandlerModule {
+	if (typeof value !== "object" || value === null) {
+		return false;
+	}
+	const methods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+	return methods.some((m) => m in value);
+}
+
+function pickExport(mod: Record<string, unknown>, ...keys: string[]): unknown {
+	for (const key of keys) {
+		if (key in mod) {
+			return mod[key];
+		}
+	}
+	return undefined;
+}
+
 async function loadAppConfig(input: SsrLoaderInput): Promise<AppConfig<Record<string, unknown>>> {
 	const appPath = path.join(input.srcDir, "app.ts");
-	const mod = await input.server.ssrLoadModule(appPath);
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	return mod.default as AppConfig<Record<string, unknown>>;
+	const mod: Record<string, unknown> = await input.server.ssrLoadModule(appPath);
+	const app = pickExport(mod, "app", "default");
+	if (!isAppConfig(app)) {
+		throw new Error("app.ts must export an AppConfig (named 'app' or default)");
+	}
+	return app;
 }
 
 function createRouteModuleLoader(
@@ -100,9 +143,15 @@ function createRouteModuleLoader(
 ): (route: RouteEntry) => Promise<PageModule | HandlerModule> {
 	return async (route: RouteEntry): Promise<PageModule | HandlerModule> => {
 		const absolutePath = path.join(input.srcDir, "routes", route.filePath);
-		const mod = await input.server.ssrLoadModule(absolutePath);
-		// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-		return mod.default as PageModule | HandlerModule;
+		const mod: Record<string, unknown> = await input.server.ssrLoadModule(absolutePath);
+		const routeModule = pickExport(mod, "page", "handler", "default");
+		if (isPageModule(routeModule)) {
+			return routeModule;
+		}
+		if (isHandlerModule(routeModule)) {
+			return routeModule;
+		}
+		throw new Error(`Route ${route.filePath} must export 'page', 'handler', or a default module`);
 	};
 }
 
@@ -111,9 +160,12 @@ function createTemplateLoader(
 ): (templateId: string) => Promise<TemplateComponent> {
 	return async (templateId: string): Promise<TemplateComponent> => {
 		const templatePath = path.join(input.srcDir, "templates", `${templateId}.tsx`);
-		const mod = await input.server.ssrLoadModule(templatePath);
-		// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-		return mod.default as TemplateComponent;
+		const mod: Record<string, unknown> = await input.server.ssrLoadModule(templatePath);
+		const template = pickExport(mod, "default");
+		if (!isTemplateComponent(template)) {
+			throw new Error(`Template ${templateId} must have a default export that is a component`);
+		}
+		return template;
 	};
 }
 
@@ -170,31 +222,30 @@ type HandleInput = {
 	next: () => void;
 };
 
-function dispatchRequest(input: HandleInput): Promise<void> {
+async function dispatchRequest(input: HandleInput): Promise<void> {
 	const { server, srcDir, routes, req, res, next } = input;
 
-	return loadAppConfig({ server, srcDir })
-		.then((app) => {
-			const handler = createRequestHandler({
-				app,
-				getRoutes: () => routes,
-				loadRouteModule: createRouteModuleLoader({ server, srcDir }),
-				loadTemplate: createTemplateLoader({ server, srcDir }),
-			});
-
-			const webRequest = toWebRequest(req);
-			return handler(webRequest);
-		})
-		.then((response) => {
-			if (isDefaultNotFound(response)) {
-				next();
-				return Promise.resolve();
-			}
-			return writeResponse(res, response);
-		})
-		.catch(() => {
-			next();
+	try {
+		const app = await loadAppConfig({ server, srcDir });
+		const handler = createRequestHandler({
+			app,
+			getRoutes: () => routes,
+			loadRouteModule: createRouteModuleLoader({ server, srcDir }),
+			loadTemplate: createTemplateLoader({ server, srcDir }),
 		});
+
+		const webRequest = await toWebRequest(req);
+		const response = await handler(webRequest);
+
+		if (isDefaultNotFound(response)) {
+			next();
+			return;
+		}
+
+		await writeResponse(res, response);
+	} catch {
+		next();
+	}
 }
 
 function handleMiddlewareRequest(input: HandleInput): void {

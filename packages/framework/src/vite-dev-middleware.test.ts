@@ -1,10 +1,11 @@
 import { IncomingMessage, ServerResponse } from "node:http";
 import { Socket } from "node:net";
-import { Readable } from "node:stream";
 
 import { describe, expect, test } from "vitest";
 
 import { toWebRequest, writeResponse } from "./vite-dev-middleware";
+
+const METHODS_WITH_BODY = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 function createMockRequest(options: {
 	method?: string;
@@ -19,11 +20,10 @@ function createMockRequest(options: {
 	req.url = url;
 	req.headers = { host: "localhost:3000", ...headers };
 
-	if (body !== undefined) {
-		const readable = new Readable();
-		readable.push(body);
-		readable.push(null);
-		req.push(body);
+	if (METHODS_WITH_BODY.has(method)) {
+		if (body !== undefined) {
+			req.push(body);
+		}
 		req.push(null);
 	}
 
@@ -73,40 +73,40 @@ function createMockResponse(): {
 }
 
 describe("toWebRequest", () => {
-	test("converts a GET request with correct URL", () => {
+	test("converts a GET request with correct URL", async () => {
 		const req = createMockRequest({ url: "/about", headers: { host: "localhost:5173" } });
-		const webReq = toWebRequest(req);
+		const webReq = await toWebRequest(req);
 
 		expect(webReq.url).toBe("http://localhost:5173/about");
 		expect(webReq.method).toBe("GET");
 	});
 
-	test("converts a POST request preserving method", () => {
+	test("converts a POST request preserving method", async () => {
 		const req = createMockRequest({ method: "POST", url: "/api/users" });
-		const webReq = toWebRequest(req);
+		const webReq = await toWebRequest(req);
 
 		expect(webReq.method).toBe("POST");
 		expect(webReq.url).toBe("http://localhost:3000/api/users");
 	});
 
-	test("forwards request headers", () => {
+	test("forwards request headers", async () => {
 		const req = createMockRequest({
 			headers: { "content-type": "application/json", accept: "text/html" },
 		});
-		const webReq = toWebRequest(req);
+		const webReq = await toWebRequest(req);
 
 		expect(webReq.headers.get("content-type")).toBe("application/json");
 		expect(webReq.headers.get("accept")).toBe("text/html");
 	});
 
-	test("uses http protocol by default", () => {
+	test("uses http protocol by default", async () => {
 		const req = createMockRequest({ url: "/test" });
-		const webReq = toWebRequest(req);
+		const webReq = await toWebRequest(req);
 
 		expect(webReq.url).toMatch(/^http:\/\//);
 	});
 
-	test("includes body for POST requests", () => {
+	test("includes body for POST requests", async () => {
 		const body = JSON.stringify({ name: "test" });
 		const req = createMockRequest({
 			method: "POST",
@@ -114,14 +114,14 @@ describe("toWebRequest", () => {
 			headers: { "content-type": "application/json" },
 			body,
 		});
-		const webReq = toWebRequest(req);
+		const webReq = await toWebRequest(req);
 
 		expect(webReq.body).not.toBeNull();
 	});
 
-	test("does not include body for GET requests", () => {
+	test("does not include body for GET requests", async () => {
 		const req = createMockRequest({ method: "GET", url: "/" });
-		const webReq = toWebRequest(req);
+		const webReq = await toWebRequest(req);
 
 		expect(webReq.body).toBeNull();
 	});
