@@ -11,6 +11,8 @@ const ROUTE_EXTENSIONS = [".tsx", ".ts"];
 const PLUGIN_NAME = "sundayceo-framework";
 const OUTPUT_FILE = "framework.gen.d.ts";
 const MANIFEST_FILE = "routes.gen.ts";
+const VIRTUAL_MODULE_ID = "@sundayceo/framework/server-entry";
+const RESOLVED_VIRTUAL_MODULE_ID = `\0${VIRTUAL_MODULE_ID}`;
 
 function isWatchedPath(file: string, srcDir: string): boolean {
 	const templatesDir = path.join(srcDir, "templates");
@@ -24,6 +26,15 @@ function writeCodegen(srcDir: string): void {
 	fs.writeFileSync(path.join(srcDir, MANIFEST_FILE), manifest);
 }
 
+function generateServerEntry(): string {
+	return [
+		'import { createHandler } from "@sundayceo/framework";',
+		'import { app } from "./src/app";',
+		'import { routes, templates, errorPages } from "./src/routes.gen";',
+		"export default createHandler({ app, routes, templates, errorPages });",
+	].join("\n");
+}
+
 export function frameworkPlugin(): Plugin {
 	let srcDir: string;
 
@@ -32,6 +43,16 @@ export function frameworkPlugin(): Plugin {
 
 		configResolved(config) {
 			srcDir = path.join(config.root, "src");
+		},
+
+		resolveId(source: string) {
+			if (source === VIRTUAL_MODULE_ID) { return RESOLVED_VIRTUAL_MODULE_ID; }
+			return undefined;
+		},
+
+		load(id: string) {
+			if (id === RESOLVED_VIRTUAL_MODULE_ID) { return generateServerEntry(); }
+			return undefined;
 		},
 
 		buildStart() {
