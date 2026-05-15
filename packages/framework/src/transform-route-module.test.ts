@@ -73,4 +73,27 @@ describe("transformRouteModule", () => {
 
 		expect(result).toBe(`export default definePage("/blog/[slug]")({`);
 	});
+
+	test("fills empty defineErrorPage() with status code from route path", () => {
+		const source = `import { defineErrorPage } from "@sundayceo/framework";\nexport const page = defineErrorPage()({`;
+		const result = transformRouteModule({ source, routePath: "/404" });
+
+		expect(result).toBe(
+			`import { defineErrorPage } from "@sundayceo/framework";\nexport const page = defineErrorPage(404)({`,
+		);
+	});
+
+	test("updates existing status code in defineErrorPage", () => {
+		const source = `export const page = defineErrorPage(999)({`;
+		const result = transformRouteModule({ source, routePath: "/500" });
+
+		expect(result).toBe(`export const page = defineErrorPage(500)({`);
+	});
+
+	test("does not modify already correct defineErrorPage status", () => {
+		const source = `export const page = defineErrorPage(404)({`;
+		const result = transformRouteModule({ source, routePath: "/404" });
+
+		expect(result).toBe(`export const page = defineErrorPage(404)({`);
+	});
 });

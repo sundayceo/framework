@@ -601,6 +601,7 @@ export default defineConfig(
 		],
 		rules: {
 			"check-file/filename-naming-convention": "off",
+			"@typescript-eslint/no-magic-numbers": "off",
 		},
 	},
 
