@@ -55,6 +55,6 @@ describe("Slot", () => {
 				<Slot id="sidebar" />
 			</SlotProvider>,
 		);
-		expect(html).toBe("");
+		expect(html).toBe('<div data-slot="sidebar"></div>');
 	});
 });

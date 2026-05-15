@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, expect, test } from "vitest";
 
-import { injectHydration, renderPage, Slot, type TemplateComponent } from "@sundayceo/framework";
+import { renderPage, Slot, type TemplateComponent } from "@sundayceo/framework";
 
 import { page } from "./demo";
 
@@ -18,23 +18,6 @@ const TestTemplate: TemplateComponent = ({ head }) => (
 			<footer>
 				<Slot id="footer" />
 			</footer>
-		</body>
-	</html>
-);
-
-const HydrationTemplate: TemplateComponent = ({ head }) => (
-	<html lang="en">
-		<head>{head}</head>
-		<body>
-			<div data-slot="header">
-				<Slot id="header" />
-			</div>
-			<div data-slot="main">
-				<Slot id="main" />
-			</div>
-			<div data-slot="footer">
-				<Slot id="footer" />
-			</div>
 		</body>
 	</html>
 );
@@ -117,89 +100,57 @@ describe("demo page SSR rendering", () => {
 });
 
 describe("demo page hydration", () => {
-	test("interactive slot gets hydration script", async () => {
-		const loaderData = await callLoader();
+	const interactiveSource = 'import { useState } from "react"; const [c, setC] = useState(0);';
+	const staticSource = "function Header() { return <h1>Hello</h1>; }";
 
+	test("interactive slot gets hydration script", async () => {
 		const response = await renderPage({
 			pageModule: page as Parameters<typeof renderPage>[0]["pageModule"],
-			template: HydrationTemplate,
+			template: TestTemplate,
 			request: defaultRequest,
 			params: defaultParams,
 			appContext: defaultAppContext,
+			slotSources: { header: staticSource, main: interactiveSource, footer: staticSource },
+			routePath: "/demo",
 		});
 
 		const html = await response.text();
 
-		const result = injectHydration({
-			html,
-			slotInteractivity: {
-				header: false,
-				main: true,
-				footer: false,
-			},
-			routePath: "/demo",
-			loaderData,
-		});
-
-		expect(result).toContain('data-hydrate="main"');
-		expect(result).toContain('<script type="module">');
-		expect(result).toContain('<script type="application/json" data-hydrate-data="main">');
+		expect(html).toContain('data-hydrate="main"');
+		expect(html).toContain('<script type="module">');
+		expect(html).toContain('<script type="application/json" data-hydrate-data="main">');
 	});
 
 	test("static slots do not get hydration scripts", async () => {
-		const loaderData = await callLoader();
-
 		const response = await renderPage({
 			pageModule: page as Parameters<typeof renderPage>[0]["pageModule"],
-			template: HydrationTemplate,
+			template: TestTemplate,
 			request: defaultRequest,
 			params: defaultParams,
 			appContext: defaultAppContext,
+			slotSources: { header: staticSource, main: interactiveSource, footer: staticSource },
+			routePath: "/demo",
 		});
 
 		const html = await response.text();
 
-		const result = injectHydration({
-			html,
-			slotInteractivity: {
-				header: false,
-				main: true,
-				footer: false,
-			},
-			routePath: "/demo",
-			loaderData,
-		});
-
-		expect(result).not.toContain('data-hydrate="header"');
-		expect(result).not.toContain('data-hydrate="footer"');
-		expect(result).toContain('data-slot="header"');
-		expect(result).toContain('data-slot="footer"');
+		expect(html).not.toContain('data-hydrate="header"');
+		expect(html).not.toContain('data-hydrate="footer"');
 	});
 
 	test("hydration script references the correct route path", async () => {
-		const loaderData = await callLoader();
-
 		const response = await renderPage({
 			pageModule: page as Parameters<typeof renderPage>[0]["pageModule"],
-			template: HydrationTemplate,
+			template: TestTemplate,
 			request: defaultRequest,
 			params: defaultParams,
 			appContext: defaultAppContext,
+			slotSources: { header: staticSource, main: interactiveSource, footer: staticSource },
+			routePath: "/demo",
 		});
 
 		const html = await response.text();
 
-		const result = injectHydration({
-			html,
-			slotInteractivity: {
-				header: false,
-				main: true,
-				footer: false,
-			},
-			routePath: "/demo",
-			loaderData,
-		});
-
-		expect(result).toContain("/demo");
+		expect(html).toContain("/demo");
 	});
 });

@@ -352,4 +352,211 @@ describe("renderPage", () => {
 		expect(html).toContain('content="Only desc"');
 		expect(html).toContain('name="description"');
 	});
+
+	describe("slot validation", () => {
+		test("throws when a required slot is not provided", async () => {
+			function TwoSlotTemplate({ head }: { head: React.ReactNode }): React.ReactNode {
+				return (
+					<html lang="en">
+						<head>{head}</head>
+						<body>
+							<Slot id="header" />
+							<Slot id="content" />
+						</body>
+					</html>
+				);
+			}
+
+			await expect(
+				renderPage({
+					pageModule: {
+						defineSlots: () => ({ header: <h1>Hi</h1> }),
+					},
+					template: TwoSlotTemplate,
+					request: makeRequest(),
+					params: {},
+					appContext: {},
+				}),
+			).rejects.toThrow('Required slot "content" is missing');
+		});
+
+		test("does not throw when optional slot with fallback is not provided", async () => {
+			function OptionalSlotTemplate({ head }: { head: React.ReactNode }): React.ReactNode {
+				return (
+					<html lang="en">
+						<head>{head}</head>
+						<body>
+							<Slot id="content" />
+							<Slot id="sidebar" fallback={<nav>Default</nav>} />
+						</body>
+					</html>
+				);
+			}
+
+			const response = await renderPage({
+				pageModule: {
+					defineSlots: () => ({ content: <p>Main</p> }),
+				},
+				template: OptionalSlotTemplate,
+				request: makeRequest(),
+				params: {},
+				appContext: {},
+			});
+
+			const html = await response.text();
+			expect(html).toContain("<p>Main</p>");
+			expect(html).toContain("<nav>Default</nav>");
+		});
+	});
+
+	describe("hydration integration", () => {
+		const STATIC_SOURCE = "function Header() { return <h1>Hello</h1>; }";
+		const INTERACTIVE_SOURCE =
+			'import { useState } from "react"; function Counter() { const [c, setC] = useState(0); return <button onClick={() => setC(c+1)}>{c}</button>; }';
+
+		function makeMultiSlotTemplate(): TemplateComponent {
+			return function Template({ head }: { head: React.ReactNode }): React.ReactNode {
+				return (
+					<html lang="en">
+						<head>{head}</head>
+						<body>
+							<Slot id="header" />
+							<Slot id="counter" />
+							<Slot id="footer" />
+						</body>
+					</html>
+				);
+			};
+		}
+
+		test("static slots remain JS-free when slotSources shows no interactivity signals", async () => {
+			const response = await renderPage({
+				pageModule: {
+					defineSlots: () => ({ content: <p>Static</p> }),
+				},
+				template: makeTemplateWithSlot(),
+				request: makeRequest(),
+				params: {},
+				appContext: {},
+				slotSources: { content: STATIC_SOURCE },
+				routePath: "/routes/index",
+			});
+
+			const html = await response.text();
+			expect(html).toContain("<p>Static</p>");
+			expect(html).not.toContain("<script");
+			expect(html).not.toContain("data-hydrate=");
+		});
+
+		test("interactive slot with useState gets hydration script injected", async () => {
+			const response = await renderPage({
+				pageModule: {
+					defineSlots: () => ({ content: <button>Count: 0</button> }),
+				},
+				template: makeTemplateWithSlot(),
+				request: makeRequest(),
+				params: {},
+				appContext: {},
+				slotSources: { content: INTERACTIVE_SOURCE },
+				routePath: "/routes/index",
+			});
+
+			const html = await response.text();
+			expect(html).toContain('data-hydrate="content"');
+			expect(html).toContain('<script type="module">');
+			expect(html).toContain('<script type="application/json" data-hydrate-data="content">');
+			expect(html).toContain("/routes/index");
+		});
+
+		test("mixed page: interactive slots hydrated, static slots stay clean", async () => {
+			const response = await renderPage({
+				pageModule: {
+					defineSlots: (): SlotMap => ({
+						header: <h1>Header</h1>,
+						counter: <button>Count: 0</button>,
+						footer: <footer>Footer</footer>,
+					}),
+				},
+				template: makeMultiSlotTemplate(),
+				request: makeRequest(),
+				params: {},
+				appContext: {},
+				slotSources: {
+					header: STATIC_SOURCE,
+					counter: INTERACTIVE_SOURCE,
+					footer: STATIC_SOURCE,
+				},
+				routePath: "/routes/index",
+			});
+
+			const html = await response.text();
+			expect(html).toContain('data-hydrate="counter"');
+			expect(html).not.toContain('data-hydrate="header"');
+			expect(html).not.toContain('data-hydrate="footer"');
+			const moduleScripts = html.match(/<script type="module">/g) ?? [];
+			expect(moduleScripts.length).toBe(1);
+		});
+
+		test("loader data serialized in hydration JSON script tags", async () => {
+			const loaderData = { items: ["a", "b"], count: 42 };
+			const response = await renderPage({
+				pageModule: {
+					loader: () => loaderData,
+					defineSlots: () => ({ content: <button>Click</button> }),
+				},
+				template: makeTemplateWithSlot(),
+				request: makeRequest(),
+				params: {},
+				appContext: {},
+				slotSources: { content: INTERACTIVE_SOURCE },
+				routePath: "/routes/index",
+			});
+
+			const html = await response.text();
+			expect(html).toContain(
+				`<script type="application/json" data-hydrate-data="content">${JSON.stringify(loaderData)}</script>`,
+			);
+		});
+
+		test("no hydration when slotSources is omitted (backward compat)", async () => {
+			const response = await renderPage({
+				pageModule: {
+					defineSlots: () => ({ content: <button>Count: 0</button> }),
+				},
+				template: makeTemplateWithSlot(),
+				request: makeRequest(),
+				params: {},
+				appContext: {},
+			});
+
+			const html = await response.text();
+			expect(html).toContain("<button>Count: 0</button>");
+			expect(html).not.toContain("<script");
+			expect(html).not.toContain("data-hydrate=");
+		});
+
+		test("import graph transitivity: slot is interactive via transitive dependency", async () => {
+			const wrapperSource =
+				'import { useCounter } from "./use-counter"; function Wrapper() { return useCounter(); }';
+			const useCounterSource =
+				'import { useState } from "react"; export function useCounter() { const [c, setC] = useState(0); return c; }';
+
+			const response = await renderPage({
+				pageModule: {
+					defineSlots: () => ({ content: <div>Wrapper</div> }),
+				},
+				template: makeTemplateWithSlot(),
+				request: makeRequest(),
+				params: {},
+				appContext: {},
+				slotSources: { content: wrapperSource },
+				importGraph: { "./use-counter": useCounterSource },
+				routePath: "/routes/index",
+			});
+
+			const html = await response.text();
+			expect(html).toContain('data-hydrate="content"');
+			expect(html).toContain('<script type="module">');
+		});
+	});
 });

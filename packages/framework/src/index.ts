@@ -5,7 +5,6 @@ export type { AppConfig } from "./create-app";
 export { defineHandler } from "./define-handler";
 export { defineErrorPage, type ErrorContext } from "./define-error-page";
 export { definePage } from "./define-page";
-export { extractSlots } from "./extract-slots";
 export { Slot, SlotContext, SlotProvider } from "./slot";
 
 export type {
@@ -21,15 +20,12 @@ export type {
 	TemplateRegistry,
 } from "./core/index";
 
-export { generateHydrationScript } from "./generate-hydration-script";
 export { createHandler } from "./create-handler";
 export type { GeneratedRoute, GeneratedTemplates, HandlerOptions } from "./create-handler";
 export { createRequestHandler } from "./create-request-handler";
 export type { RequestHandlerOptions } from "./create-request-handler";
 export { handleRequest } from "./handle-request";
 export { runCodegen } from "./run-codegen";
-export { injectHydration } from "./inject-hydration";
-export { isInteractive } from "./interactivity-inference";
 export { matchRoute, type MatchResult } from "./route-matcher";
 export { resolveTemplate } from "./template-resolver";
 export {
@@ -55,5 +51,4 @@ export {
 	redirect,
 } from "./throwable-response";
 export { filePathToRoutePath, transformRouteModule } from "./transform-route-module";
-export { validateSlots, type ValidationResult } from "./validate-slots";
 export { viewTransitionName } from "./view-transition";
