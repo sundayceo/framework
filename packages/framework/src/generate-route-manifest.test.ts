@@ -45,9 +45,9 @@ describe("generateRouteManifest", () => {
 		const lines = result.split("\n");
 		const routeLines = lines.filter((l) => l.includes("pattern:"));
 
-		expect(routeLines[0]).toContain('pattern: "/"');
-		expect(routeLines[1]).toContain('pattern: "/about"');
-		expect(routeLines[2]).toContain('pattern: "/blog/:slug"');
+		expect(routeLines.at(0)).toContain('pattern: "/"');
+		expect(routeLines.at(1)).toContain('pattern: "/about"');
+		expect(routeLines.at(2)).toContain('pattern: "/blog/:slug"');
 	});
 
 	test("generates template map", () => {
@@ -104,7 +104,7 @@ describe("generateRouteManifest", () => {
 		const lines = result.split("\n");
 		const templateLines = lines.filter((l) => l.includes("import("));
 
-		expect(templateLines[0]).toContain("default:");
-		expect(templateLines[1]).toContain("sidebar:");
+		expect(templateLines.at(0)).toContain("default:");
+		expect(templateLines.at(1)).toContain("sidebar:");
 	});
 });
