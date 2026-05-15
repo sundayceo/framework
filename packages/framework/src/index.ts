@@ -21,15 +21,12 @@ export type {
 	TemplateRegistry,
 } from "./core/index";
 
-export { generateHydrationScript } from "./generate-hydration-script";
 export { createHandler } from "./create-handler";
 export type { GeneratedRoute, GeneratedTemplates, HandlerOptions } from "./create-handler";
 export { createRequestHandler } from "./create-request-handler";
 export type { RequestHandlerOptions } from "./create-request-handler";
 export { handleRequest } from "./handle-request";
 export { runCodegen } from "./run-codegen";
-export { injectHydration } from "./inject-hydration";
-export { isInteractive } from "./interactivity-inference";
 export { matchRoute, type MatchResult } from "./route-matcher";
 export { resolveTemplate } from "./template-resolver";
 export {

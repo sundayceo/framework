@@ -2,6 +2,8 @@ import React, { type ReactNode } from "react";
 import { renderToString } from "react-dom/server";
 
 import type { Context, SlotMap, TemplateComponent } from "./core/index";
+import { injectHydration } from "./inject-hydration";
+import { isInteractive } from "./interactivity-inference";
 import { SlotProvider } from "./slot";
 
 type MetaInfo = { title?: string; description?: string };
@@ -20,6 +22,9 @@ type RenderPageInput = {
 	appContext: Record<string, unknown>;
 	cssHref?: string;
 	hasViewTransition?: boolean;
+	slotSources?: Record<string, string>;
+	importGraph?: Record<string, string>;
+	routePath?: string;
 };
 
 function resolveMeta(meta: RenderablePageModule["meta"], loaderData: unknown): MetaInfo {
@@ -77,6 +82,17 @@ function runLoader(input: {
 	return input.pageModule.loader(ctx);
 }
 
+function buildSlotInteractivity(input: {
+	slotSources: Record<string, string>;
+	importGraph: Record<string, string>;
+}): Record<string, boolean> {
+	const result: Record<string, boolean> = {};
+	for (const [slotName, source] of Object.entries(input.slotSources)) {
+		result[slotName] = isInteractive(source, input.importGraph);
+	}
+	return result;
+}
+
 export async function renderPage(input: RenderPageInput): Promise<Response> {
 	const {
 		pageModule,
@@ -86,6 +102,9 @@ export async function renderPage(input: RenderPageInput): Promise<Response> {
 		appContext,
 		cssHref,
 		hasViewTransition,
+		slotSources,
+		importGraph = {},
+		routePath = "",
 	} = input;
 
 	const loaderData = await runLoader({ pageModule, request, params, appContext });
@@ -93,11 +112,21 @@ export async function renderPage(input: RenderPageInput): Promise<Response> {
 	const meta = resolveMeta(pageModule.meta, loaderData);
 	const headContent = buildHeadContent({ meta, cssHref, hasViewTransition });
 
-	const html = renderToString(
+	let html = renderToString(
 		<SlotProvider slots={slotMap}>
 			<Template head={headContent} />
 		</SlotProvider>,
 	);
+
+	if (slotSources !== undefined) {
+		const slotInteractivity = buildSlotInteractivity({ slotSources, importGraph });
+		html = injectHydration({
+			html,
+			slotInteractivity,
+			routePath,
+			loaderData,
+		});
+	}
 
 	return new Response(`<!DOCTYPE html>${html}`, {
 		headers: { "content-type": "text/html;charset=utf-8" },
