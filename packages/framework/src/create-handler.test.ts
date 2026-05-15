@@ -357,8 +357,7 @@ describe("createHandler", () => {
 		): GeneratedErrorPages {
 			const result: GeneratedErrorPages = {};
 			for (const [status, mod] of Object.entries(pages)) {
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				result[Number(status)] = () => Promise.resolve({ page: mod as any });
+				result[Number(status)] = () => Promise.resolve({ page: mod });
 			}
 			return result;
 		}
@@ -385,7 +384,7 @@ describe("createHandler", () => {
 			expect(response.status).toBe(500);
 			expect(response.headers.get("content-type")).toBe("text/html;charset=utf-8");
 			expect(errorPageModule.loader).toHaveBeenCalled();
-			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls[0]![0];
+			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls.at(0)!.at(0);
 			expect(loaderArg.error.status).toBe(500);
 			expect(loaderArg.error.message).toBe("Internal Server Error");
 		});
@@ -405,7 +404,7 @@ describe("createHandler", () => {
 			expect(response.status).toBe(404);
 			expect(response.headers.get("content-type")).toBe("text/html;charset=utf-8");
 			expect(errorPageModule.loader).toHaveBeenCalled();
-			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls[0]![0];
+			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls.at(0)!.at(0);
 			expect(loaderArg.error.status).toBe(404);
 			expect(loaderArg.error.message).toBe("Not Found");
 		});
@@ -489,7 +488,7 @@ describe("createHandler", () => {
 				throw new Error("onError broke");
 			});
 
-			const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+			const consoleSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
 
 			const handler = createHandler({
 				app: makeApp({ onError }),

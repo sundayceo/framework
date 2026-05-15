@@ -103,7 +103,7 @@ describe("handleRequest", () => {
 
 	test("handles async onError handler as side-effect", async () => {
 		const request = new Request("https://example.com/crash");
-		let called = false;
+		let wasCalled = false;
 
 		const result = await handleRequest({
 			request,
@@ -112,11 +112,11 @@ describe("handleRequest", () => {
 			},
 			onError: async () => {
 				await Promise.resolve();
-				called = true;
+				wasCalled = true;
 			},
 		});
 
-		expect(called).toBe(true);
+		expect(wasCalled).toBe(true);
 		expect(result.status).toBe(500);
 		const body = await result.text();
 		expect(body).toContain("Internal Server Error");
