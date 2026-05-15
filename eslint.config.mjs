@@ -238,6 +238,7 @@ export default defineConfig(
 		ignores: [
 			"**/node_modules/**",
 			"**/dist/**",
+			"**/.claude/**",
 			"**/.wrangler/**",
 			"**/.turbo/**",
 			"**/framework.gen.d.ts",
