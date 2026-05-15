@@ -15,6 +15,9 @@
 		"./cloudflare": {
 			"types": "./dist/cloudflare.d.ts",
 			"import": "./dist/cloudflare.js"
+		},
+		"./server-entry": {
+			"types": "./src/server-entry.d.ts"
 		}
 	},
 	"publishConfig": {
