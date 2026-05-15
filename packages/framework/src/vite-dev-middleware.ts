@@ -40,9 +40,12 @@ function collectBody(req: IncomingMessage): Promise<Buffer> {
 	});
 }
 
-async function toWebRequest(req: IncomingMessage): Promise<Request> {
+type ConnectIncomingMessage = IncomingMessage & { originalUrl?: string };
+
+async function toWebRequest(req: ConnectIncomingMessage): Promise<Request> {
 	const host = req.headers.host ?? "localhost";
-	const url = `${PROTOCOL}://${host}${req.url ?? "/"}`;
+	const pathname = req.originalUrl ?? req.url ?? "/";
+	const url = `${PROTOCOL}://${host}${pathname}`;
 	const method = req.method ?? "GET";
 	const headers = buildHeaders(req);
 
@@ -174,7 +177,11 @@ function isDefaultNotFound(response: Response): boolean {
 	return response.status === NOT_FOUND_STATUS && contentType.includes("text/html");
 }
 
-type ConnectMiddleware = (req: IncomingMessage, res: ServerResponse, next: () => void) => void;
+type ConnectMiddleware = (
+	req: ConnectIncomingMessage,
+	res: ServerResponse,
+	next: () => void,
+) => void;
 
 function registerWatchers(input: {
 	server: ViteDevServer;
@@ -208,7 +215,7 @@ function buildMiddleware(input: MiddlewareInput): ConnectMiddleware {
 		},
 	});
 
-	return (req: IncomingMessage, res: ServerResponse, next: () => void): void => {
+	return (req: ConnectIncomingMessage, res: ServerResponse, next: () => void): void => {
 		handleMiddlewareRequest({ server, srcDir, routes, req, res, next });
 	};
 }
@@ -217,14 +224,13 @@ type HandleInput = {
 	server: ViteDevServer;
 	srcDir: string;
 	routes: RouteEntry[];
-	req: IncomingMessage;
+	req: ConnectIncomingMessage;
 	res: ServerResponse;
 	next: () => void;
 };
 
 async function dispatchRequest(input: HandleInput): Promise<void> {
 	const { server, srcDir, routes, req, res, next } = input;
-
 	try {
 		const app = await loadAppConfig({ server, srcDir });
 		const handler = createRequestHandler({

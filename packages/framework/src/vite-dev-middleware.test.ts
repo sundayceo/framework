@@ -125,6 +125,14 @@ describe("toWebRequest", () => {
 
 		expect(webReq.body).toBeNull();
 	});
+
+	test("uses originalUrl over url when available", async () => {
+		const req = createMockRequest({ url: "/index.html", headers: { host: "localhost:5173" } });
+		Object.assign(req, { originalUrl: "/" });
+		const webReq = await toWebRequest(req);
+
+		expect(webReq.url).toBe("http://localhost:5173/");
+	});
 });
 
 describe("writeResponse", () => {
