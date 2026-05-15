@@ -3,26 +3,14 @@ import path from "node:path";
 
 import type { Plugin } from "vite";
 
-import { generateDeclarations } from "./generate-declarations";
-import { generateRouteManifest } from "./generate-route-manifest";
+import { runCodegen } from "./run-codegen";
 import { filePathToRoutePath, transformRouteModule } from "./transform-route-module";
 import { createDevMiddleware } from "./vite-dev-middleware";
 
 const ROUTE_EXTENSIONS = [".tsx", ".ts"];
-const TEMPLATE_EXTENSIONS = [".tsx"];
 const PLUGIN_NAME = "sundayceo-framework";
 const OUTPUT_FILE = "framework.gen.d.ts";
 const MANIFEST_FILE = "routes.gen.ts";
-
-function scanDir(dir: string, extensions: string[]): string[] {
-	if (!fs.existsSync(dir)) {
-		return [];
-	}
-
-	return fs
-		.readdirSync(dir, { recursive: true })
-		.filter((f): f is string => typeof f === "string" && extensions.some((ext) => f.endsWith(ext)));
-}
 
 function isWatchedPath(file: string, srcDir: string): boolean {
 	const templatesDir = path.join(srcDir, "templates");
@@ -30,13 +18,9 @@ function isWatchedPath(file: string, srcDir: string): boolean {
 	return file.startsWith(templatesDir) || file.startsWith(routesDir);
 }
 
-function runCodegen(srcDir: string): void {
-	const templatePaths = scanDir(path.join(srcDir, "templates"), TEMPLATE_EXTENSIONS);
-	const routePaths = scanDir(path.join(srcDir, "routes"), ROUTE_EXTENSIONS);
-	const content = generateDeclarations({ templatePaths, routePaths });
-	fs.writeFileSync(path.join(srcDir, OUTPUT_FILE), content);
-
-	const manifest = generateRouteManifest({ routePaths, templatePaths });
+function writeCodegen(srcDir: string): void {
+	const { declarations, manifest } = runCodegen(srcDir);
+	fs.writeFileSync(path.join(srcDir, OUTPUT_FILE), declarations);
 	fs.writeFileSync(path.join(srcDir, MANIFEST_FILE), manifest);
 }
 
@@ -51,7 +35,7 @@ export function frameworkPlugin(): Plugin {
 		},
 
 		buildStart() {
-			runCodegen(srcDir);
+			writeCodegen(srcDir);
 		},
 
 		transform(code, id) {
@@ -76,13 +60,13 @@ export function frameworkPlugin(): Plugin {
 		configureServer(server) {
 			server.watcher.on("add", (file: string) => {
 				if (isWatchedPath(file, srcDir)) {
-					runCodegen(srcDir);
+					writeCodegen(srcDir);
 				}
 			});
 
 			server.watcher.on("unlink", (file: string) => {
 				if (isWatchedPath(file, srcDir)) {
-					runCodegen(srcDir);
+					writeCodegen(srcDir);
 				}
 			});
 
