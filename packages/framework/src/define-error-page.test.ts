@@ -1,7 +1,6 @@
 import { expect, expectTypeOf, test } from "vitest";
 
-import type { ErrorContext } from "./define-error-page";
-import { defineErrorPage } from "./define-error-page";
+import { defineErrorPage, type ErrorContext } from "./define-error-page";
 
 declare module "./index" {
 	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions

@@ -14,10 +14,7 @@ type MetaValue<TLoaderData> =
 			description?: string;
 	  });
 
-type ErrorPageConfigWithLoader<
-	TTemplate extends keyof TemplateRegistry,
-	TLoaderData,
-> = {
+type ErrorPageConfigWithLoader<TTemplate extends keyof TemplateRegistry, TLoaderData> = {
 	template: TTemplate;
 	loader: (ctx: { error: ErrorContext }) => TLoaderData | Promise<TLoaderData>;
 	defineSlots: (args: { loaderData: Awaited<TLoaderData> }) => SlotMap;
@@ -30,9 +27,7 @@ type ErrorPageConfigWithoutLoader<TTemplate extends keyof TemplateRegistry> = {
 	meta?: MetaValue<undefined>;
 };
 
-export function defineErrorPage(
-	_status: number,
-): {
+export function defineErrorPage(_status: number): {
 	<TTemplate extends keyof TemplateRegistry, TLoaderData>(
 		config: ErrorPageConfigWithLoader<TTemplate, TLoaderData>,
 	): ErrorPageConfigWithLoader<TTemplate, TLoaderData>;
