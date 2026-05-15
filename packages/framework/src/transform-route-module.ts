@@ -1,5 +1,5 @@
 function filePathToRoute(filePath: string): string {
-	const withoutExtension = filePath.replace(/\.tsx$/, "");
+	const withoutExtension = filePath.replace(/\.(tsx|ts)$/, "");
 	const segments = withoutExtension.split("/");
 	const lastSegment = segments.at(-1);
 
