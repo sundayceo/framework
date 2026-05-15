@@ -54,10 +54,11 @@ describe("package.json exports map", () => {
 		});
 	});
 
-	test("server-entry export provides types only", async () => {
+	test("server-entry export provides types and stub import", async () => {
 		const pkg = await readPackageJson();
 		expect(pkg.exports["./server-entry"]).toStrictEqual({
 			types: "./src/server-entry.d.ts",
+			import: "./src/server-entry-stub.js",
 		});
 	});
 

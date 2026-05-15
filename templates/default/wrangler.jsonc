@@ -1,6 +1,6 @@
 {
 	"name": "{{name}}",
-	"main": "dist/server.js",
+	"main": "dist/entry.cloudflare.js",
 	"compatibility_date": "2025-05-01",
 	"compatibility_flags": ["nodejs_compat"]
 }
