@@ -32,9 +32,11 @@ export { matchRoute, type MatchResult } from "./route-matcher";
 export { resolveTemplate } from "./template-resolver";
 export {
 	scanRoutes,
+	type ErrorPageEntry,
 	type ManifestRouteEntry,
 	type MatchableRoute,
 	type RouteEntry,
+	type ScanResult,
 } from "./route-scanner";
 export { renderPage } from "./render-page";
 export {

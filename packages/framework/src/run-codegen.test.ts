@@ -100,4 +100,53 @@ describe("runCodegen", () => {
 
 		fs.rmSync(emptyDir, { recursive: true, force: true });
 	});
+
+	test("excludes error page files from RouteMap declarations", () => {
+		fs.writeFileSync(path.join(srcDir, "routes", "index.tsx"), "");
+		fs.writeFileSync(path.join(srcDir, "routes", "404.tsx"), "");
+		fs.writeFileSync(path.join(srcDir, "routes", "500.tsx"), "");
+		fs.writeFileSync(path.join(srcDir, "routes", "about.tsx"), "");
+
+		const { declarations } = runCodegen(srcDir);
+
+		expect(declarations).toContain('"/": {};');
+		expect(declarations).toContain('"/about": {};');
+		expect(declarations).not.toContain("404");
+		expect(declarations).not.toContain("500");
+	});
+
+	test("keeps non-error numeric files in RouteMap declarations", () => {
+		fs.writeFileSync(path.join(srcDir, "routes", "200.tsx"), "");
+		fs.writeFileSync(path.join(srcDir, "routes", "301.tsx"), "");
+
+		const { declarations } = runCodegen(srcDir);
+
+		expect(declarations).toContain('"/200": {};');
+		expect(declarations).toContain('"/301": {};');
+	});
+
+	test("emits errorPages export with lazy imports keyed by status code", () => {
+		fs.writeFileSync(path.join(srcDir, "routes", "index.tsx"), "");
+		fs.writeFileSync(path.join(srcDir, "routes", "404.tsx"), "");
+		fs.writeFileSync(path.join(srcDir, "routes", "500.tsx"), "");
+
+		const { manifest } = runCodegen(srcDir);
+
+		expect(manifest).toContain("export const errorPages = {");
+		expect(manifest).toContain('404: () => import("./routes/404")');
+		expect(manifest).toContain('500: () => import("./routes/500")');
+	});
+
+	test("excludes error pages from routes array in manifest", () => {
+		fs.writeFileSync(path.join(srcDir, "routes", "index.tsx"), "");
+		fs.writeFileSync(path.join(srcDir, "routes", "404.tsx"), "");
+
+		const { manifest } = runCodegen(srcDir);
+
+		const lines = manifest.split("\n");
+		const routeLines = lines.filter((l) => l.includes("pattern:"));
+
+		expect(routeLines).toHaveLength(1);
+		expect(routeLines.at(0)).toContain('pattern: "/"');
+	});
 });

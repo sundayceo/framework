@@ -6,25 +6,25 @@ describe("scanRoutes", () => {
 	test("converts a simple static route", () => {
 		const result = scanRoutes(["about.tsx"]);
 
-		expect(result).toEqual([{ pattern: "/about", params: [], filePath: "about.tsx" }]);
+		expect(result.routes).toEqual([{ pattern: "/about", params: [], filePath: "about.tsx" }]);
 	});
 
 	test("converts index.tsx to root path", () => {
 		const result = scanRoutes(["index.tsx"]);
 
-		expect(result).toEqual([{ pattern: "/", params: [], filePath: "index.tsx" }]);
+		expect(result.routes).toEqual([{ pattern: "/", params: [], filePath: "index.tsx" }]);
 	});
 
 	test("converts nested index route", () => {
 		const result = scanRoutes(["blog/index.tsx"]);
 
-		expect(result).toEqual([{ pattern: "/blog", params: [], filePath: "blog/index.tsx" }]);
+		expect(result.routes).toEqual([{ pattern: "/blog", params: [], filePath: "blog/index.tsx" }]);
 	});
 
 	test("converts a dynamic segment", () => {
 		const result = scanRoutes(["blog/[slug].tsx"]);
 
-		expect(result).toEqual([
+		expect(result.routes).toEqual([
 			{ pattern: "/blog/:slug", params: ["slug"], filePath: "blog/[slug].tsx" },
 		]);
 	});
@@ -32,7 +32,7 @@ describe("scanRoutes", () => {
 	test("converts multiple dynamic segments", () => {
 		const result = scanRoutes(["products/[category]/[id].tsx"]);
 
-		expect(result).toEqual([
+		expect(result.routes).toEqual([
 			{
 				pattern: "/products/:category/:id",
 				params: ["category", "id"],
@@ -44,7 +44,7 @@ describe("scanRoutes", () => {
 	test("accepts both .tsx and .ts files", () => {
 		const result = scanRoutes(["about.tsx", "api/health.ts"]);
 
-		expect(result).toEqual([
+		expect(result.routes).toEqual([
 			{ pattern: "/about", params: [], filePath: "about.tsx" },
 			{ pattern: "/api/health", params: [], filePath: "api/health.ts" },
 		]);
@@ -53,7 +53,7 @@ describe("scanRoutes", () => {
 	test("ignores non-route files", () => {
 		const result = scanRoutes(["about.tsx", "styles.css", "readme.md"]);
 
-		expect(result).toEqual([{ pattern: "/about", params: [], filePath: "about.tsx" }]);
+		expect(result.routes).toEqual([{ pattern: "/about", params: [], filePath: "about.tsx" }]);
 	});
 
 	test("sorts static routes before dynamic routes", () => {
@@ -65,33 +65,65 @@ describe("scanRoutes", () => {
 			"index.tsx",
 		]);
 
-		const patterns = result.map((r) => r.pattern);
+		const patterns = result.routes.map((r) => r.pattern);
 
 		expect(patterns).toEqual(["/", "/about", "/blog", "/blog/:slug", "/products/:category/:id"]);
 	});
 
-	test("returns empty array for empty input", () => {
+	test("returns empty arrays for empty input", () => {
 		const result = scanRoutes([]);
 
-		expect(result).toEqual([]);
+		expect(result.routes).toEqual([]);
+		expect(result.errorPages).toEqual([]);
 	});
 
-	test("returns empty array when no route files are present", () => {
+	test("returns empty arrays when no route files are present", () => {
 		const result = scanRoutes(["styles.css", "readme.md"]);
 
-		expect(result).toEqual([]);
+		expect(result.routes).toEqual([]);
+		expect(result.errorPages).toEqual([]);
 	});
 
 	test("excludes .test.tsx files", () => {
 		const result = scanRoutes(["about.tsx", "about.test.tsx", "index.tsx"]);
 
-		const patterns = result.map((r) => r.pattern);
+		const patterns = result.routes.map((r) => r.pattern);
 		expect(patterns).toEqual(["/", "/about"]);
 	});
 
 	test("excludes nested .test.tsx files", () => {
 		const result = scanRoutes(["api/health.tsx", "api/health.test.tsx"]);
 
-		expect(result).toEqual([{ pattern: "/api/health", params: [], filePath: "api/health.tsx" }]);
+		expect(result.routes).toEqual([
+			{ pattern: "/api/health", params: [], filePath: "api/health.tsx" },
+		]);
+	});
+
+	test("separates 404.tsx into errorPages", () => {
+		const result = scanRoutes(["index.tsx", "404.tsx"]);
+
+		expect(result.routes).toEqual([{ pattern: "/", params: [], filePath: "index.tsx" }]);
+		expect(result.errorPages).toEqual([{ status: 404, filePath: "404.tsx" }]);
+	});
+
+	test("separates multiple error pages (404, 500)", () => {
+		const result = scanRoutes(["index.tsx", "404.tsx", "500.tsx"]);
+
+		expect(result.routes).toEqual([{ pattern: "/", params: [], filePath: "index.tsx" }]);
+		expect(result.errorPages).toEqual([
+			{ status: 404, filePath: "404.tsx" },
+			{ status: 500, filePath: "500.tsx" },
+		]);
+	});
+
+	test("keeps non-error numeric files as regular routes", () => {
+		const result = scanRoutes(["200.tsx", "42.tsx", "301.tsx"]);
+
+		expect(result.routes).toEqual([
+			{ pattern: "/200", params: [], filePath: "200.tsx" },
+			{ pattern: "/301", params: [], filePath: "301.tsx" },
+			{ pattern: "/42", params: [], filePath: "42.tsx" },
+		]);
+		expect(result.errorPages).toEqual([]);
 	});
 });
