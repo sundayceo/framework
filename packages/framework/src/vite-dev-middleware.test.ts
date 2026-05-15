@@ -179,9 +179,7 @@ describe("createDevMiddleware", () => {
 
 		await dispatch(server, req);
 
-		expect(server.ssrLoadModule).toHaveBeenCalledWith(
-			expect.stringContaining("app.ts"),
-		);
+		expect(server.ssrLoadModule).toHaveBeenCalledWith(expect.stringContaining("app.ts"));
 	});
 
 	test("loads routes.gen.ts via ssrLoadModule", async () => {
@@ -190,9 +188,7 @@ describe("createDevMiddleware", () => {
 
 		await dispatch(server, req);
 
-		expect(server.ssrLoadModule).toHaveBeenCalledWith(
-			expect.stringContaining("routes.gen.ts"),
-		);
+		expect(server.ssrLoadModule).toHaveBeenCalledWith(expect.stringContaining("routes.gen.ts"));
 	});
 
 	test("loads @sundayceo/framework via ssrLoadModule", async () => {
@@ -430,8 +426,6 @@ describe("createDevMiddleware", () => {
 		const req = createMockRequest({ url: "/" });
 		await dispatch(server, req);
 
-		expect(createHandler).toHaveBeenCalledWith(
-			expect.objectContaining({ app: mockApp }),
-		);
+		expect(createHandler).toHaveBeenCalledWith(expect.objectContaining({ app: mockApp }));
 	});
 });
