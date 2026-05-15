@@ -40,6 +40,14 @@ describe("build output", () => {
 	test("dist contains vite-plugin.d.ts", () => {
 		expect(existsSync(resolve(DIST, "vite-plugin.d.ts"))).toBe(true);
 	});
+
+	test("dist contains hono.js", () => {
+		expect(existsSync(resolve(DIST, "hono.js"))).toBe(true);
+	});
+
+	test("dist contains hono.d.ts", () => {
+		expect(existsSync(resolve(DIST, "hono.d.ts"))).toBe(true);
+	});
 });
 
 describe("package.json exports map", () => {
@@ -71,9 +79,22 @@ describe("package.json publish config", () => {
 		expect(pkg.peerDependencies["react-dom"]).toBeDefined();
 	});
 
+	test("hono export points to dist/hono", async () => {
+		const pkg = await readPackageJson();
+		expect(pkg.exports["./hono"]).toStrictEqual({
+			types: "./dist/hono.d.ts",
+			import: "./dist/hono.js",
+		});
+	});
+
 	test("declares vite as peer dependency", async () => {
 		const pkg = await readPackageJson();
 		expect(pkg.peerDependencies.vite).toBeDefined();
+	});
+
+	test("declares hono as peer dependency", async () => {
+		const pkg = await readPackageJson();
+		expect(pkg.peerDependencies.hono).toBeDefined();
 	});
 
 	test("files field includes only dist", async () => {

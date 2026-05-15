@@ -11,6 +11,10 @@
 		"./vite": {
 			"types": "./dist/vite-plugin.d.ts",
 			"import": "./dist/vite-plugin.js"
+		},
+		"./hono": {
+			"types": "./dist/hono.d.ts",
+			"import": "./dist/hono.js"
 		}
 	},
 	"publishConfig": {
@@ -39,6 +43,15 @@
 	"peerDependencies": {
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
-		"vite": "^6.0.0 || ^7.0.0 || ^8.0.0"
+		"vite": "^6.0.0 || ^7.0.0 || ^8.0.0",
+		"hono": "^4.0.0"
+	},
+	"peerDependenciesMeta": {
+		"vite": {
+			"optional": true
+		},
+		"hono": {
+			"optional": true
+		}
 	}
 }
