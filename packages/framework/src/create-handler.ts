@@ -14,7 +14,9 @@ type ErrorPageModule = {
 	template: string;
 	loader?: (ctx: { error: ErrorContext }) => unknown;
 	defineSlots: (args: { loaderData: unknown }) => SlotMap;
-	meta?: { title?: string; description?: string } | ((args: { loaderData: unknown }) => { title?: string; description?: string });
+	meta?:
+		| { title?: string; description?: string }
+		| ((args: { loaderData: unknown }) => { title?: string; description?: string });
 };
 
 type GeneratedErrorPages = Record<number, () => Promise<{ page: ErrorPageModule }>>;
@@ -80,7 +82,10 @@ type AdaptedErrorModule = {
 	meta?: ErrorPageModule["meta"];
 };
 
-function adaptErrorModule(errorModule: ErrorPageModule, errorContext: ErrorContext): AdaptedErrorModule {
+function adaptErrorModule(
+	errorModule: ErrorPageModule,
+	errorContext: ErrorContext,
+): AdaptedErrorModule {
 	return {
 		template: errorModule.template,
 		defineSlots: errorModule.defineSlots,
@@ -181,13 +186,22 @@ async function dispatchPage(routeModule: PageModule, input: DispatchInput): Prom
 			throw new Error(`Template "${routeModule.template}" not found`);
 		}
 		const { default: template } = await loadTemplate();
-		return await renderPage({ pageModule: routeModule, template, request, params: match.params, appContext });
+		return await renderPage({
+			pageModule: routeModule,
+			template,
+			request,
+			params: match.params,
+			appContext,
+		});
 	} catch (error) {
 		return handleError({ error, request, onError, errorPages, templates, appContext });
 	}
 }
 
-async function dispatchHandler(routeModule: HandlerModule, input: DispatchInput): Promise<Response> {
+async function dispatchHandler(
+	routeModule: HandlerModule,
+	input: DispatchInput,
+): Promise<Response> {
 	const { match, request, appContext, onError, errorPages, templates } = input;
 	const method = request.method.toUpperCase();
 
@@ -219,7 +233,9 @@ function createHandler<TPlatform = unknown>(
 			const match = matchRoute(url.pathname, routes);
 
 			if (match === null) {
-				const appContext = await Promise.resolve(app.context(request)).catch((): Record<string, unknown> => ({}));
+				const appContext = await Promise.resolve(app.context(request)).catch(
+					(): Record<string, unknown> => ({}),
+				);
 				return renderErrorPage({ status: NOT_FOUND, errorPages, templates, request, appContext });
 			}
 
@@ -227,7 +243,14 @@ function createHandler<TPlatform = unknown>(
 			const routeModule = extractModule(namespace);
 			const appContext = await app.context(request, platform);
 			const { onError } = app;
-			const dispatchInput: DispatchInput = { templates, match, request, appContext, onError, errorPages };
+			const dispatchInput: DispatchInput = {
+				templates,
+				match,
+				request,
+				appContext,
+				onError,
+				errorPages,
+			};
 
 			if (isPageModule(routeModule)) {
 				return dispatchPage(routeModule, dispatchInput);
