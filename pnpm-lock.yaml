@@ -19,7 +19,7 @@ catalogs:
       specifier: ^4.4.1
       version: 4.7.1
     '@types/node':
-      specifier: ^25.7.0
+      specifier: ^25.6.0
       version: 25.7.0
     '@types/react':
       specifier: ^19.2.14
