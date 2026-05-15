@@ -48,7 +48,6 @@ describe("handleRequest", () => {
 			onError: (error, req) => {
 				capturedError = error;
 				capturedRequest = req;
-				return new Response("handled", { status: 503 });
 			},
 		});
 
@@ -56,7 +55,7 @@ describe("handleRequest", () => {
 		expect(capturedRequest).toBe(request);
 	});
 
-	test("returns response from onError when provided", async () => {
+	test("returns 500 bare HTML after calling onError side-effect", async () => {
 		const request = new Request("https://example.com/crash");
 
 		const result = await handleRequest({
@@ -64,11 +63,14 @@ describe("handleRequest", () => {
 			render: () => {
 				throw new Error("unexpected");
 			},
-			onError: () => new Response("Custom Error Page", { status: 503 }),
+			onError: () => {
+				// side-effect only
+			},
 		});
 
-		expect(result.status).toBe(503);
-		expect(await result.text()).toBe("Custom Error Page");
+		expect(result.status).toBe(500);
+		const body = await result.text();
+		expect(body).toContain("Internal Server Error");
 	});
 
 	test("returns generic 500 when onError is not defined", async () => {
@@ -99,8 +101,9 @@ describe("handleRequest", () => {
 		expect(await result.text()).toBe("OK");
 	});
 
-	test("handles async onError handler", async () => {
+	test("handles async onError handler as side-effect", async () => {
 		const request = new Request("https://example.com/crash");
+		let didCall = false;
 
 		const result = await handleRequest({
 			request,
@@ -108,13 +111,15 @@ describe("handleRequest", () => {
 				throw new Error("unexpected");
 			},
 			onError: async () => {
-				const body = await Promise.resolve("Async Error Page");
-				return new Response(body, { status: 503 });
+				await Promise.resolve();
+				didCall = true;
 			},
 		});
 
-		expect(result.status).toBe(503);
-		expect(await result.text()).toBe("Async Error Page");
+		expect(didCall).toBe(true);
+		expect(result.status).toBe(500);
+		const body = await result.text();
+		expect(body).toContain("Internal Server Error");
 	});
 
 	test("uses error page system when HttpErrorResponse 404 is thrown", async () => {
