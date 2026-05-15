@@ -1,11 +1,13 @@
 import type { AppConfig } from "./create-app";
-import type { HandlerModule, PageModule, TemplateComponent } from "./core/index";
+import type { Context, HandlerModule, PageModule, TemplateComponent } from "./core/index";
 import type { RouteEntry } from "./route-scanner";
+import type { MatchResult } from "./route-matcher";
 import { handleRequest } from "./handle-request";
 import { matchRoute } from "./route-matcher";
 import { renderPage } from "./render-page";
 import { resolveErrorPage } from "./resolve-error-page";
 import { runLoader } from "./run-loader";
+
 type RequestHandlerOptions = {
 	app: AppConfig<Record<string, unknown>>;
 	getRoutes: () => RouteEntry[];
@@ -16,8 +18,65 @@ type RequestHandlerOptions = {
 const METHOD_NOT_ALLOWED = 405;
 const NOT_FOUND = 404;
 
+const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"]);
+
 function isPageModule(module: PageModule | HandlerModule): module is PageModule {
 	return "template" in module;
+}
+
+function isHttpMethod(method: string): method is keyof HandlerModule {
+	return HTTP_METHODS.has(method);
+}
+
+type RouteHandlerInput = {
+	match: MatchResult;
+	request: Request;
+	appContext: Record<string, unknown>;
+	onError: AppConfig<Record<string, unknown>>["onError"];
+};
+
+function handlePageRoute(
+	routeModule: PageModule,
+	loadTemplate: (templateId: string) => Promise<TemplateComponent>,
+	input: RouteHandlerInput,
+): Promise<Response> {
+	return handleRequest({
+		request: input.request,
+		render: async () => {
+			const loaderData = await runLoader({
+				pageModule: routeModule,
+				params: input.match.params,
+				request: input.request,
+				appContext: input.appContext,
+			});
+			const template = await loadTemplate(routeModule.template);
+			return renderPage({ pageModule: routeModule, template, loaderData });
+		},
+		onError: input.onError,
+	});
+}
+
+function handleHandlerRoute(routeModule: HandlerModule, input: RouteHandlerInput): Promise<Response> {
+	const method = input.request.method.toUpperCase();
+
+	if (!isHttpMethod(method)) {
+		return Promise.resolve(new Response(null, { status: METHOD_NOT_ALLOWED }));
+	}
+
+	const methodHandler = routeModule[method];
+
+	if (methodHandler === undefined) {
+		return Promise.resolve(new Response(null, { status: METHOD_NOT_ALLOWED }));
+	}
+
+	return handleRequest({
+		request: input.request,
+		render: () => {
+			const ctx: Context = { request: input.request, params: input.match.params, ...input.appContext };
+			return methodHandler(ctx);
+		},
+		onError: input.onError,
+	});
 }
 
 function createRequestHandler(
@@ -36,51 +95,13 @@ function createRequestHandler(
 		const routeModule = await loadRouteModule(match.route);
 		const appContext = await app.context(request);
 
+		const input: RouteHandlerInput = { match, request, appContext, onError: app.onError };
+
 		if (isPageModule(routeModule)) {
-			return handleRequest({
-				request,
-				render: () => {
-					const loaderPromise = runLoader({
-						pageModule: routeModule,
-						params: match.params,
-						request,
-						appContext,
-					});
-
-					return loaderPromise.then(async (loaderData) => {
-						const template = await loadTemplate(routeModule.template);
-						return renderPage({
-							pageModule: routeModule,
-							template,
-							loaderData,
-						});
-					}) as unknown as Response;
-				},
-				onError: app.onError,
-			});
+			return handlePageRoute(routeModule, loadTemplate, input);
 		}
 
-		// Handler module
-		const method = request.method.toUpperCase() as keyof HandlerModule;
-		const methodHandler = routeModule[method];
-
-		if (methodHandler === undefined) {
-			return new Response(null, { status: METHOD_NOT_ALLOWED });
-		}
-
-		return handleRequest({
-			request,
-			render: () => {
-				const ctx = {
-					request,
-					params: match.params,
-					...appContext,
-				};
-
-				return methodHandler(ctx) as Response;
-			},
-			onError: app.onError,
-		});
+		return handleHandlerRoute(routeModule, input);
 	};
 }
 

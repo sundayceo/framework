@@ -51,10 +51,6 @@ function makeApp(
 
 const fakeTemplate: TemplateComponent = () => null;
 
-const fakeRenderedResponse = new Response("<!DOCTYPE html><html></html>", {
-	headers: { "content-type": "text/html;charset=utf-8" },
-});
-
 describe("createRequestHandler", () => {
 	test("returns 404 when no route matches", async () => {
 		const handler = createRequestHandler({
