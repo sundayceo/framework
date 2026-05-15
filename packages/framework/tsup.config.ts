@@ -5,5 +5,5 @@ export default defineConfig({
 	format: ["esm"],
 	dts: true,
 	clean: true,
-	external: ["react", "react-dom", "vite", "node:async_hooks"],
+	external: ["react", "react-dom", "vite"],
 });

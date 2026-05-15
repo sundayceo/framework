@@ -1,6 +1,12 @@
 import { describe, expect, test, vi } from "vitest";
 
-import { cloudflare, getCloudflareContext, type ExecutionContext } from "./cloudflare";
+import { cloudflare, type ExecutionContext } from "./cloudflare";
+import { createRequestHandler, type RequestHandlerOptions } from "./create-request-handler";
+import type { MatchableRoute } from "./route-scanner";
+
+vi.mock("./create-request-handler", () => ({
+	createRequestHandler: vi.fn(),
+}));
 
 type TestEnv = {
 	DB: string;
@@ -14,33 +20,48 @@ function makeExecutionContext(): ExecutionContext {
 	};
 }
 
+function makeHandlerOptions(): RequestHandlerOptions {
+	return {
+		app: {
+			context: vi.fn().mockResolvedValue({ existing: "value" }),
+			onError: vi.fn(),
+		},
+		getRoutes: () => [],
+		loadRouteModule: vi.fn(),
+		loadTemplate: vi.fn(),
+	};
+}
+
 describe("cloudflare", () => {
 	test("returns an object with a fetch method", () => {
-		const handler = vi.fn();
-		const worker = cloudflare(handler);
+		const worker = cloudflare(makeHandlerOptions());
 
 		expect(typeof worker.fetch).toBe("function");
 	});
 
-	test("fetch passes the request to the handler", async () => {
+	test("passes the request through to the handler", async () => {
 		const response = new Response("ok");
-		const handler = vi.fn().mockResolvedValue(response);
-		const worker = cloudflare(handler);
+		const mockHandler = vi.fn().mockResolvedValue(response);
+		vi.mocked(createRequestHandler).mockReturnValue(mockHandler);
 
+		const worker = cloudflare(makeHandlerOptions());
 		const request = new Request("https://example.com/test");
-		const env = {};
 		const ctx = makeExecutionContext();
 
-		const result = await worker.fetch(request, env, ctx);
+		const result = await worker.fetch(request, {}, ctx);
 
-		expect(handler).toHaveBeenCalledWith(request);
+		expect(mockHandler).toHaveBeenCalledWith(request);
 		expect(result).toBe(response);
 	});
 
 	test("calls the env mapping function with the Cloudflare env", async () => {
-		const handler = vi.fn().mockResolvedValue(new Response("ok"));
+		const mockHandler = vi.fn().mockResolvedValue(new Response("ok"));
+		vi.mocked(createRequestHandler).mockReturnValue(mockHandler);
+
 		const envMapper = vi.fn().mockReturnValue({ db: "mapped-db" });
-		const worker = cloudflare<TestEnv, { db: string }>(handler, { env: envMapper });
+		const worker = cloudflare<MatchableRoute, TestEnv, { db: string }>(makeHandlerOptions(), {
+			env: envMapper,
+		});
 
 		const env: TestEnv = { DB: "my-db", CACHE: "my-cache" };
 		const ctx = makeExecutionContext();
@@ -50,74 +71,104 @@ describe("cloudflare", () => {
 		expect(envMapper).toHaveBeenCalledWith(env);
 	});
 
-	test("getCloudflareContext returns mapped env and ctx inside the handler", async () => {
-		let capturedEnv: unknown;
-		let capturedCtx: unknown;
-
-		const handler = vi.fn().mockImplementation(() => {
-			const cfContext = getCloudflareContext<{ db: string }>();
-			capturedEnv = cfContext.env;
-			capturedCtx = cfContext.ctx;
-			return Promise.resolve(new Response("ok"));
+	test("env-mapped values are merged into the app context", async () => {
+		const mockHandler = vi.fn().mockResolvedValue(new Response("ok"));
+		let capturedOptions: RequestHandlerOptions | undefined;
+		vi.mocked(createRequestHandler).mockImplementation((opts) => {
+			capturedOptions = opts;
+			return mockHandler;
 		});
 
 		const envMapper = (env: TestEnv): { db: string } => ({ db: env.DB });
-		const worker = cloudflare<TestEnv, { db: string }>(handler, { env: envMapper });
+		const handlerOptions = makeHandlerOptions();
+		const worker = cloudflare<MatchableRoute, TestEnv, { db: string }>(handlerOptions, {
+			env: envMapper,
+		});
 
 		const env: TestEnv = { DB: "my-db", CACHE: "my-cache" };
 		const ctx = makeExecutionContext();
 
 		await worker.fetch(new Request("https://example.com"), env, ctx);
 
-		expect(capturedEnv).toEqual({ db: "my-db" });
-		expect(capturedCtx).toBe(ctx);
+		const mergedContext = await capturedOptions?.app.context(new Request("https://example.com"));
+
+		expect(mergedContext).toEqual({
+			existing: "value",
+			db: "my-db",
+			cloudflare: { ctx },
+		});
 	});
 
-	test("getCloudflareContext throws outside a request", () => {
-		expect(() => getCloudflareContext()).toThrow(
-			"getCloudflareContext() must be called inside a Cloudflare Workers request",
-		);
-	});
-
-	test("works without an env mapping option", async () => {
-		let capturedEnv: unknown;
-
-		const handler = vi.fn().mockImplementation(() => {
-			const cfContext = getCloudflareContext();
-			capturedEnv = cfContext.env;
-			return Promise.resolve(new Response("ok"));
+	test("ExecutionContext is available as cloudflare.ctx in the merged context", async () => {
+		const mockHandler = vi.fn().mockResolvedValue(new Response("ok"));
+		let capturedOptions: RequestHandlerOptions | undefined;
+		vi.mocked(createRequestHandler).mockImplementation((opts) => {
+			capturedOptions = opts;
+			return mockHandler;
 		});
 
-		const worker = cloudflare(handler);
+		const handlerOptions = makeHandlerOptions();
+		const worker = cloudflare(handlerOptions);
+
 		const ctx = makeExecutionContext();
+		await worker.fetch(new Request("https://example.com"), {}, ctx);
 
-		await worker.fetch(new Request("https://example.com"), { RAW: "value" }, ctx);
+		const mergedContext = await capturedOptions?.app.context(new Request("https://example.com"));
 
-		expect(capturedEnv).toEqual({});
+		expect(mergedContext).toMatchObject({ cloudflare: { ctx } });
 	});
 
-	test("isolates context between concurrent requests", async () => {
-		const captured: { db: string }[] = [];
+	test("works without env mapping option", async () => {
+		const mockHandler = vi.fn().mockResolvedValue(new Response("ok"));
+		let capturedOptions: RequestHandlerOptions | undefined;
+		vi.mocked(createRequestHandler).mockImplementation((opts) => {
+			capturedOptions = opts;
+			return mockHandler;
+		});
 
-		const handler = vi.fn().mockImplementation(async () => {
-			const cfContext = getCloudflareContext<{ db: string }>();
-			await new Promise((resolve) => setTimeout(resolve, 10));
-			captured.push(cfContext.env);
-			return new Response("ok");
+		const handlerOptions = makeHandlerOptions();
+		const worker = cloudflare(handlerOptions);
+
+		const ctx = makeExecutionContext();
+		await worker.fetch(new Request("https://example.com"), { RAW: "value" }, ctx);
+
+		const mergedContext = await capturedOptions?.app.context(new Request("https://example.com"));
+
+		expect(mergedContext).toEqual({
+			existing: "value",
+			cloudflare: { ctx },
+		});
+	});
+
+	test("preserves original app context values alongside env-derived values", async () => {
+		const mockHandler = vi.fn().mockResolvedValue(new Response("ok"));
+		let capturedOptions: RequestHandlerOptions | undefined;
+		vi.mocked(createRequestHandler).mockImplementation((opts) => {
+			capturedOptions = opts;
+			return mockHandler;
+		});
+
+		const handlerOptions = makeHandlerOptions();
+		vi.mocked(handlerOptions.app.context).mockResolvedValue({
+			session: "abc123",
+			locale: "en",
 		});
 
 		const envMapper = (env: TestEnv): { db: string } => ({ db: env.DB });
-		const worker = cloudflare<TestEnv, { db: string }>(handler, { env: envMapper });
+		const worker = cloudflare<MatchableRoute, TestEnv, { db: string }>(handlerOptions, {
+			env: envMapper,
+		});
 
 		const ctx = makeExecutionContext();
+		await worker.fetch(new Request("https://example.com"), { DB: "prod-db", CACHE: "" }, ctx);
 
-		await Promise.all([
-			worker.fetch(new Request("https://example.com/1"), { DB: "db-1", CACHE: "" }, ctx),
-			worker.fetch(new Request("https://example.com/2"), { DB: "db-2", CACHE: "" }, ctx),
-		]);
+		const mergedContext = await capturedOptions?.app.context(new Request("https://example.com"));
 
-		expect(captured).toHaveLength(2);
-		const dbs = captured.map((c) => c.db).sort();
-		expect(dbs).toEqual(["db-1", "db-2"]);
+		expect(mergedContext).toEqual({
+			session: "abc123",
+			locale: "en",
+			db: "prod-db",
+			cloudflare: { ctx },
+		});
 	});
 });
