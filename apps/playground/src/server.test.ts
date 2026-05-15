@@ -24,9 +24,10 @@ describe("SSR build", () => {
 		expect(existsSync(outputPath)).toBe(true);
 	});
 
-	test("built bundle exports a default function", async () => {
+	test("built bundle exports a default handler with fetch method", async () => {
 		const outputPath = path.join(playgroundRoot, "dist", "server.js");
 		const mod = await import(outputPath);
-		expect(typeof mod.default).toBe("function");
+		expect(typeof mod.default).toBe("object");
+		expect(typeof mod.default.fetch).toBe("function");
 	});
 });

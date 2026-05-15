@@ -22,12 +22,8 @@ export type {
 
 export { createHandler } from "./create-handler";
 export type { GeneratedRoute, GeneratedTemplates, HandlerOptions } from "./create-handler";
-export { createRequestHandler } from "./create-request-handler";
-export type { RequestHandlerOptions } from "./create-request-handler";
-export { handleRequest } from "./handle-request";
 export { runCodegen } from "./run-codegen";
 export { matchRoute, type MatchResult } from "./route-matcher";
-export { resolveTemplate } from "./template-resolver";
 export {
 	scanRoutes,
 	type ErrorPageEntry,

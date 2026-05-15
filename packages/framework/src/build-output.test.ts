@@ -7,13 +7,8 @@ import { describe, expect, test } from "vitest";
 const DIST = resolve(import.meta.dirname, "..", "dist");
 const PKG_PATH = resolve(import.meta.dirname, "..", "package.json");
 
-type PackageExportConditions = {
-	types: string;
-	import: string;
-};
-
 type PackageJson = {
-	exports: Record<string, PackageExportConditions>;
+	exports: Record<string, Record<string, string>>;
 	peerDependencies: Record<string, string>;
 	files: string[];
 	publishConfig: { access: string };
@@ -57,6 +52,18 @@ describe("package.json exports map", () => {
 			types: "./dist/vite-plugin.d.ts",
 			import: "./dist/vite-plugin.js",
 		});
+	});
+
+	test("server-entry export provides types only", async () => {
+		const pkg = await readPackageJson();
+		expect(pkg.exports["./server-entry"]).toStrictEqual({
+			types: "./src/server-entry.d.ts",
+		});
+	});
+
+	test("cloudflare subpath export is removed", async () => {
+		const pkg = await readPackageJson();
+		expect(pkg.exports["./cloudflare"]).toBeUndefined();
 	});
 });
 
