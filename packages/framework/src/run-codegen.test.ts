@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { runCodegen } from "./run-codegen";
@@ -53,7 +54,8 @@ describe("runCodegen", () => {
 		expect(declarations).toContain('"/about": {};');
 		expect(declarations).toContain('"/[slug]": { slug: string };');
 
-		const moduleCount = (declarations.match(/declare module "@sundayceo\/framework"/g) ?? []).length;
+		const moduleCount = (declarations.match(/declare module "@sundayceo\/framework"/g) ?? [])
+			.length;
 		expect(moduleCount).toBe(2);
 	});
 
@@ -68,8 +70,12 @@ describe("runCodegen", () => {
 
 		expect(manifest).toContain("export const routes = [");
 		expect(manifest).toContain('pattern: "/", params: [], load: () => import("./routes/index")');
-		expect(manifest).toContain('pattern: "/about", params: [], load: () => import("./routes/about")');
-		expect(manifest).toContain('pattern: "/blog/:slug", params: ["slug"], load: () => import("./routes/blog/[slug]")');
+		expect(manifest).toContain(
+			'pattern: "/about", params: [], load: () => import("./routes/about")',
+		);
+		expect(manifest).toContain(
+			'pattern: "/blog/:slug", params: ["slug"], load: () => import("./routes/blog/[slug]")',
+		);
 
 		expect(manifest).toContain("export const templates = {");
 		expect(manifest).toContain('default: () => import("./templates/default")');
