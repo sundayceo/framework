@@ -2,7 +2,6 @@ import React from "react";
 
 import { defineErrorPage, type ErrorContext } from "@sundayceo/framework";
 
-// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 export const page = defineErrorPage(500)({
 	template: "default",
 	loader: (ctx: { error: ErrorContext }) => ({
