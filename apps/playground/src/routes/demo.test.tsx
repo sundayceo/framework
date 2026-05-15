@@ -1,13 +1,7 @@
 import React from "react";
 import { describe, expect, test } from "vitest";
 
-import {
-	injectHydration,
-	renderPage,
-	Slot,
-	type SlotMap,
-	type TemplateComponent,
-} from "@sundayceo/framework";
+import { injectHydration, renderPage, Slot, type TemplateComponent } from "@sundayceo/framework";
 
 import { page } from "./demo";
 
@@ -54,13 +48,9 @@ async function callLoader(): Promise<LoaderData> {
 	});
 }
 
-function toRenderableModule(loaderData: LoaderData): {
-	defineSlots: (args: { loaderData: unknown }) => SlotMap;
-} {
-	return {
-		defineSlots: () => page.defineSlots({ loaderData }),
-	};
-}
+const defaultRequest = new Request("http://localhost/demo");
+const defaultParams = {};
+const defaultAppContext = {};
 
 describe("demo page structure", () => {
 	test("has a loader function", () => {
@@ -96,12 +86,12 @@ describe("demo page structure", () => {
 
 describe("demo page SSR rendering", () => {
 	test("renders all slots with loader data", async () => {
-		const loaderData = await callLoader();
-
-		const response = renderPage({
-			pageModule: toRenderableModule(loaderData),
+		const response = await renderPage({
+			pageModule: page as Parameters<typeof renderPage>[0]["pageModule"],
 			template: TestTemplate,
-			loaderData,
+			request: defaultRequest,
+			params: defaultParams,
+			appContext: defaultAppContext,
 		});
 
 		const html = await response.text();
@@ -112,12 +102,12 @@ describe("demo page SSR rendering", () => {
 	});
 
 	test("renders interactive component with initial state", async () => {
-		const loaderData = await callLoader();
-
-		const response = renderPage({
-			pageModule: toRenderableModule(loaderData),
+		const response = await renderPage({
+			pageModule: page as Parameters<typeof renderPage>[0]["pageModule"],
 			template: TestTemplate,
-			loaderData,
+			request: defaultRequest,
+			params: defaultParams,
+			appContext: defaultAppContext,
 		});
 
 		const html = await response.text();
@@ -130,10 +120,12 @@ describe("demo page hydration", () => {
 	test("interactive slot gets hydration script", async () => {
 		const loaderData = await callLoader();
 
-		const response = renderPage({
-			pageModule: toRenderableModule(loaderData),
+		const response = await renderPage({
+			pageModule: page as Parameters<typeof renderPage>[0]["pageModule"],
 			template: HydrationTemplate,
-			loaderData,
+			request: defaultRequest,
+			params: defaultParams,
+			appContext: defaultAppContext,
 		});
 
 		const html = await response.text();
@@ -157,10 +149,12 @@ describe("demo page hydration", () => {
 	test("static slots do not get hydration scripts", async () => {
 		const loaderData = await callLoader();
 
-		const response = renderPage({
-			pageModule: toRenderableModule(loaderData),
+		const response = await renderPage({
+			pageModule: page as Parameters<typeof renderPage>[0]["pageModule"],
 			template: HydrationTemplate,
-			loaderData,
+			request: defaultRequest,
+			params: defaultParams,
+			appContext: defaultAppContext,
 		});
 
 		const html = await response.text();
@@ -185,10 +179,12 @@ describe("demo page hydration", () => {
 	test("hydration script references the correct route path", async () => {
 		const loaderData = await callLoader();
 
-		const response = renderPage({
-			pageModule: toRenderableModule(loaderData),
+		const response = await renderPage({
+			pageModule: page as Parameters<typeof renderPage>[0]["pageModule"],
 			template: HydrationTemplate,
-			loaderData,
+			request: defaultRequest,
+			params: defaultParams,
+			appContext: defaultAppContext,
 		});
 
 		const html = await response.text();
