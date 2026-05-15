@@ -26,11 +26,13 @@ function writeCodegen(srcDir: string): void {
 	fs.writeFileSync(path.join(srcDir, MANIFEST_FILE), manifest);
 }
 
-function generateServerEntry(): string {
+function generateServerEntry(srcDir: string): string {
+	const appPath = path.join(srcDir, "app");
+	const routesPath = path.join(srcDir, "routes.gen");
 	return [
 		'import { createHandler } from "@sundayceo/framework";',
-		'import { app } from "./src/app";',
-		'import { routes, templates, errorPages } from "./src/routes.gen";',
+		`import { app } from "${appPath}";`,
+		`import { routes, templates, errorPages } from "${routesPath}";`,
 		"export default createHandler({ app, routes, templates, errorPages });",
 	].join("\n");
 }
@@ -40,6 +42,7 @@ export function frameworkPlugin(): Plugin {
 
 	return {
 		name: PLUGIN_NAME,
+		enforce: "pre",
 
 		configResolved(config) {
 			srcDir = path.join(config.root, "src");
@@ -48,7 +51,8 @@ export function frameworkPlugin(): Plugin {
 		resolveId: (source: string) =>
 			source === VIRTUAL_MODULE_ID ? RESOLVED_VIRTUAL_MODULE_ID : undefined,
 
-		load: (id: string) => (id === RESOLVED_VIRTUAL_MODULE_ID ? generateServerEntry() : undefined),
+		load: (id: string) =>
+			id === RESOLVED_VIRTUAL_MODULE_ID ? generateServerEntry(srcDir) : undefined,
 
 		buildStart() {
 			writeCodegen(srcDir);
