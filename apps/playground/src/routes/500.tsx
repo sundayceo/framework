@@ -1,12 +1,21 @@
 import React from "react";
 
-import { definePage } from "@sundayceo/framework";
+import { defineErrorPage, type ErrorContext } from "@sundayceo/framework";
 
-export const page = definePage("/500")({
+export const page = defineErrorPage(500)({
 	template: "default",
-	defineSlots: () => ({
+	loader: (ctx: { error: ErrorContext }) => ({
+		message: ctx.error.message,
+		stack: ctx.error.stack,
+	}),
+	defineSlots: ({ loaderData }) => ({
 		header: <h1>500</h1>,
-		main: <p>Something went wrong.</p>,
+		main: (
+			<div>
+				<p>Something went wrong: {loaderData.message}</p>
+				{loaderData.stack !== undefined && <pre>{loaderData.stack}</pre>}
+			</div>
+		),
 		footer: <p>Built with @sundayceo/framework</p>,
 	}),
 });

@@ -12,3 +12,7 @@ test("404 page slots contain not-found content", () => {
 	expect(slots.header).toBeDefined();
 	expect(slots.main).toBeDefined();
 });
+
+test("404 page has no loader", () => {
+	expect(page).not.toHaveProperty("loader");
+});
