@@ -5,7 +5,7 @@ type ErrorPageRenderer = () => Response;
 
 type HandleRequestInput = {
 	request: Request;
-	render: () => Response;
+	render: () => Response | Promise<Response>;
 	onError?: (error: unknown, request: Request) => Response | Promise<Response>;
 	errorPages?: Record<number, ErrorPageRenderer>;
 };
