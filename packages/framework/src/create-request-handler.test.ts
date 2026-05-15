@@ -12,7 +12,7 @@ const pageRoute: RouteEntry = {
 	filePath: "home/index.tsx",
 };
 
-const dynamicPageRoute: RouteEntry = {
+const _dynamicPageRoute: RouteEntry = {
 	pattern: "/posts/:id",
 	params: ["id"],
 	filePath: "posts/[id].tsx",
@@ -183,7 +183,7 @@ describe("createRequestHandler", () => {
 		await handler(request);
 
 		expect(contextFn).toHaveBeenCalledWith(request);
-		const ctx = getHandler.mock.calls[0][0];
+		const ctx = getHandler.mock.calls.at(0)?.at(0);
 		expect(ctx.userId).toBe("42");
 		expect(ctx.request).toBe(request);
 	});

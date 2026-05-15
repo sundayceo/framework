@@ -7,7 +7,7 @@ import { renderPage } from "./render-page";
 import { resolveErrorPage } from "./resolve-error-page";
 import { runLoader } from "./run-loader";
 type RequestHandlerOptions = {
-	app: AppConfig<any>;
+	app: AppConfig<Record<string, unknown>>;
 	getRoutes: () => RouteEntry[];
 	loadRouteModule: (route: RouteEntry) => Promise<PageModule | HandlerModule>;
 	loadTemplate: (templateId: string) => Promise<TemplateComponent>;
