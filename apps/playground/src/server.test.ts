@@ -9,7 +9,7 @@ const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const playgroundRoot = path.resolve(thisDir, "..");
 
 describe("SSR build", () => {
-	test("vite build --ssr src/server.ts succeeds", () => {
+	test("vite build --ssr entry.cloudflare.ts succeeds", () => {
 		const result = execSync("pnpm build", {
 			cwd: playgroundRoot,
 			encoding: "utf-8",
@@ -19,13 +19,13 @@ describe("SSR build", () => {
 		expect(result).toContain("built in");
 	});
 
-	test("build output exists at dist/server.js", () => {
-		const outputPath = path.join(playgroundRoot, "dist", "server.js");
+	test("build output exists at dist/entry.cloudflare.js", () => {
+		const outputPath = path.join(playgroundRoot, "dist", "entry.cloudflare.js");
 		expect(existsSync(outputPath)).toBe(true);
 	});
 
 	test("built bundle exports a default handler with fetch method", async () => {
-		const outputPath = path.join(playgroundRoot, "dist", "server.js");
+		const outputPath = path.join(playgroundRoot, "dist", "entry.cloudflare.js");
 		const mod = await import(outputPath);
 		expect(typeof mod.default).toBe("object");
 		expect(typeof mod.default.fetch).toBe("function");

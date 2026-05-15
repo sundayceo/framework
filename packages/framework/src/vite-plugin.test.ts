@@ -34,8 +34,8 @@ describe("vite-plugin load", () => {
 		const code = (plugin as any).load(RESOLVED_VIRTUAL_MODULE_ID);
 		expect(code).toBeTypeOf("string");
 		expect(code).toContain('import { createHandler } from "@sundayceo/framework"');
-		expect(code).toContain('import { app } from "./src/app"');
-		expect(code).toContain('import { routes, templates, errorPages } from "./src/routes.gen"');
+		expect(code).toContain('import { app } from "/test/src/app"');
+		expect(code).toContain('import { routes, templates, errorPages } from "/test/src/routes.gen"');
 		expect(code).toContain("export default createHandler({ app, routes, templates, errorPages })");
 	});
 

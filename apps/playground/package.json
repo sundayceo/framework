@@ -4,7 +4,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "vite build --ssr src/server.ts",
+		"build": "vite build --ssr entry.cloudflare.ts",
 		"check-types": "tsc --noEmit",
 		"dev": "vite",
 		"test": "vitest run"

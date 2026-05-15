@@ -2,8 +2,8 @@
 	"extends": "@sundayceo/typescript-config/react-library.json",
 	"compilerOptions": {
 		"noEmit": true,
-		"rootDir": "src",
+		"rootDir": ".",
 		"types": ["node"]
 	},
-	"include": ["src"]
+	"include": ["src", "entry.cloudflare.ts"]
 }
