@@ -35,8 +35,7 @@ export function generateRouteManifest(input: GenerateRouteManifestInput): string
 	);
 
 	const errorPageLines = errorPages.map(
-		(entry) =>
-			`  ${entry.status}: () => import("./routes/${stripExtension(entry.filePath)}"),`,
+		(entry) => `  ${entry.status}: () => import("./routes/${stripExtension(entry.filePath)}"),`,
 	);
 
 	const lines = [
