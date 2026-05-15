@@ -1,6 +1,6 @@
 # @sundayceo/framework
 
-A lightweight, React-based TypeScript framework for Cloudflare Workers. Built around a template-and-slots rendering model where pages declare which components fill which template regions.
+A lightweight, React-based TypeScript framework built around a template-and-slots rendering model where pages declare which components fill which template regions. Designed for Cloudflare Workers as the primary deployment target, but platform-agnostic — ejectable to any runtime that supports the Web Fetch API.
 
 ## Language
 
@@ -37,8 +37,20 @@ The `ctx` object passed to loaders and handlers. Contains route params plus cust
 _Avoid_: Context (alone), ctx (in documentation — ok in code)
 
 **Context Factory**:
-The function passed to `createApp`'s `context` field. Receives a `Request` and returns custom properties that become part of every request context.
+The function passed to `createApp`'s `context` field. Receives a `Request` and the **platform context**, returns custom properties that become part of every **request context**. This is where platform-specific values (e.g. Cloudflare env bindings) are mapped into the app's domain.
 _Avoid_: Context provider, context builder
+
+**Platform Context**:
+A typed object representing the runtime environment's platform-specific values, passed as the second argument to `handler.fetch(request, platform)` and forwarded to the **context factory**. On Cloudflare Workers this is `{ env, ctx }`; on other runtimes it may be different or absent. Declared as a type parameter on `createApp<TPlatform>`.
+_Avoid_: Bindings (too Cloudflare-specific), environment (ambiguous with env vars)
+
+**Entry Shim**:
+A per-platform file (e.g. `entry.cloudflare.ts`) that maps the platform's calling convention to `handler.fetch(request, platform)`. Typically 1–3 lines. Scaffolded by the CLI; swapped when ejecting to a different platform.
+_Avoid_: Adapter (implies custom logic — the shim is pure argument mapping), server entry (that's the virtual module)
+
+**Server Entry** (virtual module):
+The `@sundayceo/framework/server-entry` import, resolved by the Vite plugin to a wired-up handler built from the app's conventions (`app.ts` + `routes.gen.ts`). No file on disk — the plugin generates the wiring in memory. Used by the **entry shim** and the production build.
+_Avoid_: Server file, server.ts (there is no user-written server file)
 
 **Static** (slot):
 Slot content that contains no interactive components. Server-rendered to HTML with zero client-side JavaScript shipped.
@@ -73,7 +85,7 @@ The full request-handling flow from incoming request to outgoing response. Branc
 _Avoid_: Request handler, middleware chain
 
 **Render Pipeline**:
-The SSR portion of the page pipeline: runs the loader, calls `defineSlots`, resolves the template, renders React to HTML, and returns the Response.
+The SSR portion of the page pipeline: runs the loader, resolves meta, calls `defineSlots`, renders React to HTML, runs **interactivity inference** per slot, injects **hydration** markers and scripts for interactive slots, and returns the Response. One module owns this entire flow — callers get complete HTML (static or hydrated) from a single call.
 _Avoid_: SSR pipeline, page renderer
 
 **Error Page**:
@@ -91,8 +103,10 @@ _Avoid_: Error data, error info
 - A **handler** has no template or slots — it returns a Response directly
 - A **route** is either a **page** or a **handler**, determined by its export shape
 - A **loader** belongs to a **page** and produces data that flows into `defineSlots` as `loaderData`
-- The **context factory** (in `createApp`) produces custom properties included in every **request context**
+- The **context factory** (in `createApp`) receives a `Request` and the **platform context**, and produces custom properties included in every **request context**
 - The **request context** combines route params with context factory output
+- The **platform context** flows from the **entry shim** → `handler.fetch` → **context factory** → **request context**
+- The **server entry** (virtual module) is resolved by the Vite plugin and wires `app.ts` + `routes.gen.ts` into a handler
 - **Interactivity inference** determines whether **slot content** is **static** or **interactive**
 - **Interactive** slot content undergoes **hydration**; **static** slot content does not
 - **Type codegen** produces types for templates and routes; the **route transform** auto-fills route paths
@@ -112,6 +126,13 @@ _Avoid_: Error data, error info
 > **Dev:** "Where do I put my SDK so every **loader** can access it?"
 > **Domain expert:** "In the **context factory** inside `createApp`. It becomes part of the **request context**, available as `ctx.sdk` in every **loader** and **handler**."
 
+> **Dev:** "How do I access my Cloudflare D1 database in a **loader**?"
+> **Domain expert:** "Declare a **platform context** type on `createApp<{ env: { DB: D1Database }; ctx: ExecutionContext }>`. The **context factory** receives `(request, platform)` — map `platform.env.DB` to whatever name you want in the **request context**. The **entry shim** passes `{ env, ctx }` from the Workers `fetch` call."
+
+> **Dev:** "I want to eject from Cloudflare to Bun. What changes?"
+> **Domain expert:** "Swap the **entry shim**. Your `entry.cloudflare.ts` becomes `entry.bun.ts` with `Bun.serve({ fetch: (req) => handler.fetch(req) })`. Update the **platform context** type if your **context factory** used Cloudflare-specific values."
+
 ## Flagged ambiguities
 
 - "context" was used to mean React Context, the `ctx` object, and the `createApp` config function — resolved: **request context** for the `ctx` object, **context factory** for the `createApp` function. React Context is an implementation detail not in the domain language.
+- "adapter" was used for both the Cloudflare integration (`cloudflare.ts`) and the Vite dev HTTP bridge — resolved: the Cloudflare adapter is eliminated in favor of an **entry shim** + **platform context** on the context factory. The Vite dev HTTP bridge is an internal concern, not user-facing.
