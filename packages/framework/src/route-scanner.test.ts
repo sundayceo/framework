@@ -72,4 +72,19 @@ describe("scanRoutes", () => {
 
 		expect(result).toEqual([]);
 	});
+
+	test("excludes .test.tsx files", () => {
+		const result = scanRoutes(["about.tsx", "about.test.tsx", "index.tsx"]);
+
+		const patterns = result.map((r) => r.pattern);
+		expect(patterns).toEqual(["/", "/about"]);
+	});
+
+	test("excludes nested .test.tsx files", () => {
+		const result = scanRoutes(["api/health.tsx", "api/health.test.tsx"]);
+
+		expect(result).toEqual([
+			{ pattern: "/api/health", params: [], filePath: "api/health.tsx" },
+		]);
+	});
 });

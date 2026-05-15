@@ -6,6 +6,7 @@ type RouteEntry = {
 
 const PARAM_PATTERN = /\[([^\]]+)\]/g;
 const ROUTE_EXTENSION = ".tsx";
+const TEST_PATTERN = /\.test\.[^.]+$/;
 
 const convertSegment = (segment: string): string => segment.replace(PARAM_PATTERN, ":$1");
 
@@ -34,8 +35,11 @@ const buildPattern = (filePath: string): string => {
 	return `/${joined}`;
 };
 
+const isRouteFile = (fp: string): boolean =>
+	fp.endsWith(ROUTE_EXTENSION) && !TEST_PATTERN.test(fp);
+
 const scanRoutes = (filePaths: string[]): RouteEntry[] => {
-	const routeFiles = filePaths.filter((fp) => fp.endsWith(ROUTE_EXTENSION));
+	const routeFiles = filePaths.filter(isRouteFile);
 
 	const entries = routeFiles.map(
 		(filePath): RouteEntry => ({

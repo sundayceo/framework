@@ -1,5 +1,6 @@
 const PARAM_PATTERN = /\[([^\]]+)\]/g;
 const ROUTE_EXTENSION = ".tsx";
+const TEST_PATTERN = /\.test\.[^.]+$/;
 
 function filePathToRoute(filePath: string): string {
 	const withoutExtension = filePath.replace(/\.tsx$/, "");
@@ -33,7 +34,7 @@ function formatParamType(params: string[]): string {
 
 export function generateRouteMap(filePaths: string[]): string {
 	const routes = filePaths
-		.filter((f) => f.endsWith(ROUTE_EXTENSION))
+		.filter((f) => f.endsWith(ROUTE_EXTENSION) && !TEST_PATTERN.test(f))
 		.map((f) => {
 			const route = filePathToRoute(f);
 			const params = extractParams(route);

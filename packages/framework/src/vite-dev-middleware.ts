@@ -240,6 +240,10 @@ async function loadCreateRequestHandler(server: ViteDevServer): Promise<CreateRe
 	return fn;
 }
 
+function isHtmlResponse(response: Response): boolean {
+	return (response.headers.get("content-type") ?? "").includes("text/html");
+}
+
 async function dispatchRequest(input: HandleInput): Promise<void> {
 	const { server, srcDir, routes, req, res, next } = input;
 	try {
@@ -254,6 +258,16 @@ async function dispatchRequest(input: HandleInput): Promise<void> {
 
 		const webRequest = await toWebRequest(req);
 		const response = await handler(webRequest);
+		const url = req.originalUrl ?? req.url ?? "/";
+
+		if (isHtmlResponse(response)) {
+			const rawHtml = await response.text();
+			const html = await server.transformIndexHtml(url, rawHtml);
+			const headers = collectHeaders(response);
+			res.writeHead(response.status, headers);
+			res.end(html);
+			return;
+		}
 
 		await writeResponse(res, response);
 	} catch {
