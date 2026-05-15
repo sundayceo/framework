@@ -9,8 +9,11 @@ export { Slot, SlotContext, SlotProvider } from "./slot";
 
 export type {
 	Context,
+	CustomContext,
 	HandlerModule,
 	PageModule,
+	Register,
+	RegisteredApp,
 	RouteMap,
 	SlotMap,
 	TemplateComponent,
