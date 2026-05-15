@@ -90,7 +90,7 @@ function scanRoutesFromDisk(srcDir: string): RouteEntry[] {
 			(f): f is string => typeof f === "string" && ROUTE_EXTENSIONS.some((ext) => f.endsWith(ext)),
 		);
 
-	return scanRoutes(files);
+	return scanRoutes(files).routes;
 }
 
 type MiddlewareInput = {

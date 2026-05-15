@@ -7,6 +7,16 @@ type RouteEntry = MatchableRoute & {
 	filePath: string;
 };
 
+type ErrorPageEntry = {
+	status: number;
+	filePath: string;
+};
+
+type ScanResult = {
+	routes: RouteEntry[];
+	errorPages: ErrorPageEntry[];
+};
+
 type ManifestRouteEntry = MatchableRoute & {
 	load: () => Promise<Record<string, unknown>>;
 };
@@ -14,6 +24,7 @@ type ManifestRouteEntry = MatchableRoute & {
 const PARAM_PATTERN = /\[([^\]]+)\]/g;
 const ROUTE_EXTENSIONS = [".tsx", ".ts"];
 const TEST_PATTERN = /\.test\.[^.]+$/;
+const ERROR_PAGE_PATTERN = /^(?:.*\/)?([45]\d{2})\.[^.]+$/;
 
 const convertSegment = (segment: string): string => segment.replace(PARAM_PATTERN, ":$1");
 
@@ -48,18 +59,34 @@ const hasRouteExtension = (fp: string): boolean => ROUTE_EXTENSIONS.some((ext) =
 
 const isRouteFile = (fp: string): boolean => hasRouteExtension(fp) && !TEST_PATTERN.test(fp);
 
-const scanRoutes = (filePaths: string[]): RouteEntry[] => {
+const getErrorStatus = (filePath: string): number | null => {
+	const match = ERROR_PAGE_PATTERN.exec(filePath);
+	if (match === null) {
+		return null;
+	}
+	return Number(match[1]);
+};
+
+const scanRoutes = (filePaths: string[]): ScanResult => {
 	const routeFiles = filePaths.filter(isRouteFile);
 
-	const entries = routeFiles.map(
-		(filePath): RouteEntry => ({
-			pattern: buildPattern(filePath),
-			params: extractParams(filePath),
-			filePath,
-		}),
-	);
+	const routes: RouteEntry[] = [];
+	const errorPages: ErrorPageEntry[] = [];
 
-	return entries.sort((a, b) => {
+	for (const filePath of routeFiles) {
+		const errorStatus = getErrorStatus(filePath);
+		if (errorStatus !== null) {
+			errorPages.push({ status: errorStatus, filePath });
+		} else {
+			routes.push({
+				pattern: buildPattern(filePath),
+				params: extractParams(filePath),
+				filePath,
+			});
+		}
+	}
+
+	routes.sort((a, b) => {
 		const isDynamicA = hasDynamicSegment(a.pattern);
 		const isDynamicB = hasDynamicSegment(b.pattern);
 
@@ -69,6 +96,15 @@ const scanRoutes = (filePaths: string[]): RouteEntry[] => {
 
 		return a.pattern.localeCompare(b.pattern);
 	});
+
+	return { routes, errorPages };
 };
 
-export { scanRoutes, type MatchableRoute, type ManifestRouteEntry, type RouteEntry };
+export {
+	scanRoutes,
+	type ErrorPageEntry,
+	type MatchableRoute,
+	type ManifestRouteEntry,
+	type RouteEntry,
+	type ScanResult,
+};

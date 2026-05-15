@@ -15,7 +15,7 @@ function formatParams(params: string[]): string {
 }
 
 export function generateRouteManifest(input: GenerateRouteManifestInput): string {
-	const entries = scanRoutes(input.routePaths);
+	const { routes: entries, errorPages } = scanRoutes(input.routePaths);
 
 	const routeLines = entries.map(
 		(entry) =>
@@ -34,6 +34,11 @@ export function generateRouteManifest(input: GenerateRouteManifestInput): string
 		(t) => `  ${t.name}: () => import("./templates/${t.importPath}"),`,
 	);
 
+	const errorPageLines = errorPages.map(
+		(entry) =>
+			`  ${entry.status}: () => import("./routes/${stripExtension(entry.filePath)}"),`,
+	);
+
 	const lines = [
 		"// src/routes.gen.ts (generated — do not edit)",
 		"export const routes = [",
@@ -42,6 +47,10 @@ export function generateRouteManifest(input: GenerateRouteManifestInput): string
 		"",
 		"export const templates = {",
 		...templateLines,
+		"};",
+		"",
+		"export const errorPages = {",
+		...errorPageLines,
 		"};",
 		"",
 	];
