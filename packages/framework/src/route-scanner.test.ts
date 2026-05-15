@@ -41,8 +41,17 @@ describe("scanRoutes", () => {
 		]);
 	});
 
-	test("ignores non-.tsx files", () => {
-		const result = scanRoutes(["about.tsx", "utils.ts", "styles.css", "readme.md"]);
+	test("accepts both .tsx and .ts files", () => {
+		const result = scanRoutes(["about.tsx", "api/health.ts"]);
+
+		expect(result).toEqual([
+			{ pattern: "/about", params: [], filePath: "about.tsx" },
+			{ pattern: "/api/health", params: [], filePath: "api/health.ts" },
+		]);
+	});
+
+	test("ignores non-route files", () => {
+		const result = scanRoutes(["about.tsx", "styles.css", "readme.md"]);
 
 		expect(result).toEqual([{ pattern: "/about", params: [], filePath: "about.tsx" }]);
 	});
@@ -67,8 +76,8 @@ describe("scanRoutes", () => {
 		expect(result).toEqual([]);
 	});
 
-	test("returns empty array when no .tsx files are present", () => {
-		const result = scanRoutes(["utils.ts", "styles.css"]);
+	test("returns empty array when no route files are present", () => {
+		const result = scanRoutes(["styles.css", "readme.md"]);
 
 		expect(result).toEqual([]);
 	});

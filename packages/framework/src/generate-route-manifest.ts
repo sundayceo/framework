@@ -5,7 +5,7 @@ type GenerateRouteManifestInput = {
 	templatePaths: string[];
 };
 
-const stripExtension = (filePath: string): string => filePath.replace(/\.tsx$/, "");
+const stripExtension = (filePath: string): string => filePath.replace(/\.(tsx|ts)$/, "");
 
 function formatParams(params: string[]): string {
 	if (params.length === 0) {

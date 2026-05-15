@@ -11,7 +11,7 @@ import { scanRoutes, type RouteEntry } from "./route-scanner";
 
 const PROTOCOL = "http";
 const METHODS_WITH_BODY = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-const TSX_EXTENSION = ".tsx";
+const ROUTE_EXTENSIONS = [".tsx", ".ts"];
 
 function buildHeaders(req: IncomingMessage): Headers {
 	const headers = new Headers();
@@ -86,7 +86,10 @@ function scanRoutesFromDisk(srcDir: string): RouteEntry[] {
 
 	const files = fs
 		.readdirSync(routesDir, { recursive: true })
-		.filter((f): f is string => typeof f === "string" && f.endsWith(TSX_EXTENSION));
+		.filter(
+			(f): f is string =>
+				typeof f === "string" && ROUTE_EXTENSIONS.some((ext) => f.endsWith(ext)),
+		);
 
 	return scanRoutes(files);
 }
