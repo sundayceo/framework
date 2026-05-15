@@ -1,4 +1,4 @@
-import type { Context, CustomContext, RouteMap, SlotMap, TemplateRegistry } from "./core/index";
+import type { Context, RouteMap, SlotMap, TemplateRegistry } from "./core/index";
 
 type MetaValue<TLoaderData> =
 	| { title?: string; description?: string }
@@ -13,7 +13,7 @@ type PageConfigWithLoader<
 	TLoaderData,
 > = {
 	template: TTemplate;
-	loader: (ctx: Context<TParams, CustomContext>) => TLoaderData | Promise<TLoaderData>;
+	loader: (ctx: Context<TParams>) => TLoaderData | Promise<TLoaderData>;
 	defineSlots: (args: { loaderData: Awaited<TLoaderData> }) => SlotMap;
 	meta?: MetaValue<Awaited<TLoaderData>>;
 };

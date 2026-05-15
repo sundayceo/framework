@@ -33,7 +33,7 @@ type MethodHandler<
 
 export type HandlerModule<
 	TParams extends Record<string, string> = Record<string, string>,
-	TCustom extends Record<string, unknown> = Record<string, unknown>,
+	TCustom extends Record<string, unknown> = CustomContext,
 > = {
 	GET?: MethodHandler<TParams, TCustom>;
 	POST?: MethodHandler<TParams, TCustom>;
