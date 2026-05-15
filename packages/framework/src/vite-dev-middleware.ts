@@ -7,7 +7,6 @@ import type { ViteDevServer } from "vite";
 import type { HandlerModule, PageModule, TemplateComponent } from "./core/index";
 import type { AppConfig } from "./create-app";
 import type { RequestHandlerOptions } from "./create-request-handler";
-import { matchRoute } from "./route-matcher";
 import { scanRoutes, type RouteEntry } from "./route-scanner";
 
 const PROTOCOL = "http";
@@ -172,10 +171,6 @@ function createTemplateLoader(
 	};
 }
 
-function hasRouteMatch(pathname: string, routes: RouteEntry[]): boolean {
-	return matchRoute(pathname, routes) !== null;
-}
-
 type ConnectMiddleware = (
 	req: ConnectIncomingMessage,
 	res: ServerResponse,
@@ -247,13 +242,6 @@ async function loadCreateRequestHandler(server: ViteDevServer): Promise<CreateRe
 
 async function dispatchRequest(input: HandleInput): Promise<void> {
 	const { server, srcDir, routes, req, res, next } = input;
-	const pathname = req.originalUrl ?? req.url ?? "/";
-
-	if (!hasRouteMatch(pathname, routes)) {
-		next();
-		return;
-	}
-
 	try {
 		const app = await loadAppConfig({ server, srcDir });
 		const createHandler = await loadCreateRequestHandler(server);
