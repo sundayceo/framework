@@ -354,7 +354,7 @@ describe("renderPage", () => {
 	});
 
 	describe("hydration integration", () => {
-		const STATIC_SOURCE = 'function Header() { return <h1>Hello</h1>; }';
+		const STATIC_SOURCE = "function Header() { return <h1>Hello</h1>; }";
 		const INTERACTIVE_SOURCE =
 			'import { useState } from "react"; function Counter() { const [c, setC] = useState(0); return <button onClick={() => setC(c+1)}>{c}</button>; }';
 
