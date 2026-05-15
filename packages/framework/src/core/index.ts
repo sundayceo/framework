@@ -19,7 +19,7 @@ export type PageModule<
 	TLoaderData = unknown,
 > = {
 	template: TTemplate;
-	loader: (ctx: Context<TParams, TCustom>) => TLoaderData | Promise<TLoaderData>;
+	loader?: (ctx: Context<TParams, TCustom>) => TLoaderData | Promise<TLoaderData>;
 	defineSlots: (args: { loaderData: TLoaderData }) => SlotMap;
 	meta?:
 		| { title?: string; description?: string }

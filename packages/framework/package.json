@@ -12,10 +12,6 @@
 			"types": "./dist/vite-plugin.d.ts",
 			"import": "./dist/vite-plugin.js"
 		},
-		"./cloudflare": {
-			"types": "./dist/cloudflare.d.ts",
-			"import": "./dist/cloudflare.js"
-		},
 		"./server-entry": {
 			"types": "./src/server-entry.d.ts"
 		}
@@ -34,6 +30,7 @@
 	},
 	"devDependencies": {
 		"@sundayceo/typescript-config": "workspace:*",
+		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
 		"react": "catalog:",

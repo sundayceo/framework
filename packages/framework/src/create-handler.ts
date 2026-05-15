@@ -6,9 +6,7 @@ import { defaultNotFoundPage, defaultServerErrorPage } from "./resolve-error-pag
 import { matchRoute, type MatchResult } from "./route-matcher";
 import { isHttpErrorResponse, isRedirectResponse } from "./throwable-response";
 
-type PageNamespace = { page: PageModule };
-type HandlerNamespace = HandlerModule;
-type RouteNamespace = PageNamespace | HandlerNamespace;
+type RouteNamespace = Record<string, unknown>;
 
 type ErrorPageModule = {
 	template: string;
@@ -59,7 +57,7 @@ function isHttpMethod(method: string): method is keyof HandlerModule {
 	return HTTP_METHODS.has(method);
 }
 
-function isPageNamespace(ns: RouteNamespace): ns is PageNamespace {
+function isPageNamespace(ns: RouteNamespace): ns is { page: PageModule } {
 	return "page" in ns;
 }
 

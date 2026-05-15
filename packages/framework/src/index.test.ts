@@ -56,7 +56,7 @@ test("PageModule has template, loader, defineSlots, and meta", () => {
 	type Page = PageModule<"default", { id: string }, Record<string, unknown>, { title: string }>;
 
 	expectTypeOf<Page["template"]>().toEqualTypeOf<"default">();
-	expectTypeOf<Page["loader"]>().toBeFunction();
+	expectTypeOf<NonNullable<Page["loader"]>>().toBeFunction();
 	expectTypeOf<Page["defineSlots"]>().toBeFunction();
 	expectTypeOf<Page["meta"]>().toEqualTypeOf<
 		| { title?: string; description?: string }
