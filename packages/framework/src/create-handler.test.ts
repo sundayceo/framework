@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 
-import type { PageModule, TemplateComponent } from "./core/index";
+import type { PageModule, SlotMap, TemplateComponent } from "./core/index";
 import type { AppConfig } from "./create-app";
 import type { ErrorContext } from "./define-error-page";
 import {
@@ -336,7 +336,7 @@ describe("createHandler", () => {
 		type ErrorPageModuleShape = {
 			template: string;
 			loader?: (ctx: { error: ErrorContext }) => unknown;
-			defineSlots: (args: { loaderData: unknown }) => Record<string, unknown>;
+			defineSlots: (args: { loaderData: unknown }) => SlotMap;
 			meta?: unknown;
 		};
 
