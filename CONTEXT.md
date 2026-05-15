@@ -76,6 +76,14 @@ _Avoid_: Request handler, middleware chain
 The SSR portion of the page pipeline: runs the loader, calls `defineSlots`, resolves the template, renders React to HTML, and returns the Response.
 _Avoid_: SSR pipeline, page renderer
 
+**Error Page**:
+A page that renders for a specific HTTP error status (4xx–5xx). Defined with `defineErrorPage` in a file whose basename is the status code (e.g., `404.tsx`). Lives in `src/routes/` but is excluded from the route table. Goes through the full render pipeline with an error context on the loader.
+_Avoid_: Error template, error handler, error route
+
+**Error Context**:
+Additional data available on the loader's `ctx.error` field when rendering an error page. Contains `status`, `message`, and in dev mode `stack` and `error`. Never present on regular pages.
+_Avoid_: Error data, error info
+
 ## Relationships
 
 - A **template** declares one or more **slots**
@@ -89,6 +97,9 @@ _Avoid_: SSR pipeline, page renderer
 - **Interactive** slot content undergoes **hydration**; **static** slot content does not
 - **Type codegen** produces types for templates and routes; the **route transform** auto-fills route paths
 - The **request pipeline** branches into the page path (which uses the **render pipeline**) or the handler path
+- An **error page** is defined with `defineErrorPage`, lives in `src/routes/`, and is excluded from the route table
+- An **error page** goes through the full **render pipeline** with an **error context** on the loader
+- If an **error page** itself throws, the framework falls back to a bare HTML default (circuit breaker)
 
 ## Example dialogue
 
