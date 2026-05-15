@@ -5,7 +5,8 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "echo 'SSR app - no client build'",
+		"build": "vite build --ssr src/server.ts",
+		"deploy": "wrangler deploy",
 		"check-types": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -18,6 +19,7 @@
 		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.3",
 		"typescript": "^6.0.0",
-		"vite": "^8.0.0"
+		"vite": "^8.0.0",
+		"wrangler": "^4.20.0"
 	}
 }

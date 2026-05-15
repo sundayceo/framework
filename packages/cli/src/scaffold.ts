@@ -20,6 +20,7 @@ const TEXT_EXTENSIONS = new Set([
 	".js",
 	".jsx",
 	".json",
+	".jsonc",
 	".md",
 	".txt",
 	".css",

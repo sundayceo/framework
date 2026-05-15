@@ -57,6 +57,16 @@ describe("scaffold", () => {
 		expect(existsSync(destDir)).toBe(true);
 	});
 
+	it("replaces placeholders in .jsonc files", () => {
+		writeFileSync(join(templateDir, "wrangler.jsonc"), '{ "name": "{{name}}" }\n');
+
+		scaffold({ name: "my-app", path: "output" }, { templatesDir: templateDir, cwd: tempDir });
+
+		const content = readFileSync(join(tempDir, "output", "wrangler.jsonc"), "utf-8");
+		expect(content).toContain('"my-app"');
+		expect(content).not.toContain("{{name}}");
+	});
+
 	it("supports custom path different from name", () => {
 		scaffold({ name: "my-app", path: "custom-dir" }, { templatesDir: templateDir, cwd: tempDir });
 
