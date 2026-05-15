@@ -29,6 +29,19 @@ jobs:
             deps
             ci
 
+  validate-branch-name:
+    name: Branch name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch name matches {issue-id}-{description}
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          if [[ ! "$BRANCH" =~ ^[0-9]+-[a-z0-9][a-z0-9-]*$ ]]; then
+            echo "::error::Branch name '$BRANCH' does not match the required pattern: {issue-id}-{description}"
+            echo "Examples: 129-deep-handler-architecture, 97-wire-hydration"
+            exit 1
+          fi
+
   ci:
     name: Build & Test
     runs-on: ubuntu-latest
