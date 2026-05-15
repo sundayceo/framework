@@ -5,7 +5,6 @@ import { renderPage } from "./render-page";
 import { resolveErrorPage } from "./resolve-error-page";
 import { matchRoute, type MatchResult } from "./route-matcher";
 import type { MatchableRoute } from "./route-scanner";
-import { runLoader } from "./run-loader";
 
 type RequestHandlerOptions<T extends MatchableRoute = MatchableRoute> = {
 	app: AppConfig;
@@ -42,14 +41,14 @@ function handlePageRoute(
 	return handleRequest({
 		request: input.request,
 		render: async () => {
-			const loaderData = await runLoader({
+			const template = await loadTemplate(routeModule.template);
+			return renderPage({
 				pageModule: routeModule,
-				params: input.match.params,
+				template,
 				request: input.request,
+				params: input.match.params,
 				appContext: input.appContext,
 			});
-			const template = await loadTemplate(routeModule.template);
-			return renderPage({ pageModule: routeModule, template, loaderData });
 		},
 		onError: input.onError,
 	});
