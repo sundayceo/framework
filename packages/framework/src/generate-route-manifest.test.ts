@@ -56,9 +56,7 @@ describe("generateRouteManifest", () => {
 			templatePaths: ["default.tsx"],
 		});
 
-		expect(result).toContain(
-			'default: () => import("./templates/default.tsx"),',
-		);
+		expect(result).toContain('default: () => import("./templates/default.tsx"),');
 	});
 
 	test("generates complete valid output", () => {
