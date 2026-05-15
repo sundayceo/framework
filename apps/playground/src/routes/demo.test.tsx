@@ -1,12 +1,7 @@
 import React from "react";
 import { describe, expect, test } from "vitest";
 
-import {
-	injectHydration,
-	renderPage,
-	Slot,
-	type TemplateComponent,
-} from "@sundayceo/framework";
+import { injectHydration, renderPage, Slot, type TemplateComponent } from "@sundayceo/framework";
 
 import { page } from "./demo";
 
