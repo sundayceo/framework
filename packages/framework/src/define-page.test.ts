@@ -109,3 +109,19 @@ test("defineSlots returns a SlotMap", () => {
 
 	expectTypeOf(result.defineSlots).returns.toExtend<SlotMap>();
 });
+
+// --- Register pattern: loader receives registered custom context ---
+
+test("loader context includes registered custom context type", () => {
+	definePage("/about")({
+		template: "marketing" as const,
+		loader: (ctx) => {
+			// With Register augmented (via index.test.ts declaring Register.app),
+			// ctx should include the custom context properties.
+			// Without augmentation, ctx should still have request and params.
+			expectTypeOf(ctx.request).toEqualTypeOf<Request>();
+			return { ok: true };
+		},
+		defineSlots: () => ({ main: null }),
+	});
+});

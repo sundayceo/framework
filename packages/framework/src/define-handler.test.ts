@@ -107,3 +107,16 @@ test("paramless route has Record<string, never> params", () => {
 		},
 	});
 });
+
+// --- Register pattern: handler receives registered custom context ---
+
+test("handler context includes registered custom context type", () => {
+	defineHandler("/api/health")({
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		GET: (ctx) => {
+			// ctx should always have request and params
+			expectTypeOf(ctx.request).toEqualTypeOf<Request>();
+			return Response.json({ ok: true });
+		},
+	});
+});

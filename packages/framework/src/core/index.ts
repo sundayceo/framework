@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 export type Context<
 	TParams extends Record<string, string> = Record<string, string>,
-	TCustom extends Record<string, unknown> = Record<string, unknown>,
+	TCustom extends Record<string, unknown> = CustomContext,
 > = {
 	request: Request;
 	params: TParams;
@@ -33,7 +33,7 @@ type MethodHandler<
 
 export type HandlerModule<
 	TParams extends Record<string, string> = Record<string, string>,
-	TCustom extends Record<string, unknown> = Record<string, unknown>,
+	TCustom extends Record<string, unknown> = CustomContext,
 > = {
 	GET?: MethodHandler<TParams, TCustom>;
 	POST?: MethodHandler<TParams, TCustom>;
@@ -43,7 +43,22 @@ export type HandlerModule<
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
+export interface Register {}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
 export interface TemplateRegistry {}
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
 export interface RouteMap {}
+
+export type RegisteredApp = Register extends { app: infer T } ? T : undefined;
+
+type InferCustomFromApp<T> = T extends {
+	context: (...args: never[]) => infer R;
+}
+	? Awaited<R>
+	: Record<string, unknown>;
+
+export type CustomContext = RegisteredApp extends undefined
+	? Record<string, unknown>
+	: InferCustomFromApp<RegisteredApp>;
