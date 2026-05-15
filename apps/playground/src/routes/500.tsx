@@ -2,7 +2,9 @@ import React from "react";
 
 import { defineErrorPage, type ErrorContext } from "@sundayceo/framework";
 
-export const page = defineErrorPage(500)({
+const INTERNAL_SERVER_ERROR = 500;
+
+export const page = defineErrorPage(INTERNAL_SERVER_ERROR)({
 	template: "default",
 	loader: (ctx: { error: ErrorContext }) => ({
 		message: ctx.error.message,
