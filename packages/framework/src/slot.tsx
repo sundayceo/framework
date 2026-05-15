@@ -16,5 +16,6 @@ export function SlotProvider({
 
 export function Slot({ id, fallback }: { id: string; fallback?: ReactNode }): ReactNode {
 	const slots = useContext(SlotContext);
-	return <>{slots[id] ?? fallback ?? null}</>;
+	const content = slots[id] ?? fallback ?? null;
+	return <div data-slot={id}>{content}</div>;
 }
