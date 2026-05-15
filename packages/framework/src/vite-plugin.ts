@@ -4,11 +4,13 @@ import path from "node:path";
 import type { Plugin } from "vite";
 
 import { generateDeclarations } from "./generate-declarations";
+import { generateRouteManifest } from "./generate-route-manifest";
 import { filePathToRoutePath, transformRouteModule } from "./transform-route-module";
 
 const TSX_EXTENSION = ".tsx";
 const PLUGIN_NAME = "sundayceo-framework";
 const OUTPUT_FILE = "framework.gen.d.ts";
+const MANIFEST_FILE = "routes.gen.ts";
 
 function scanDir(dir: string): string[] {
 	if (!fs.existsSync(dir)) {
@@ -31,6 +33,9 @@ function runCodegen(srcDir: string): void {
 	const routePaths = scanDir(path.join(srcDir, "routes"));
 	const content = generateDeclarations({ templatePaths, routePaths });
 	fs.writeFileSync(path.join(srcDir, OUTPUT_FILE), content);
+
+	const manifest = generateRouteManifest({ routePaths, templatePaths });
+	fs.writeFileSync(path.join(srcDir, MANIFEST_FILE), manifest);
 }
 
 export function frameworkPlugin(): Plugin {
