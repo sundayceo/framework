@@ -11,6 +11,10 @@
 		"./vite": {
 			"types": "./dist/vite-plugin.d.ts",
 			"import": "./dist/vite-plugin.js"
+		},
+		"./cloudflare": {
+			"types": "./dist/cloudflare.d.ts",
+			"import": "./dist/cloudflare.js"
 		}
 	},
 	"publishConfig": {
