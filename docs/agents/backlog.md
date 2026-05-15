@@ -26,7 +26,7 @@ writing a single line of code. Understand the acceptance criteria completely.
 
 ## 4. Implement
 
-- Create a branch off `main` (e.g. `feat/issue-<N>-short-description`).
+- Create a branch off `main`.
 - Follow existing project conventions:
   - **Conventional commits** enforced by commitlint.
   - **Semantic PR titles** enforced by CI (`feat(scope):`, `fix(scope):`, etc.).
