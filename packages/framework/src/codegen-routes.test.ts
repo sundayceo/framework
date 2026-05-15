@@ -126,8 +126,24 @@ describe("generateRouteMap", () => {
 		);
 	});
 
-	test("filters out non-.tsx files", () => {
-		const result = generateRouteMap(["about.tsx", "utils.ts", "styles.css", "readme.md"]);
+	test("accepts both .tsx and .ts route files", () => {
+		const result = generateRouteMap(["about.tsx", "api/health.ts"]);
+
+		expect(result).toBe(
+			[
+				'declare module "@sundayceo/framework" {',
+				"  interface RouteMap {",
+				'    "/about": {};',
+				'    "/api/health": {};',
+				"  }",
+				"}",
+				"",
+			].join("\n"),
+		);
+	});
+
+	test("filters out non-route files", () => {
+		const result = generateRouteMap(["about.tsx", "styles.css", "readme.md"]);
 
 		expect(result).toBe(
 			[

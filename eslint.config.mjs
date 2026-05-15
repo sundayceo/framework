@@ -241,6 +241,7 @@ export default defineConfig(
 			"**/.wrangler/**",
 			"**/.turbo/**",
 			"**/framework.gen.d.ts",
+			"**/routes.gen.ts",
 			"**/vite.config.ts",
 			"**/vitest.config.ts",
 			"**/vitest.setup.ts",

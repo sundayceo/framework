@@ -6,20 +6,22 @@ import type { Plugin } from "vite";
 import { generateDeclarations } from "./generate-declarations";
 import { generateRouteManifest } from "./generate-route-manifest";
 import { filePathToRoutePath, transformRouteModule } from "./transform-route-module";
+import { createDevMiddleware } from "./vite-dev-middleware";
 
-const TSX_EXTENSION = ".tsx";
+const ROUTE_EXTENSIONS = [".tsx", ".ts"];
+const TEMPLATE_EXTENSIONS = [".tsx"];
 const PLUGIN_NAME = "sundayceo-framework";
 const OUTPUT_FILE = "framework.gen.d.ts";
 const MANIFEST_FILE = "routes.gen.ts";
 
-function scanDir(dir: string): string[] {
+function scanDir(dir: string, extensions: string[]): string[] {
 	if (!fs.existsSync(dir)) {
 		return [];
 	}
 
 	return fs
 		.readdirSync(dir, { recursive: true })
-		.filter((f): f is string => typeof f === "string" && f.endsWith(TSX_EXTENSION));
+		.filter((f): f is string => typeof f === "string" && extensions.some((ext) => f.endsWith(ext)));
 }
 
 function isWatchedPath(file: string, srcDir: string): boolean {
@@ -29,8 +31,8 @@ function isWatchedPath(file: string, srcDir: string): boolean {
 }
 
 function runCodegen(srcDir: string): void {
-	const templatePaths = scanDir(path.join(srcDir, "templates"));
-	const routePaths = scanDir(path.join(srcDir, "routes"));
+	const templatePaths = scanDir(path.join(srcDir, "templates"), TEMPLATE_EXTENSIONS);
+	const routePaths = scanDir(path.join(srcDir, "routes"), ROUTE_EXTENSIONS);
 	const content = generateDeclarations({ templatePaths, routePaths });
 	fs.writeFileSync(path.join(srcDir, OUTPUT_FILE), content);
 
@@ -55,7 +57,8 @@ export function frameworkPlugin(): Plugin {
 		transform(code, id) {
 			const routesDir = path.join(srcDir, "routes");
 
-			if (!id.startsWith(routesDir) || !id.endsWith(TSX_EXTENSION)) {
+			const isRoute = ROUTE_EXTENSIONS.some((ext) => id.endsWith(ext));
+			if (!id.startsWith(routesDir) || !isRoute) {
 				return undefined;
 			}
 
@@ -82,6 +85,8 @@ export function frameworkPlugin(): Plugin {
 					runCodegen(srcDir);
 				}
 			});
+
+			return createDevMiddleware({ server, srcDir });
 		},
 	};
 }
