@@ -8,7 +8,7 @@ import type { MatchableRoute } from "./route-scanner";
 import { runLoader } from "./run-loader";
 
 type RequestHandlerOptions<T extends MatchableRoute = MatchableRoute> = {
-	app: AppConfig<Record<string, unknown>>;
+	app: AppConfig;
 	getRoutes: () => T[];
 	loadRouteModule: (route: T) => Promise<PageModule | HandlerModule>;
 	loadTemplate: (templateId: string) => Promise<TemplateComponent>;
@@ -31,7 +31,7 @@ type RouteHandlerInput<T extends MatchableRoute = MatchableRoute> = {
 	match: MatchResult<T>;
 	request: Request;
 	appContext: Record<string, unknown>;
-	onError: AppConfig<Record<string, unknown>>["onError"];
+	onError: AppConfig["onError"];
 };
 
 function handlePageRoute(

@@ -103,7 +103,7 @@ type SsrLoaderInput = {
 	srcDir: string;
 };
 
-function isAppConfig(value: unknown): value is AppConfig<Record<string, unknown>> {
+function isAppConfig(value: unknown): value is AppConfig {
 	return typeof value === "object" && value !== null && "context" in value;
 }
 
@@ -132,7 +132,7 @@ function pickExport(mod: Record<string, unknown>, ...keys: string[]): unknown {
 	return undefined;
 }
 
-async function loadAppConfig(input: SsrLoaderInput): Promise<AppConfig<Record<string, unknown>>> {
+async function loadAppConfig(input: SsrLoaderInput): Promise<AppConfig> {
 	const appPath = path.join(input.srcDir, "app.ts");
 	const mod: Record<string, unknown> = await input.server.ssrLoadModule(appPath);
 	const app = pickExport(mod, "app", "default");
