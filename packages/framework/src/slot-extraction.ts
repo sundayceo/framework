@@ -1,26 +1,23 @@
-/* eslint-disable @typescript-eslint/consistent-type-assertions, @typescript-eslint/naming-convention, @typescript-eslint/no-non-null-assertion, @typescript-eslint/strict-boolean-expressions */
-import _generate from "@babel/generator";
+/* eslint-disable @typescript-eslint/naming-convention -- Babel visitors must be PascalCase */
+import generate from "@babel/generator";
 import { parse } from "@babel/parser";
-import _traverse from "@babel/traverse";
+import traverse, { type NodePath } from "@babel/traverse";
 import * as t from "@babel/types";
-
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-const traverse = ((_traverse as { default?: typeof _traverse }).default ??
-	_traverse) as typeof _traverse;
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-const generate = ((_generate as { default?: typeof _generate }).default ??
-	_generate) as typeof _generate;
 
 type DefineSlotsResult = {
 	slotsObject: t.ObjectExpression;
 	fnBody: t.Node;
 };
 
+function sliceNode(node: { start?: number | null; end?: number | null }, source: string): string {
+	return source.slice(node.start ?? 0, node.end ?? source.length);
+}
+
 function collectImports(ast: t.File, source: string): Map<string, string> {
 	const importMap = new Map<string, string>();
 	for (const node of ast.program.body) {
 		if (t.isImportDeclaration(node)) {
-			const stmt = source.slice(node.start!, node.end!);
+			const stmt = sliceNode(node, source);
 			for (const specifier of node.specifiers) {
 				importMap.set(specifier.local.name, stmt);
 			}
@@ -33,7 +30,7 @@ function findDefineSlotsNode(ast: t.File): DefineSlotsResult | null {
 	let result: DefineSlotsResult | null = null;
 
 	traverse(ast, {
-		ObjectProperty(path) {
+		ObjectProperty(path: NodePath<t.ObjectProperty>) {
 			if (!t.isIdentifier(path.node.key, { name: "defineSlots" })) {
 				return;
 			}
@@ -52,11 +49,8 @@ function findDefineSlotsNode(ast: t.File): DefineSlotsResult | null {
 				const returnStmt = fn.body.body.find(
 					(s): s is t.ReturnStatement => t.isReturnStatement(s) && t.isObjectExpression(s.argument),
 				);
-				if (returnStmt) {
-					result = {
-						slotsObject: returnStmt.argument as t.ObjectExpression,
-						fnBody: fn.body,
-					};
+				if (returnStmt && t.isObjectExpression(returnStmt.argument)) {
+					result = { slotsObject: returnStmt.argument, fnBody: fn.body };
 					path.stop();
 				}
 			}
@@ -70,11 +64,13 @@ const GLOBAL_NAMES = new Set(["React", "undefined", "null", "true", "false", "co
 
 function collectReferencedIdentifiers(node: t.Node): Set<string> {
 	const identifiers = new Set<string>();
-	const stmt = t.isExpression(node) ? t.expressionStatement(node) : (node as t.Statement);
-	const dummyFile = t.file(t.program([stmt]));
+	const wrapped: t.Statement = t.isExpression(node)
+		? t.expressionStatement(node)
+		: (node as t.Statement); // eslint-disable-line @typescript-eslint/consistent-type-assertions -- narrowing from t.Node
+	const dummyFile = t.file(t.program([wrapped]));
 
 	traverse(dummyFile, {
-		Identifier(path) {
+		Identifier(path: NodePath<t.Identifier>) {
 			if (t.isMemberExpression(path.parent) && path.parent.property === path.node) {
 				return;
 			}
@@ -83,12 +79,12 @@ function collectReferencedIdentifiers(node: t.Node): Set<string> {
 			}
 			identifiers.add(path.node.name);
 		},
-		JSXIdentifier(path) {
-			const isComponentElement =
+		JSXIdentifier(path: NodePath<t.JSXIdentifier>) {
+			const isComponent =
 				t.isJSXOpeningElement(path.parent) &&
 				path.parent.name === path.node &&
 				/^[A-Z]/.test(path.node.name);
-			if (isComponentElement) {
+			if (isComponent) {
 				identifiers.add(path.node.name);
 			}
 		},
@@ -100,16 +96,10 @@ function collectReferencedIdentifiers(node: t.Node): Set<string> {
 	return identifiers;
 }
 
-function addDeclBindings(
-	stmt: t.VariableDeclaration,
-	source: string,
-	locals: Map<string, string>,
-): void {
-	for (const decl of stmt.declarations) {
-		if (t.isIdentifier(decl.id)) {
-			locals.set(decl.id.name, source.slice(stmt.start!, stmt.end!));
-		}
-	}
+function extractDeclNames(stmt: t.VariableDeclaration): string[] {
+	return stmt.declarations
+		.filter((decl): decl is t.VariableDeclarator & { id: t.Identifier } => t.isIdentifier(decl.id))
+		.map((decl) => decl.id.name);
 }
 
 function collectLocalBindings(fnBody: t.Node, source: string): Map<string, string> {
@@ -120,7 +110,9 @@ function collectLocalBindings(fnBody: t.Node, source: string): Map<string, strin
 
 	for (const stmt of fnBody.body) {
 		if (t.isVariableDeclaration(stmt)) {
-			addDeclBindings(stmt, source, locals);
+			for (const name of extractDeclNames(stmt)) {
+				locals.set(name, sliceNode(stmt, source));
+			}
 		}
 	}
 	return locals;
@@ -134,7 +126,7 @@ function resolveImportsForRefs(
 	const result: string[] = [];
 	for (const ref of refs) {
 		const importStmt = imports.get(ref);
-		if (importStmt && !seenImportStmts.has(importStmt)) {
+		if (importStmt !== undefined && !seenImportStmts.has(importStmt)) {
 			seenImportStmts.add(importStmt);
 			result.push(importStmt);
 		}
@@ -156,14 +148,11 @@ function resolveLocalsForRefs(
 	const requiredLocals = new Map<string, string>();
 	for (const ref of refs) {
 		const local = localBindings.get(ref);
-		if (local) {
+		if (local !== undefined) {
 			requiredLocals.set(ref, local);
-			const localAst = parse(local, {
-				sourceType: "module",
-				plugins: ["typescript", "jsx"],
-			});
+			const localAst = parse(local, { sourceType: "module", plugins: ["typescript", "jsx"] });
 			const firstStmt = localAst.program.body.at(0);
-			if (firstStmt) {
+			if (firstStmt !== undefined) {
 				const transitiveImports = resolveImportsForRefs(
 					collectReferencedIdentifiers(firstStmt),
 					ctx.imports,
@@ -242,12 +231,7 @@ function extractSingleSlot(input: {
 
 	return {
 		key: `virtual:hydrate${routePath}/${slotName}`,
-		moduleSource: buildVirtualModule({
-			requiredImports,
-			requiredLocals,
-			hasLoaderData,
-			jsxSource,
-		}),
+		moduleSource: buildVirtualModule({ requiredImports, requiredLocals, hasLoaderData, jsxSource }),
 	};
 }
 
@@ -260,7 +244,7 @@ export function extractSlotModules(source: string, routePath: string): Map<strin
 	const imports = collectImports(ast, source);
 	const defineSlots = findDefineSlotsNode(ast);
 
-	if (!defineSlots) {
+	if (defineSlots === null) {
 		return new Map();
 	}
 
@@ -270,7 +254,7 @@ export function extractSlotModules(source: string, routePath: string): Map<strin
 	for (const prop of defineSlots.slotsObject.properties) {
 		if (t.isObjectProperty(prop)) {
 			const slot = extractSingleSlot({ prop, imports, localBindings, routePath });
-			if (slot) {
+			if (slot !== null) {
 				virtualModules.set(slot.key, slot.moduleSource);
 			}
 		}
