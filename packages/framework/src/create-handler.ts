@@ -99,12 +99,13 @@ function adaptErrorModule(
 
 async function renderErrorPage(input: {
 	status: number;
+	error?: unknown;
 	errorPages: GeneratedErrorPages | undefined;
 	templates: GeneratedTemplates;
 	request: Request;
 	appContext: Record<string, unknown>;
 }): Promise<Response> {
-	const { status, errorPages, templates, request, appContext } = input;
+	const { status, error, errorPages, templates, request, appContext } = input;
 
 	const loadErrorPage = errorPages?.[status];
 	if (loadErrorPage === undefined) {
@@ -119,7 +120,13 @@ async function renderErrorPage(input: {
 		}
 
 		const { default: template } = await loadTemplate();
-		const errorContext: ErrorContext = { status, message: statusMessage(status) };
+		const isDev = process.env.NODE_ENV !== "production";
+		const errorContext: ErrorContext = {
+			status,
+			message: isDev && error instanceof Error ? error.message : statusMessage(status),
+			error,
+			stack: isDev && error instanceof Error ? error.stack : undefined,
+		};
 		const adaptedModule = adaptErrorModule(errorModule, errorContext);
 
 		const response = await renderPage({
@@ -168,7 +175,7 @@ async function handleError(input: {
 
 	const status = isHttpErrorResponse(error) ? error.response.status : INTERNAL_SERVER_ERROR;
 	await callOnError(onError, error, request);
-	return renderErrorPage({ status, errorPages, templates, request, appContext });
+	return renderErrorPage({ status, error, errorPages, templates, request, appContext });
 }
 
 type DispatchInput = {
