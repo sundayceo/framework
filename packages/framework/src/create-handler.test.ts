@@ -401,7 +401,7 @@ describe("createHandler", () => {
 				.at(0)!
 				.at(0);
 			expect(loaderArg.error.status).toBe(500);
-			expect(loaderArg.error.message).toBe("Internal Server Error");
+			expect(loaderArg.error.message).toBe("boom");
 		});
 
 		test("404 renders through error page when errorPages has 404 entry", async () => {
@@ -544,6 +544,104 @@ describe("createHandler", () => {
 			expect(response.status).toBe(500);
 			const body = await response.text();
 			expect(body).toContain("Internal Server Error");
+		});
+
+		test("unhandled error populates ErrorContext.stack in dev mode", async () => {
+			const thrownError = new Error("db connection failed");
+			const errorPageModule = makeErrorPageModule();
+			const getHandler = vi.fn().mockImplementation(() => {
+				throw thrownError;
+			});
+			const route = makeRoute({
+				pattern: "/api/data",
+				load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
+			});
+
+			const handler = createHandler({
+				app: makeApp(),
+				routes: [route],
+				templates: makeTemplates(),
+				errorPages: makeErrorPages({ 500: errorPageModule }),
+			});
+
+			await handler.fetch(new Request("https://example.com/api/data"));
+
+			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls
+				.at(0)!
+				.at(0);
+			expect(loaderArg.error.stack).toBeDefined();
+			expect(loaderArg.error.stack).toContain("db connection failed");
+		});
+
+		test("unhandled error uses error.message in dev mode", async () => {
+			const errorPageModule = makeErrorPageModule();
+			const getHandler = vi.fn().mockImplementation(() => {
+				throw new Error("specific failure reason");
+			});
+			const route = makeRoute({
+				pattern: "/api/data",
+				load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
+			});
+
+			const handler = createHandler({
+				app: makeApp(),
+				routes: [route],
+				templates: makeTemplates(),
+				errorPages: makeErrorPages({ 500: errorPageModule }),
+			});
+
+			await handler.fetch(new Request("https://example.com/api/data"));
+
+			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls
+				.at(0)!
+				.at(0);
+			expect(loaderArg.error.message).toBe("specific failure reason");
+		});
+
+		test("404 error page has no error or stack in ErrorContext", async () => {
+			const errorPageModule = makeErrorPageModule();
+
+			const handler = createHandler({
+				app: makeApp(),
+				routes: [],
+				templates: makeTemplates(),
+				errorPages: makeErrorPages({ 404: errorPageModule }),
+			});
+
+			await handler.fetch(new Request("https://example.com/unknown"));
+
+			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls
+				.at(0)!
+				.at(0);
+			expect(loaderArg.error.error).toBeUndefined();
+			expect(loaderArg.error.stack).toBeUndefined();
+			expect(loaderArg.error.message).toBe("Not Found");
+		});
+
+		test("unhandled error populates ErrorContext.error with thrown error", async () => {
+			const thrownError = new Error("db connection failed");
+			const errorPageModule = makeErrorPageModule();
+			const getHandler = vi.fn().mockImplementation(() => {
+				throw thrownError;
+			});
+			const route = makeRoute({
+				pattern: "/api/data",
+				load: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
+			});
+
+			const handler = createHandler({
+				app: makeApp(),
+				routes: [route],
+				templates: makeTemplates(),
+				errorPages: makeErrorPages({ 500: errorPageModule }),
+			});
+
+			await handler.fetch(new Request("https://example.com/api/data"));
+
+			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls
+				.at(0)!
+				.at(0);
+			expect(loaderArg.error.error).toBe(thrownError);
 		});
 
 		test("httpError thrown renders through error page pipeline", async () => {
