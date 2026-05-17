@@ -31,6 +31,8 @@
 	},
 	"devDependencies": {
 		"@sundayceo/typescript-config": "workspace:*",
+		"@types/babel__generator": "^7.27.0",
+		"@types/babel__traverse": "^7.28.0",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
@@ -45,5 +47,11 @@
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
 		"vite": "^6.0.0 || ^7.0.0 || ^8.0.0"
+	},
+	"dependencies": {
+		"@babel/generator": "^7.29.1",
+		"@babel/parser": "^7.29.3",
+		"@babel/traverse": "^7.29.0",
+		"@babel/types": "^7.29.0"
 	}
 }
