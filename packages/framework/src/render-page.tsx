@@ -116,6 +116,11 @@ export async function renderPage(input: RenderPageInput): Promise<Response> {
 	const providedSlots = Object.keys(slotMap);
 	const validation = validateSlots({ providedSlots, extractedSlots });
 
+	for (const warning of validation.warnings) {
+		// eslint-disable-next-line no-console
+		console.warn(`[sundayceo] ${warning.message}`);
+	}
+
 	if (validation.errors.length > 0) {
 		throw new Error(validation.errors.map((e) => e.message).join("; "));
 	}

@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import type { Context, SlotMap, TemplateComponent } from "./core/index";
 import { renderPage } from "./render-page";
@@ -406,6 +406,90 @@ describe("renderPage", () => {
 			const html = await response.text();
 			expect(html).toContain("<p>Main</p>");
 			expect(html).toContain("<nav>Default</nav>");
+		});
+	});
+
+	describe("slot validation warnings", () => {
+		test("logs console.warn for typo slot name with suggestion", async () => {
+			const warnSpy = vi.spyOn(console, "warn").mockImplementation(vi.fn());
+
+			function Template({ head }: { head: React.ReactNode }): React.ReactNode {
+				return (
+					<html lang="en">
+						<head>{head}</head>
+						<body>
+							<Slot id="header" />
+							<Slot id="content" fallback={<p>fallback</p>} />
+						</body>
+					</html>
+				);
+			}
+
+			await renderPage({
+				pageModule: {
+					defineSlots: () => ({ header: <h1>Hi</h1>, contentt: <p>Typo</p> }),
+				},
+				template: Template,
+				request: makeRequest(),
+				params: {},
+				appContext: {},
+			});
+
+			expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown slot "contentt"'));
+			expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Did you mean "content"'));
+
+			warnSpy.mockRestore();
+		});
+
+		test("logs console.warn for unknown slot with no close match listing available slots", async () => {
+			const warnSpy = vi.spyOn(console, "warn").mockImplementation(vi.fn());
+
+			function Template({ head }: { head: React.ReactNode }): React.ReactNode {
+				return (
+					<html lang="en">
+						<head>{head}</head>
+						<body>
+							<Slot id="header" />
+							<Slot id="content" fallback={<p>fallback</p>} />
+						</body>
+					</html>
+				);
+			}
+
+			await renderPage({
+				pageModule: {
+					defineSlots: () => ({ header: <h1>Hi</h1>, "completely-unrelated": <p>?</p> }),
+				},
+				template: Template,
+				request: makeRequest(),
+				params: {},
+				appContext: {},
+			});
+
+			expect(warnSpy).toHaveBeenCalledWith(
+				expect.stringContaining('Unknown slot "completely-unrelated"'),
+			);
+			expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("Available slots"));
+
+			warnSpy.mockRestore();
+		});
+
+		test("does not log warnings when all slots are valid", async () => {
+			const warnSpy = vi.spyOn(console, "warn").mockImplementation(vi.fn());
+
+			await renderPage({
+				pageModule: {
+					defineSlots: () => ({ content: <p>OK</p> }),
+				},
+				template: makeTemplateWithSlot(),
+				request: makeRequest(),
+				params: {},
+				appContext: {},
+			});
+
+			expect(warnSpy).not.toHaveBeenCalled();
+
+			warnSpy.mockRestore();
 		});
 	});
 
