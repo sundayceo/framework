@@ -599,9 +599,12 @@ export default defineConfig(
 			"**/routes/404.test.tsx",
 			"**/routes/500.tsx",
 			"**/routes/500.test.tsx",
+			"**/routes/**/*\\[*\\]*.tsx",
+			"**/routes/**/*\\[*\\]*.ts",
 		],
 		rules: {
 			"check-file/filename-naming-convention": "off",
+			"check-file/folder-naming-convention": "off",
 			"@typescript-eslint/no-magic-numbers": "off",
 		},
 	},
