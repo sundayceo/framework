@@ -4,7 +4,6 @@ import { renderToString } from "react-dom/server";
 import type { Context, SlotMap, TemplateComponent } from "./core/index";
 import { extractSlots } from "./extract-slots";
 import { injectHydration } from "./inject-hydration";
-import { isInteractive } from "./interactivity-inference";
 import { SlotProvider } from "./slot";
 import { validateSlots } from "./validate-slots";
 
@@ -24,8 +23,8 @@ type RenderPageInput = {
 	appContext: Record<string, unknown>;
 	cssHref?: string;
 	hasViewTransition?: boolean;
-	slotSources?: Record<string, string>;
-	importGraph?: Record<string, string>;
+	slotInteractivity?: Record<string, boolean>;
+	assetPaths?: Record<string, string>;
 	routePath?: string;
 };
 
@@ -84,17 +83,6 @@ function runLoader(input: {
 	return input.pageModule.loader(ctx);
 }
 
-function buildSlotInteractivity(input: {
-	slotSources: Record<string, string>;
-	importGraph: Record<string, string>;
-}): Record<string, boolean> {
-	const result: Record<string, boolean> = {};
-	for (const [slotName, source] of Object.entries(input.slotSources)) {
-		result[slotName] = isInteractive(source, input.importGraph);
-	}
-	return result;
-}
-
 export async function renderPage(input: RenderPageInput): Promise<Response> {
 	const {
 		pageModule,
@@ -104,8 +92,8 @@ export async function renderPage(input: RenderPageInput): Promise<Response> {
 		appContext,
 		cssHref,
 		hasViewTransition,
-		slotSources,
-		importGraph = {},
+		slotInteractivity,
+		assetPaths,
 		routePath = "",
 	} = input;
 
@@ -134,13 +122,13 @@ export async function renderPage(input: RenderPageInput): Promise<Response> {
 		</SlotProvider>,
 	);
 
-	if (slotSources !== undefined) {
-		const slotInteractivity = buildSlotInteractivity({ slotSources, importGraph });
+	if (slotInteractivity !== undefined) {
 		html = injectHydration({
 			html,
 			slotInteractivity,
 			routePath,
 			loaderData,
+			assetPaths,
 		});
 	}
 

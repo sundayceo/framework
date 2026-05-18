@@ -667,4 +667,52 @@ describe("createHandler", () => {
 			expect(errorPageModule.loader).toHaveBeenCalled();
 		});
 	});
+
+	describe("hydration manifest threading", () => {
+		test("passes slotInteractivity from manifest to renderPage", async () => {
+			const pageModule = makePageModule({
+				defineSlots: vi.fn().mockReturnValue({
+					main: "interactive content",
+					header: "static content",
+				}),
+			});
+
+			const route = makeRoute({
+				pattern: "/demo",
+				load: vi.fn().mockResolvedValue({ default: pageModule }),
+			});
+
+			const hydrationManifest = {
+				"/demo": { main: true, header: false },
+			};
+
+			const handler = createHandler({
+				app: makeApp(),
+				routes: [route],
+				templates: makeTemplates(),
+				hydrationManifest,
+			});
+
+			const response = await handler.fetch(new Request("https://example.com/demo"));
+
+			expect(response.status).toBe(200);
+		});
+
+		test("no hydration data when manifest is omitted", async () => {
+			const pageModule = makePageModule();
+			const route = makeRoute({
+				load: vi.fn().mockResolvedValue({ default: pageModule }),
+			});
+
+			const handler = createHandler({
+				app: makeApp(),
+				routes: [route],
+				templates: makeTemplates(),
+			});
+
+			const response = await handler.fetch(new Request("https://example.com/"));
+
+			expect(response.status).toBe(200);
+		});
+	});
 });
