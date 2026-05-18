@@ -494,10 +494,6 @@ describe("renderPage", () => {
 	});
 
 	describe("hydration integration", () => {
-		const STATIC_SOURCE = "function Header() { return <h1>Hello</h1>; }";
-		const INTERACTIVE_SOURCE =
-			'import { useState } from "react"; function Counter() { const [c, setC] = useState(0); return <button onClick={() => setC(c+1)}>{c}</button>; }';
-
 		function makeMultiSlotTemplate(): TemplateComponent {
 			return function Template({ head }: { head: React.ReactNode }): React.ReactNode {
 				return (
@@ -513,7 +509,7 @@ describe("renderPage", () => {
 			};
 		}
 
-		test("static slots remain JS-free when slotSources shows no interactivity signals", async () => {
+		test("static slots remain JS-free when all interactivity is false", async () => {
 			const response = await renderPage({
 				pageModule: {
 					defineSlots: () => ({ content: <p>Static</p> }),
@@ -522,7 +518,7 @@ describe("renderPage", () => {
 				request: makeRequest(),
 				params: {},
 				appContext: {},
-				slotSources: { content: STATIC_SOURCE },
+				slotInteractivity: { content: false },
 				routePath: "/routes/index",
 			});
 
@@ -532,7 +528,7 @@ describe("renderPage", () => {
 			expect(html).not.toContain("data-hydrate=");
 		});
 
-		test("interactive slot with useState gets hydration script injected", async () => {
+		test("interactive slot gets hydration script injected", async () => {
 			const response = await renderPage({
 				pageModule: {
 					defineSlots: () => ({ content: <button>Count: 0</button> }),
@@ -541,7 +537,7 @@ describe("renderPage", () => {
 				request: makeRequest(),
 				params: {},
 				appContext: {},
-				slotSources: { content: INTERACTIVE_SOURCE },
+				slotInteractivity: { content: true },
 				routePath: "/routes/index",
 			});
 
@@ -549,7 +545,6 @@ describe("renderPage", () => {
 			expect(html).toContain('data-hydrate="content"');
 			expect(html).toContain('<script type="module">');
 			expect(html).toContain('<script type="application/json" data-hydrate-data="content">');
-			expect(html).toContain("/routes/index");
 		});
 
 		test("mixed page: interactive slots hydrated, static slots stay clean", async () => {
@@ -565,10 +560,10 @@ describe("renderPage", () => {
 				request: makeRequest(),
 				params: {},
 				appContext: {},
-				slotSources: {
-					header: STATIC_SOURCE,
-					counter: INTERACTIVE_SOURCE,
-					footer: STATIC_SOURCE,
+				slotInteractivity: {
+					header: false,
+					counter: true,
+					footer: false,
 				},
 				routePath: "/routes/index",
 			});
@@ -592,7 +587,7 @@ describe("renderPage", () => {
 				request: makeRequest(),
 				params: {},
 				appContext: {},
-				slotSources: { content: INTERACTIVE_SOURCE },
+				slotInteractivity: { content: true },
 				routePath: "/routes/index",
 			});
 
@@ -602,7 +597,7 @@ describe("renderPage", () => {
 			);
 		});
 
-		test("no hydration when slotSources is omitted (backward compat)", async () => {
+		test("no hydration when slotInteractivity is omitted", async () => {
 			const response = await renderPage({
 				pageModule: {
 					defineSlots: () => ({ content: <button>Count: 0</button> }),
@@ -619,28 +614,22 @@ describe("renderPage", () => {
 			expect(html).not.toContain("data-hydrate=");
 		});
 
-		test("import graph transitivity: slot is interactive via transitive dependency", async () => {
-			const wrapperSource =
-				'import { useCounter } from "./use-counter"; function Wrapper() { return useCounter(); }';
-			const useCounterSource =
-				'import { useState } from "react"; export function useCounter() { const [c, setC] = useState(0); return c; }';
-
+		test("asset paths override default virtual module IDs", async () => {
 			const response = await renderPage({
 				pageModule: {
-					defineSlots: () => ({ content: <div>Wrapper</div> }),
+					defineSlots: () => ({ content: <button>Click</button> }),
 				},
 				template: makeTemplateWithSlot(),
 				request: makeRequest(),
 				params: {},
 				appContext: {},
-				slotSources: { content: wrapperSource },
-				importGraph: { "./use-counter": useCounterSource },
+				slotInteractivity: { content: true },
+				assetPaths: { content: "/assets/content-abc123.js" },
 				routePath: "/routes/index",
 			});
 
 			const html = await response.text();
-			expect(html).toContain('data-hydrate="content"');
-			expect(html).toContain('<script type="module">');
+			expect(html).toContain("/assets/content-abc123.js");
 		});
 	});
 });
