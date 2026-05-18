@@ -9,5 +9,13 @@ export default defineConfig({
 		},
 	},
 	clean: true,
-	external: ["react", "react-dom", "vite"],
+	external: [
+		"react",
+		"react-dom",
+		"vite",
+		"@babel/generator",
+		"@babel/parser",
+		"@babel/traverse",
+		"@babel/types",
+	],
 });
