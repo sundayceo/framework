@@ -100,9 +100,6 @@ describe("demo page SSR rendering", () => {
 });
 
 describe("demo page hydration", () => {
-	const interactiveSource = 'import { useState } from "react"; const [c, setC] = useState(0);';
-	const staticSource = "function Header() { return <h1>Hello</h1>; }";
-
 	test("interactive slot gets hydration script", async () => {
 		const response = await renderPage({
 			pageModule: page as Parameters<typeof renderPage>[0]["pageModule"],
@@ -110,7 +107,7 @@ describe("demo page hydration", () => {
 			request: defaultRequest,
 			params: defaultParams,
 			appContext: defaultAppContext,
-			slotSources: { header: staticSource, main: interactiveSource, footer: staticSource },
+			slotInteractivity: { header: false, main: true, footer: false },
 			routePath: "/demo",
 		});
 
@@ -128,7 +125,7 @@ describe("demo page hydration", () => {
 			request: defaultRequest,
 			params: defaultParams,
 			appContext: defaultAppContext,
-			slotSources: { header: staticSource, main: interactiveSource, footer: staticSource },
+			slotInteractivity: { header: false, main: true, footer: false },
 			routePath: "/demo",
 		});
 
@@ -145,7 +142,7 @@ describe("demo page hydration", () => {
 			request: defaultRequest,
 			params: defaultParams,
 			appContext: defaultAppContext,
-			slotSources: { header: staticSource, main: interactiveSource, footer: staticSource },
+			slotInteractivity: { header: false, main: true, footer: false },
 			routePath: "/demo",
 		});
 

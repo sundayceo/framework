@@ -3,28 +3,14 @@ import {
 	type Context,
 	type HandlerModule,
 	type PageModule,
-	type SlotMap,
 	type TemplateComponent,
 } from "./core/index";
 import type { AppConfig } from "./create-app";
-import type { ErrorContext } from "./define-error-page";
+import { handleError, renderErrorPage, type GeneratedErrorPages } from "./handle-error";
 import { renderPage } from "./render-page";
-import { defaultNotFoundPage, defaultServerErrorPage } from "./resolve-error-page";
 import { matchRoute, type MatchResult } from "./route-matcher";
-import { isHttpErrorResponse, isRedirectResponse } from "./throwable-response";
 
 type RouteNamespace = { default: PageModule | HandlerModule };
-
-type ErrorPageModule = {
-	template: string;
-	loader?: (ctx: { error: ErrorContext }) => unknown;
-	defineSlots: (args: { loaderData: unknown }) => SlotMap;
-	meta?:
-		| { title?: string; description?: string }
-		| ((args: { loaderData: unknown }) => { title?: string; description?: string });
-};
-
-type GeneratedErrorPages = Record<number, () => Promise<{ default: ErrorPageModule }>>;
 
 type GeneratedRoute = {
 	pattern: string;
@@ -39,30 +25,15 @@ type HandlerOptions<TPlatform = unknown> = {
 	routes: GeneratedRoute[];
 	templates: GeneratedTemplates;
 	errorPages?: GeneratedErrorPages;
+	hydrationManifest?: Record<string, Record<string, boolean>>;
+	clientAssetMap?: Record<string, Record<string, string>>;
 };
 
-const METHOD_NOT_ALLOWED = 405;
 const NOT_FOUND = 404;
-const INTERNAL_SERVER_ERROR = 500;
-
+const METHOD_NOT_ALLOWED = 405;
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"]);
 
-const STATUS_MESSAGES: Record<number, string> = {
-	400: "Bad Request",
-	401: "Unauthorized",
-	403: "Forbidden",
-	404: "Not Found",
-	405: "Method Not Allowed",
-	500: "Internal Server Error",
-};
-
-function statusMessage(status: number): string {
-	return STATUS_MESSAGES[status] ?? "Internal Server Error";
-}
-
-type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-
-function isHttpMethod(method: string): method is HttpMethod {
+function isHttpMethod(method: string): method is "GET" | "POST" | "PUT" | "PATCH" | "DELETE" {
 	return HTTP_METHODS.has(method);
 }
 
@@ -74,121 +45,27 @@ function extractModule(namespace: RouteNamespace): PageModule | HandlerModule {
 	return namespace.default;
 }
 
-function bareErrorPage(status: number): Response {
-	return status === NOT_FOUND ? defaultNotFoundPage() : defaultServerErrorPage();
-}
-
-type AdaptedErrorModule = {
-	template: string;
-	loader: () => unknown;
-	defineSlots: (args: { loaderData: unknown }) => SlotMap;
-	meta?: ErrorPageModule["meta"];
-};
-
-function adaptErrorModule(
-	errorModule: ErrorPageModule,
-	errorContext: ErrorContext,
-): AdaptedErrorModule {
-	return {
-		template: errorModule.template,
-		defineSlots: errorModule.defineSlots,
-		meta: errorModule.meta,
-		loader: () => errorModule.loader?.({ error: errorContext }),
-	};
-}
-
-async function renderErrorPage(input: {
-	status: number;
-	error?: unknown;
-	errorPages: GeneratedErrorPages | undefined;
-	templates: GeneratedTemplates;
-	request: Request;
-	appContext: Record<string, unknown>;
-}): Promise<Response> {
-	const { status, error, errorPages, templates, request, appContext } = input;
-
-	const loadErrorPage = errorPages?.[status];
-	if (loadErrorPage === undefined) {
-		return bareErrorPage(status);
-	}
-
-	try {
-		const { default: errorModule } = await loadErrorPage();
-		const loadTemplate = templates[errorModule.template];
-		if (loadTemplate === undefined) {
-			return bareErrorPage(status);
-		}
-
-		const { default: template } = await loadTemplate();
-		const isDev = process.env.NODE_ENV !== "production";
-		const errorContext: ErrorContext = {
-			status,
-			message: isDev && error instanceof Error ? error.message : statusMessage(status),
-			error,
-			stack: isDev && error instanceof Error ? error.stack : undefined,
-		};
-		const adaptedModule = adaptErrorModule(errorModule, errorContext);
-
-		const response = await renderPage({
-			pageModule: adaptedModule,
-			template,
-			request,
-			params: {},
-			appContext,
-		});
-
-		return new Response(response.body, { status, headers: response.headers });
-	} catch {
-		return bareErrorPage(status);
-	}
-}
-
-async function callOnError(
-	onError: AppConfig["onError"],
-	error: unknown,
-	request: Request,
-): Promise<void> {
-	if (onError === undefined) {
-		return;
-	}
-	try {
-		await onError(error, request);
-	} catch (onErrorError) {
-		// eslint-disable-next-line no-console
-		console.error("onError hook failed:", onErrorError);
-	}
-}
-
-async function handleError(input: {
-	error: unknown;
-	request: Request;
-	onError: AppConfig["onError"];
-	errorPages: GeneratedErrorPages | undefined;
-	templates: GeneratedTemplates;
-	appContext: Record<string, unknown>;
-}): Promise<Response> {
-	const { error, request, onError, errorPages, templates, appContext } = input;
-
-	if (isRedirectResponse(error)) {
-		return error.response;
-	}
-
-	const status = isHttpErrorResponse(error) ? error.response.status : INTERNAL_SERVER_ERROR;
-	await callOnError(onError, error, request);
-	return renderErrorPage({ status, error, errorPages, templates, request, appContext });
-}
-
-type DispatchInput = {
-	templates: GeneratedTemplates;
+type DispatchInput = Pick<
+	HandlerOptions,
+	"templates" | "errorPages" | "hydrationManifest" | "clientAssetMap"
+> & {
 	match: MatchResult<GeneratedRoute>;
 	request: Request;
 	appContext: Record<string, unknown>;
 	onError: AppConfig["onError"];
-	errorPages?: GeneratedErrorPages;
 };
 
 async function dispatchPage(routeModule: PageModule, input: DispatchInput): Promise<Response> {
-	const { templates, match, request, appContext, onError, errorPages } = input;
+	const {
+		templates,
+		match,
+		request,
+		appContext,
+		onError,
+		errorPages,
+		hydrationManifest,
+		clientAssetMap,
+	} = input;
 
 	try {
 		const loadTemplate = templates[routeModule.template];
@@ -196,12 +73,19 @@ async function dispatchPage(routeModule: PageModule, input: DispatchInput): Prom
 			throw new Error(`Template "${routeModule.template}" not found`);
 		}
 		const { default: template } = await loadTemplate();
+		const routePath = match.route.pattern;
+		const slotInteractivity = hydrationManifest?.[routePath];
+		const assetPaths = clientAssetMap?.[routePath];
+
 		return await renderPage({
 			pageModule: routeModule,
 			template,
 			request,
 			params: match.params,
 			appContext,
+			slotInteractivity,
+			assetPaths,
+			routePath,
 		});
 	} catch (error) {
 		return handleError({ error, request, onError, errorPages, templates, appContext });
@@ -235,7 +119,7 @@ async function dispatchHandler(
 function createHandler<TPlatform = unknown>(
 	options: HandlerOptions<TPlatform>,
 ): { fetch: (request: Request, platform?: TPlatform) => Promise<Response> } {
-	const { app, routes, templates, errorPages } = options;
+	const { app, routes, templates, errorPages, hydrationManifest, clientAssetMap } = options;
 
 	return {
 		async fetch(request: Request, platform?: TPlatform): Promise<Response> {
@@ -260,6 +144,8 @@ function createHandler<TPlatform = unknown>(
 				appContext,
 				onError,
 				errorPages,
+				hydrationManifest,
+				clientAssetMap,
 			};
 
 			if (isPageModule(routeModule)) {
