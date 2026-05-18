@@ -1,4 +1,4 @@
 {
-	"packages/framework": "0.0.0",
-	"packages/cli": "0.0.0"
+	"packages/framework": "1.0.0",
+	"packages/cli": "1.0.0"
 }
