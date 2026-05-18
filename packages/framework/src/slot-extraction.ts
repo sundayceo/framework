@@ -1,8 +1,21 @@
 /* eslint-disable @typescript-eslint/naming-convention -- Babel visitors must be PascalCase */
-import generate from "@babel/generator";
+import * as generateModule from "@babel/generator";
 import { parse } from "@babel/parser";
-import traverse, { type NodePath } from "@babel/traverse";
+import type { NodePath } from "@babel/traverse";
+import * as traverseModule from "@babel/traverse";
 import * as t from "@babel/types";
+
+type DoubleWrapped<T> = { default: { default: T } };
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- CJS/ESM interop: @babel/* default export is double-wrapped */
+const traverse =
+	typeof traverseModule.default === "function"
+		? traverseModule.default
+		: (traverseModule as unknown as DoubleWrapped<typeof traverseModule.default>).default.default;
+const generate =
+	typeof generateModule.default === "function"
+		? generateModule.default
+		: (generateModule as unknown as DoubleWrapped<typeof generateModule.default>).default.default;
+/* eslint-enable @typescript-eslint/consistent-type-assertions */
 
 type DefineSlotsResult = {
 	slotsObject: t.ObjectExpression;

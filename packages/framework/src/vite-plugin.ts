@@ -3,6 +3,7 @@ import path from "node:path";
 
 import type { Plugin, ViteDevServer } from "vite";
 
+import { buildHydrationManifest, serializeManifest } from "./hydration-manifest";
 import { runCodegen } from "./run-codegen";
 import { filePathToRoutePath, transformRouteModule } from "./transform-route-module";
 import { isHydrateModuleId, loadVirtualSlotModule, resolveHydrateId } from "./virtual-slot-modules";
@@ -14,6 +15,8 @@ const OUTPUT_FILE = "framework.gen.d.ts";
 const MANIFEST_FILE = "routes.gen.ts";
 const VIRTUAL_MODULE_ID = "@sundayceo/framework/server-entry";
 const RESOLVED_VIRTUAL_MODULE_ID = `\0${VIRTUAL_MODULE_ID}`;
+const HYDRATION_MANIFEST_ID = "virtual:hydration-manifest";
+const RESOLVED_HYDRATION_MANIFEST_ID = `\0${HYDRATION_MANIFEST_ID}`;
 
 function isWatchedPath(file: string, srcDir: string): boolean {
 	const templatesDir = path.join(srcDir, "templates");
@@ -56,6 +59,12 @@ function scanRouteSources(srcDir: string): Map<string, string> {
 		sources.set(routePath, fs.readFileSync(path.join(routesDir, file), "utf-8"));
 	}
 	return sources;
+}
+
+function generateManifestSource(routeSources: Map<string, string>): string {
+	const routes = [...routeSources.entries()].map(([routePath, source]) => ({ routePath, source }));
+	const manifest = buildHydrationManifest({ routes, importGraph: {} });
+	return serializeManifest(manifest);
 }
 
 function isRouteFile(file: string, routesDir: string): boolean {
@@ -104,9 +113,26 @@ function invalidateHydrateModules(server: ViteDevServer): void {
 	}
 }
 
+const VIRTUAL_RESOLVE: Record<string, string> = {
+	[VIRTUAL_MODULE_ID]: RESOLVED_VIRTUAL_MODULE_ID,
+	[HYDRATION_MANIFEST_ID]: RESOLVED_HYDRATION_MANIFEST_ID,
+};
+
+function resolveVirtualId(source: string): string | undefined {
+	return VIRTUAL_RESOLVE[source] ?? resolveHydrateId(source) ?? undefined;
+}
+
+function invalidateManifest(server: ViteDevServer): void {
+	const mod = server.moduleGraph.getModuleById(RESOLVED_HYDRATION_MANIFEST_ID);
+	if (mod !== undefined) {
+		server.moduleGraph.invalidateModule(mod);
+	}
+}
+
 export function frameworkPlugin(): Plugin {
 	let srcDir: string;
 	let routeSources = new Map<string, string>();
+	let manifestSource: string | null = null;
 
 	return {
 		name: PLUGIN_NAME,
@@ -116,16 +142,15 @@ export function frameworkPlugin(): Plugin {
 			srcDir = path.join(config.root, "src");
 		},
 
-		resolveId(source: string) {
-			if (source === VIRTUAL_MODULE_ID) {
-				return RESOLVED_VIRTUAL_MODULE_ID;
-			}
-			return resolveHydrateId(source);
-		},
+		resolveId: (source: string) => resolveVirtualId(source),
 
 		load(id: string) {
 			if (id === RESOLVED_VIRTUAL_MODULE_ID) {
 				return generateServerEntry(srcDir);
+			}
+			if (id === RESOLVED_HYDRATION_MANIFEST_ID) {
+				manifestSource ??= generateManifestSource(routeSources);
+				return manifestSource;
 			}
 			const bareId = stripNullByte(id);
 			if (isHydrateModuleId(bareId)) {
@@ -137,6 +162,7 @@ export function frameworkPlugin(): Plugin {
 		buildStart() {
 			writeCodegen(srcDir);
 			routeSources = scanRouteSources(srcDir);
+			manifestSource = generateManifestSource(routeSources);
 		},
 
 		transform(code, id) {
@@ -144,11 +170,12 @@ export function frameworkPlugin(): Plugin {
 		},
 
 		handleHotUpdate({ file, server }) {
-			const routesDir = path.join(srcDir, "routes");
-			if (!isRouteFile(file, routesDir)) {
+			if (!isRouteFile(file, path.join(srcDir, "routes"))) {
 				return;
 			}
 			routeSources = scanRouteSources(srcDir);
+			manifestSource = null;
+			invalidateManifest(server);
 			invalidateHydrateModules(server);
 		},
 
