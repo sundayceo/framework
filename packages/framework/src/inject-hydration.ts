@@ -5,6 +5,7 @@ type InjectHydrationInput = {
 	slotInteractivity: Record<string, boolean>;
 	routePath: string;
 	loaderData: unknown;
+	assetPaths?: Record<string, string>;
 };
 
 function buildSlotPattern(slotId: string): RegExp {
@@ -21,14 +22,27 @@ function buildDataScript(input: { slotId: string; loaderData: unknown }): string
 	return `<script type="application/json" data-hydrate-data="${slotId}">${JSON.stringify(loaderData)}</script>`;
 }
 
-function buildModuleScript(input: { slotId: string; routePath: string }): string {
-	const { slotId, routePath } = input;
-	const code = generateHydrationScript({ slotId, routePath });
+function buildModuleScript(input: { slotId: string; assetPath: string }): string {
+	const { slotId, assetPath } = input;
+	const code = generateHydrationScript({ slotId, assetPath });
 	return `<script type="module">${code}</script>`;
 }
 
+function resolveAssetPath(input: {
+	slotId: string;
+	routePath: string;
+	assetPaths?: Record<string, string>;
+}): string {
+	const { slotId, routePath, assetPaths } = input;
+	const resolved = assetPaths?.[slotId];
+	if (resolved !== undefined) {
+		return resolved;
+	}
+	return `virtual:hydrate${routePath}/${slotId}`;
+}
+
 export function injectHydration(input: InjectHydrationInput): string {
-	const { html, slotInteractivity, routePath, loaderData } = input;
+	const { html, slotInteractivity, routePath, loaderData, assetPaths } = input;
 
 	const interactiveSlotIds = Object.entries(slotInteractivity)
 		.filter(([, interactive]) => interactive)
@@ -47,8 +61,9 @@ export function injectHydration(input: InjectHydrationInput): string {
 			return wrapWithBoundary({ content, slotId });
 		});
 
+		const assetPath = resolveAssetPath({ slotId, routePath, assetPaths });
 		scriptsToAppend.push(buildDataScript({ slotId, loaderData }));
-		scriptsToAppend.push(buildModuleScript({ slotId, routePath }));
+		scriptsToAppend.push(buildModuleScript({ slotId, assetPath }));
 	}
 
 	const scriptsHtml = scriptsToAppend.join("");

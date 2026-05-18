@@ -1,21 +1,17 @@
 type GenerateHydrationScriptInput = {
 	slotId: string;
-	routePath: string;
+	assetPath: string;
 };
 
 export function generateHydrationScript(input: GenerateHydrationScriptInput): string {
-	const { slotId, routePath } = input;
+	const { slotId, assetPath } = input;
 
 	return [
-		`(async () => {`,
-		`const root = document.querySelector('[data-hydrate="${slotId}"]');`,
+		`import HydrateSlot from "${assetPath}";`,
+		`import { hydrateRoot } from "react-dom/client";`,
 		`const dataEl = document.querySelector('script[data-hydrate-data="${slotId}"]');`,
 		`const loaderData = dataEl ? JSON.parse(dataEl.textContent || "{}") : {};`,
-		`const mod = await import("${routePath}");`,
-		`const { hydrateRoot } = await import("react-dom/client");`,
-		`const slots = mod.defineSlots({ loaderData });`,
-		`const slotContent = slots["${slotId}"];`,
-		`if (root && slotContent) { hydrateRoot(root, slotContent); }`,
-		`})();`,
+		`const root = document.querySelector('[data-hydrate="${slotId}"]');`,
+		`if (root) { hydrateRoot(root, HydrateSlot({ loaderData })); }`,
 	].join("\n");
 }
