@@ -33,6 +33,7 @@ function extractImportSpecifiers(source: string): string[] {
 	return specifiers;
 }
 
+/** Returns true if the source or its transitive imports contain React hooks, event handlers, or browser APIs. */
 export function isInteractive(source: string, importGraph: Record<string, string> = {}): boolean {
 	if (hasInteractivitySignals(source)) {
 		return true;

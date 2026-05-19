@@ -3,6 +3,7 @@ type ServerEntryPaths = {
 	routesModule: string;
 };
 
+/** Generates the server entry module that wires the app, routes, and templates into createHandler. */
 export function generateServerEntry(paths: ServerEntryPaths): string {
 	return [
 		'import { createHandler } from "@sundayceo/framework";',

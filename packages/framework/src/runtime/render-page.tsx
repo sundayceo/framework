@@ -83,6 +83,7 @@ function runLoader(input: {
 	return input.pageModule.loader(ctx);
 }
 
+/** Server-renders a page module into a full HTML response with slots, meta, and hydration. */
 export async function renderPage(input: RenderPageInput): Promise<Response> {
 	const {
 		pageModule,

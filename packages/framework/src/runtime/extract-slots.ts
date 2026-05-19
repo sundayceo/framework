@@ -45,6 +45,7 @@ function walkTree(node: ReactNode, state: WalkState): void {
 	});
 }
 
+/** Walks a template's render tree to discover all declared Slot IDs and which are required. */
 export function extractSlots(template: TemplateComponent): ExtractSlotsResult {
 	const tree = template({ head: null });
 	const node: ReactNode = tree instanceof Promise ? null : tree;

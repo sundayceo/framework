@@ -33,6 +33,7 @@ function formatParamType(params: string[]): string {
 	return `{ ${params.map((p) => `${p}: string`).join("; ")} }`;
 }
 
+/** Generates a TypeScript RouteMap declaration from route file paths. */
 export function generateRouteMap(filePaths: string[]): string {
 	const routes = filePaths
 		.filter(
