@@ -1,9 +1,9 @@
 import { expect, test } from "vitest";
 
-import { runCodegen } from "./index";
+import { codegen } from "./index";
 
 test("exports codegen orchestrator", () => {
-	expect(runCodegen).toBeTypeOf("function");
+	expect(codegen).toBeTypeOf("function");
 });
 
 test("does not export internal codegen functions", async () => {
