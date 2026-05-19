@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { createHandler, type HandlerConfig } from "@sundayceo/framework";
+import { createHandler } from "@sundayceo/framework";
 
 import { app } from "../app";
 import { errorPages, routes, templates } from "../routes.gen";
@@ -10,7 +10,7 @@ const handler = createHandler({
 	routes,
 	templates,
 	errorPages,
-} as unknown as HandlerConfig);
+});
 
 async function fetchDemo(): Promise<Response> {
 	return handler.fetch(new Request("http://localhost/demo"));
