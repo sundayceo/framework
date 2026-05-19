@@ -69,6 +69,6 @@ export type CustomContext = RegisteredApp extends undefined
 	: InferCustomFromApp<RegisteredApp>;
 
 export type MatchableRoute = {
-	pattern: string;
+	routePath: string;
 	params: string[];
 };

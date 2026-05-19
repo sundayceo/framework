@@ -35,8 +35,12 @@ describe("vite-plugin load", () => {
 		expect(code).toBeTypeOf("string");
 		expect(code).toContain('import { createHandler } from "@sundayceo/framework"');
 		expect(code).toContain('import { app } from "/test/src/app"');
-		expect(code).toContain('import { routes, templates, errorPages } from "/test/src/routes.gen"');
-		expect(code).toContain("export default createHandler({ app, routes, templates, errorPages })");
+		expect(code).toContain(
+			'import { routes, templates, errorPages, hydrationManifest } from "/test/src/routes.gen"',
+		);
+		expect(code).toContain(
+			"export default createHandler({ app, routes, templates, errorPages, hydrationManifest })",
+		);
 	});
 
 	it("returns undefined for non-virtual module IDs", () => {

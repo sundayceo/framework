@@ -4,7 +4,7 @@ import path from "node:path";
 import type { ViteDevServer } from "vite";
 
 import type { AppConfig } from "../runtime/create-app";
-import type { GeneratedRoute, GeneratedTemplates } from "../runtime/create-handler";
+import type { GeneratedTemplates, RouteEntry } from "../runtime/create-handler";
 
 const PROTOCOL = "http";
 const METHODS_WITH_BODY = new Set(["POST", "PUT", "PATCH", "DELETE"]);
@@ -96,14 +96,14 @@ type DispatchInput = MiddlewareInput & {
 
 type CreateHandlerFn = (options: {
 	app: AppConfig;
-	routes: GeneratedRoute[];
+	routes: RouteEntry[];
 	templates: GeneratedTemplates;
 	errorPages?: Record<number, () => Promise<unknown>>;
 }) => { fetch: (request: Request) => Promise<Response> };
 
 type LoadedModules = {
 	app: AppConfig;
-	routes: GeneratedRoute[];
+	routes: RouteEntry[];
 	templates: GeneratedTemplates;
 	errorPages?: Record<number, () => Promise<unknown>>;
 	createHandler: CreateHandlerFn;
@@ -117,7 +117,7 @@ async function loadModules(server: ViteDevServer, srcDir: string): Promise<Loade
 
 	return {
 		app: (appModule.app ?? appModule.default) as AppConfig,
-		routes: routesModule.routes as GeneratedRoute[],
+		routes: routesModule.routes as RouteEntry[],
 		templates: routesModule.templates as GeneratedTemplates,
 		errorPages: routesModule.errorPages as Record<number, () => Promise<unknown>> | undefined,
 		createHandler: frameworkModule.createHandler as CreateHandlerFn,

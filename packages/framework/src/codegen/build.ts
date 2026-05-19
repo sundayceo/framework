@@ -7,12 +7,12 @@ export type CodegenInput = {
 	templatePaths: string[];
 };
 
-export type CodegenResult = {
+export type CodegenOutput = {
 	declarations: string;
 	manifest: string;
 };
 
-export function codegen(input: CodegenInput): CodegenResult {
+export function codegen(input: CodegenInput): CodegenOutput {
 	const { routePaths, templatePaths } = input;
 
 	const templateBlock = generateTemplateRegistry(templatePaths);

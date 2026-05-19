@@ -19,7 +19,7 @@ export function generateRouteManifest(input: GenerateRouteManifestInput): string
 
 	const routeLines = entries.map(
 		(entry) =>
-			`  { pattern: "${entry.pattern}", params: ${formatParams(entry.params)}, load: () => import("./routes/${stripExtension(entry.filePath)}") },`,
+			`  { routePath: "${entry.routePath}", params: ${formatParams(entry.params)}, loadModule: () => import("./routes/${stripExtension(entry.filePath)}") },`,
 	);
 
 	const templateEntries = input.templatePaths

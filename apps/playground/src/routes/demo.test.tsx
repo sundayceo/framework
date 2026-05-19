@@ -1,18 +1,16 @@
 import { describe, expect, test } from "vitest";
 
-import { createHandler, type HandlerOptions } from "@sundayceo/framework";
+import { createHandler, type HandlerConfig } from "@sundayceo/framework";
 
 import { app } from "../app";
 import { errorPages, routes, templates } from "../routes.gen";
 
-/* eslint-disable @typescript-eslint/consistent-type-assertions */
 const handler = createHandler({
 	app,
 	routes,
 	templates,
 	errorPages,
-} as unknown as HandlerOptions);
-/* eslint-enable @typescript-eslint/consistent-type-assertions */
+} as unknown as HandlerConfig);
 
 async function fetchDemo(): Promise<Response> {
 	return handler.fetch(new Request("http://localhost/demo"));

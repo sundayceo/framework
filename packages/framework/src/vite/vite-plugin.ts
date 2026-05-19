@@ -4,6 +4,7 @@ import path from "node:path";
 import type { Plugin, ViteDevServer } from "vite";
 
 import { codegenFromDisk } from "../codegen-disk/codegen";
+import { generateServerEntry } from "../codegen/generate-server-entry";
 import { buildHydrationManifest, serializeManifest } from "../codegen/hydration-manifest";
 import { filePathToRoutePath, transformRouteModule } from "../codegen/transform-route-module";
 import { isHydrateModuleId, loadVirtualSlotModule, resolveHydrateId } from "./virtual-slot-modules";
@@ -30,15 +31,11 @@ function writeCodegen(srcDir: string): void {
 	fs.writeFileSync(path.join(srcDir, MANIFEST_FILE), manifest);
 }
 
-function generateServerEntry(srcDir: string): string {
-	const appPath = path.join(srcDir, "app");
-	const routesPath = path.join(srcDir, "routes.gen");
-	return [
-		'import { createHandler } from "@sundayceo/framework";',
-		`import { app } from "${appPath}";`,
-		`import { routes, templates, errorPages } from "${routesPath}";`,
-		"export default createHandler({ app, routes, templates, errorPages });",
-	].join("\n");
+function buildServerEntry(srcDir: string): string {
+	return generateServerEntry({
+		appModule: path.join(srcDir, "app"),
+		routesModule: path.join(srcDir, "routes.gen"),
+	});
 }
 
 function scanRouteSources(srcDir: string): Map<string, string> {
@@ -146,7 +143,7 @@ export function frameworkPlugin(): Plugin {
 
 		load(id: string) {
 			if (id === RESOLVED_VIRTUAL_MODULE_ID) {
-				return generateServerEntry(srcDir);
+				return buildServerEntry(srcDir);
 			}
 			if (id === RESOLVED_HYDRATION_MANIFEST_ID) {
 				manifestSource ??= generateManifestSource(routeSources);

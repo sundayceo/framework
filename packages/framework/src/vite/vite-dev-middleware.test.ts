@@ -201,7 +201,7 @@ describe("createDevMiddleware", () => {
 	});
 
 	test("calls createHandler with app, routes, templates, and errorPages", async () => {
-		const mockRoutes = [{ pattern: "/", params: [], load: vi.fn() }];
+		const mockRoutes = [{ routePath: "/", params: [], loadModule: vi.fn() }];
 		const mockTemplates = { main: vi.fn() };
 		const mockErrorPages = { 404: vi.fn(), 500: vi.fn() };
 		const mockApp = { context: () => ({}) };
