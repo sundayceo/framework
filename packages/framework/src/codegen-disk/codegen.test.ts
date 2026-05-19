@@ -69,12 +69,14 @@ describe("codegenFromDisk", () => {
 		const { manifest } = codegenFromDisk(srcDir);
 
 		expect(manifest).toContain("export const routes = [");
-		expect(manifest).toContain('pattern: "/", params: [], load: () => import("./routes/index")');
 		expect(manifest).toContain(
-			'pattern: "/about", params: [], load: () => import("./routes/about")',
+			'routePath: "/", params: [], loadModule: () => import("./routes/index")',
 		);
 		expect(manifest).toContain(
-			'pattern: "/blog/:slug", params: ["slug"], load: () => import("./routes/blog/[slug]")',
+			'routePath: "/about", params: [], loadModule: () => import("./routes/about")',
+		);
+		expect(manifest).toContain(
+			'routePath: "/blog/:slug", params: ["slug"], loadModule: () => import("./routes/blog/[slug]")',
 		);
 
 		expect(manifest).toContain("export const templates = {");
@@ -144,9 +146,9 @@ describe("codegenFromDisk", () => {
 		const { manifest } = codegenFromDisk(srcDir);
 
 		const lines = manifest.split("\n");
-		const routeLines = lines.filter((l) => l.includes("pattern:"));
+		const routeLines = lines.filter((l) => l.includes("routePath:"));
 
 		expect(routeLines).toHaveLength(1);
-		expect(routeLines.at(0)).toContain('pattern: "/"');
+		expect(routeLines.at(0)).toContain('routePath: "/"');
 	});
 });

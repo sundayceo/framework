@@ -3,9 +3,9 @@ export type { AppConfig } from "./runtime/create-app";
 export { createHandler } from "./runtime/create-handler";
 export type {
 	GeneratedErrorPages,
-	GeneratedRoute,
+	RouteEntry,
 	GeneratedTemplates,
-	HandlerOptions,
+	HandlerConfig,
 } from "./runtime/create-handler";
 export { definePage } from "./runtime/define-page";
 export { defineHandler } from "./runtime/define-handler";

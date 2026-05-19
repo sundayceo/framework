@@ -14,7 +14,7 @@ const normalize = (path: string): string => {
 
 function tryMatch<T extends MatchableRoute>(url: string, route: T): MatchResult<T> | null {
 	const urlSegments = url.split("/").filter(Boolean);
-	const patternSegments = route.pattern.split("/").filter(Boolean);
+	const patternSegments = route.routePath.split("/").filter(Boolean);
 
 	if (urlSegments.length !== patternSegments.length) {
 		return null;
