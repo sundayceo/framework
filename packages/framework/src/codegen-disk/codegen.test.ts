@@ -4,7 +4,7 @@ import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
-import { runCodegen } from "./build";
+import { codegenFromDisk } from "./codegen";
 
 function createFixtureDir(): string {
 	const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codegen-"));
@@ -13,7 +13,7 @@ function createFixtureDir(): string {
 	return dir;
 }
 
-describe("runCodegen", () => {
+describe("codegenFromDisk", () => {
 	let srcDir: string;
 
 	beforeEach(() => {
@@ -28,7 +28,7 @@ describe("runCodegen", () => {
 		fs.writeFileSync(path.join(srcDir, "routes", "index.tsx"), "");
 		fs.writeFileSync(path.join(srcDir, "templates", "default.tsx"), "");
 
-		const result = runCodegen(srcDir);
+		const result = codegenFromDisk(srcDir);
 
 		expect(result).toHaveProperty("declarations");
 		expect(result).toHaveProperty("manifest");
@@ -43,7 +43,7 @@ describe("runCodegen", () => {
 		fs.writeFileSync(path.join(srcDir, "templates", "marketing.tsx"), "");
 		fs.writeFileSync(path.join(srcDir, "templates", "blog.tsx"), "");
 
-		const { declarations } = runCodegen(srcDir);
+		const { declarations } = codegenFromDisk(srcDir);
 
 		expect(declarations).toContain("interface TemplateRegistry {");
 		expect(declarations).toContain('blog: typeof import("./templates/blog").default;');
@@ -66,7 +66,7 @@ describe("runCodegen", () => {
 		fs.writeFileSync(path.join(srcDir, "routes", "blog", "[slug].tsx"), "");
 		fs.writeFileSync(path.join(srcDir, "templates", "default.tsx"), "");
 
-		const { manifest } = runCodegen(srcDir);
+		const { manifest } = codegenFromDisk(srcDir);
 
 		expect(manifest).toContain("export const routes = [");
 		expect(manifest).toContain('pattern: "/", params: [], load: () => import("./routes/index")');
@@ -82,7 +82,7 @@ describe("runCodegen", () => {
 	});
 
 	test("handles empty directories gracefully", () => {
-		const result = runCodegen(srcDir);
+		const result = codegenFromDisk(srcDir);
 
 		expect(result.declarations).toContain("interface TemplateRegistry {");
 		expect(result.declarations).toContain("interface RouteMap {");
@@ -93,7 +93,7 @@ describe("runCodegen", () => {
 	test("handles missing directories gracefully", () => {
 		const emptyDir = fs.mkdtempSync(path.join(os.tmpdir(), "codegen-empty-"));
 
-		const result = runCodegen(emptyDir);
+		const result = codegenFromDisk(emptyDir);
 
 		expect(result.declarations).toContain("interface TemplateRegistry {");
 		expect(result.declarations).toContain("interface RouteMap {");
@@ -107,7 +107,7 @@ describe("runCodegen", () => {
 		fs.writeFileSync(path.join(srcDir, "routes", "500.tsx"), "");
 		fs.writeFileSync(path.join(srcDir, "routes", "about.tsx"), "");
 
-		const { declarations } = runCodegen(srcDir);
+		const { declarations } = codegenFromDisk(srcDir);
 
 		expect(declarations).toContain('"/": {};');
 		expect(declarations).toContain('"/about": {};');
@@ -119,7 +119,7 @@ describe("runCodegen", () => {
 		fs.writeFileSync(path.join(srcDir, "routes", "200.tsx"), "");
 		fs.writeFileSync(path.join(srcDir, "routes", "301.tsx"), "");
 
-		const { declarations } = runCodegen(srcDir);
+		const { declarations } = codegenFromDisk(srcDir);
 
 		expect(declarations).toContain('"/200": {};');
 		expect(declarations).toContain('"/301": {};');
@@ -130,7 +130,7 @@ describe("runCodegen", () => {
 		fs.writeFileSync(path.join(srcDir, "routes", "404.tsx"), "");
 		fs.writeFileSync(path.join(srcDir, "routes", "500.tsx"), "");
 
-		const { manifest } = runCodegen(srcDir);
+		const { manifest } = codegenFromDisk(srcDir);
 
 		expect(manifest).toContain("export const errorPages = {");
 		expect(manifest).toContain('404: () => import("./routes/404")');
@@ -141,7 +141,7 @@ describe("runCodegen", () => {
 		fs.writeFileSync(path.join(srcDir, "routes", "index.tsx"), "");
 		fs.writeFileSync(path.join(srcDir, "routes", "404.tsx"), "");
 
-		const { manifest } = runCodegen(srcDir);
+		const { manifest } = codegenFromDisk(srcDir);
 
 		const lines = manifest.split("\n");
 		const routeLines = lines.filter((l) => l.includes("pattern:"));

@@ -43,7 +43,7 @@ test("does not export internal pipeline functions", async () => {
 	const barrel = await import("./index");
 	expect("renderPage" in barrel).toBe(false);
 	expect("matchRoute" in barrel).toBe(false);
-	expect("runCodegen" in barrel).toBe(false);
+	expect("codegen" in barrel).toBe(false);
 	expect("scanRoutes" in barrel).toBe(false);
 	expect("resolveErrorPage" in barrel).toBe(false);
 	expect("defaultNotFoundPage" in barrel).toBe(false);

@@ -3,7 +3,7 @@ import path from "node:path";
 
 import type { Plugin, ViteDevServer } from "vite";
 
-import { runCodegen } from "../codegen/build";
+import { codegenFromDisk } from "../codegen-disk/codegen";
 import { buildHydrationManifest, serializeManifest } from "../codegen/hydration-manifest";
 import { filePathToRoutePath, transformRouteModule } from "../codegen/transform-route-module";
 import { isHydrateModuleId, loadVirtualSlotModule, resolveHydrateId } from "./virtual-slot-modules";
@@ -25,7 +25,7 @@ function isWatchedPath(file: string, srcDir: string): boolean {
 }
 
 function writeCodegen(srcDir: string): void {
-	const { declarations, manifest } = runCodegen(srcDir);
+	const { declarations, manifest } = codegenFromDisk(srcDir);
 	fs.writeFileSync(path.join(srcDir, OUTPUT_FILE), declarations);
 	fs.writeFileSync(path.join(srcDir, MANIFEST_FILE), manifest);
 }

@@ -58,6 +58,35 @@ describe("module boundary rules", () => {
 		}
 	});
 
+	test("codegen/ has no Node.js filesystem imports", () => {
+		const files = readSourceFiles(path.join(SRC, "codegen"));
+		for (const { file, content } of files) {
+			const imports = extractImportPaths(content);
+			const violations = imports.filter(
+				(p) => p === "node:fs" || p === "node:path" || p === "fs" || p === "path",
+			);
+			expect(
+				violations,
+				`codegen/${file} imports Node.js modules: ${violations.join(", ")}`,
+			).toEqual([]);
+		}
+	});
+
+	test("codegen-disk/ imports from codegen only (plus Node.js)", () => {
+		const dir = path.join(SRC, "codegen-disk");
+		const files = readSourceFiles(dir);
+		for (const { file, content } of files) {
+			const imports = extractImportPaths(content);
+			const violations = imports.filter(
+				(p) => !p.startsWith("node:") && !p.startsWith("../codegen") && !p.startsWith("./"),
+			);
+			expect(
+				violations,
+				`codegen-disk/${file} imports outside codegen: ${violations.join(", ")}`,
+			).toEqual([]);
+		}
+	});
+
 	test("codegen/ does not import from runtime/ (except type-only)", () => {
 		const files = readSourceFiles(path.join(SRC, "codegen"));
 		for (const { file, content } of files) {
