@@ -1,8 +1,11 @@
 import type { ReactNode } from "react";
 
+/** Unique symbol key used to tag route modules as either "page" or "handler". */
 export const RouteKind = Symbol.for("sundayceo.routeKind");
+/** Type alias for the RouteKind symbol. */
 export type RouteKind = typeof RouteKind;
 
+/** Request context passed to loaders and handlers, including params and custom app context. */
 export type Context<
 	TParams extends Record<string, string> = Record<string, string>,
 	TCustom extends Record<string, unknown> = CustomContext,
@@ -11,10 +14,13 @@ export type Context<
 	params: TParams;
 } & TCustom;
 
+/** Map of slot IDs to their React content. */
 export type SlotMap = Record<string, ReactNode>;
 
+/** A React component that renders a page layout, receiving head content as a prop. */
 export type TemplateComponent = React.FC<{ head: ReactNode }>;
 
+/** Module definition for a page route, including template, loader, slots, and meta. */
 export type PageModule<
 	TTemplate extends string = string,
 	TParams extends Record<string, string> = Record<string, string>,
@@ -35,6 +41,7 @@ type MethodHandler<
 	TCustom extends Record<string, unknown>,
 > = (ctx: Context<TParams, TCustom>) => Response | Promise<Response>;
 
+/** Module definition for an API handler route with HTTP method handlers. */
 export type HandlerModule<
 	TParams extends Record<string, string> = Record<string, string>,
 	TCustom extends Record<string, unknown> = CustomContext,
@@ -47,15 +54,19 @@ export type HandlerModule<
 	DELETE?: MethodHandler<TParams, TCustom>;
 };
 
+/** Declaration-merging interface for registering the app's type-safe configuration. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
 export interface Register {}
 
+/** Declaration-merging interface for registering available template names. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
 export interface TemplateRegistry {}
 
+/** Declaration-merging interface for registering route paths and their param types. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
 export interface RouteMap {}
 
+/** Resolves to the registered app type, or undefined if none is registered. */
 export type RegisteredApp = Register extends { app: infer T } ? T : undefined;
 
 type InferCustomFromApp<T> = T extends {
@@ -64,10 +75,12 @@ type InferCustomFromApp<T> = T extends {
 	? Awaited<R>
 	: Record<string, unknown>;
 
+/** Inferred custom context type from the registered app, or a generic record. */
 export type CustomContext = RegisteredApp extends undefined
 	? Record<string, unknown>
 	: InferCustomFromApp<RegisteredApp>;
 
+/** A route definition that can be matched against a URL path. */
 export type MatchableRoute = {
 	routePath: string;
 	params: string[];

@@ -248,6 +248,7 @@ function extractSingleSlot(input: {
 	};
 }
 
+/** Extracts virtual hydration slot modules from a route's defineSlots call. */
 export function extractSlotModules(source: string, routePath: string): Map<string, string> {
 	const ast = parse(source, {
 		sourceType: "module",

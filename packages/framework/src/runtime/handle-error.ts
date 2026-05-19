@@ -13,6 +13,7 @@ type ErrorPageModule = {
 	meta?: MetaInfo | ((args: { loaderData: unknown }) => MetaInfo);
 };
 
+/** Map of HTTP status codes to their lazy-loading error page module imports. */
 export type GeneratedErrorPages = Record<number, () => Promise<{ default: ErrorPageModule }>>;
 type GeneratedTemplates = Record<string, () => Promise<{ default: TemplateComponent }>>;
 
@@ -53,6 +54,23 @@ function adaptErrorModule(
 	};
 }
 
+async function callOnError(
+	onError: AppConfig["onError"],
+	error: unknown,
+	request: Request,
+): Promise<void> {
+	if (onError === undefined) {
+		return;
+	}
+	try {
+		await onError(error, request);
+	} catch (onErrorError) {
+		// eslint-disable-next-line no-console
+		console.error("onError hook failed:", onErrorError);
+	}
+}
+
+/** Renders a custom or default error page for the given HTTP status code. */
 export async function renderErrorPage(input: {
 	status: number;
 	error?: unknown;
@@ -99,22 +117,7 @@ export async function renderErrorPage(input: {
 	}
 }
 
-async function callOnError(
-	onError: AppConfig["onError"],
-	error: unknown,
-	request: Request,
-): Promise<void> {
-	if (onError === undefined) {
-		return;
-	}
-	try {
-		await onError(error, request);
-	} catch (onErrorError) {
-		// eslint-disable-next-line no-console
-		console.error("onError hook failed:", onErrorError);
-	}
-}
-
+/** Handles thrown errors by converting redirects, HTTP errors, and exceptions into responses. */
 export async function handleError(input: {
 	error: unknown;
 	request: Request;

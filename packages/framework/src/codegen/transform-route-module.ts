@@ -1,3 +1,7 @@
+const DEFINE_PATTERN = /(definePage|defineHandler)\(("[^"]*")?\)/g;
+const DEFINE_ERROR_PAGE_PATTERN = /(defineErrorPage)\((\d+)?\)/g;
+const ERROR_STATUS_PATTERN = /^\/([45]\d{2})$/;
+
 function filePathToRoute(filePath: string): string {
 	const withoutExtension = filePath.replace(/\.(tsx|ts)$/, "");
 	const segments = withoutExtension.split("/");
@@ -11,10 +15,7 @@ function filePathToRoute(filePath: string): string {
 	return `/${joined}`;
 }
 
-const DEFINE_PATTERN = /(definePage|defineHandler)\(("[^"]*")?\)/g;
-const DEFINE_ERROR_PAGE_PATTERN = /(defineErrorPage)\((\d+)?\)/g;
-const ERROR_STATUS_PATTERN = /^\/([45]\d{2})$/;
-
+/** Injects the route path into definePage/defineHandler/defineErrorPage calls. */
 export function transformRouteModule(args: { source: string; routePath: string }): string {
 	const { source, routePath } = args;
 	const quoted = `"${routePath}"`;
@@ -31,6 +32,7 @@ export function transformRouteModule(args: { source: string; routePath: string }
 	return source.replace(DEFINE_PATTERN, (_match, funcName: string) => `${funcName}(${quoted})`);
 }
 
+/** Converts a file path (e.g. "blog/[slug].tsx") to a route path (e.g. "/blog/[slug]"). */
 export function filePathToRoutePath(filePath: string): string {
 	return filePathToRoute(filePath);
 }

@@ -12,15 +12,18 @@ import {
 
 type RouteNamespace = { default: PageModule | HandlerModule };
 
-type RouteEntry = {
+/** A lazily-loadable route definition with its path pattern and parameter names. */
+export type RouteEntry = {
 	routePath: string;
 	params: string[];
 	loadModule: () => Promise<RouteNamespace>;
 };
 
-type GeneratedTemplates = Record<string, () => Promise<{ default: TemplateComponent }>>;
+/** Map of template names to their lazy-loading import functions. */
+export type GeneratedTemplates = Record<string, () => Promise<{ default: TemplateComponent }>>;
 
-type HandlerConfig<TPlatform = unknown> = {
+/** Full configuration for the request handler, including routes, templates, and error pages. */
+export type HandlerConfig<TPlatform = unknown> = {
 	app: AppConfig<Record<string, unknown>, TPlatform>;
 	routes: RouteEntry[];
 	templates: GeneratedTemplates;
@@ -116,7 +119,8 @@ async function dispatchHandler(
 	}
 }
 
-function createHandler<TPlatform = unknown>(
+/** Creates a fetch-compatible request handler that routes requests to pages and API handlers. */
+export function createHandler<TPlatform = unknown>(
 	options: HandlerConfig<TPlatform>,
 ): { fetch: (request: Request, platform?: TPlatform) => Promise<Response> } {
 	const { app, routes, templates, errorPages, hydrationManifest, hydrationAssets } = options;
@@ -157,10 +161,4 @@ function createHandler<TPlatform = unknown>(
 	};
 }
 
-export {
-	createHandler,
-	type GeneratedErrorPages,
-	type RouteEntry,
-	type GeneratedTemplates,
-	type HandlerConfig,
-};
+export type { GeneratedErrorPages } from "./handle-error";

@@ -37,6 +37,28 @@ describe("codegen", () => {
 		expect(manifest).toContain('default: () => import("./templates/default")');
 	});
 
+	test("manifest includes hydration manifest when route sources provided", () => {
+		const { manifest } = codegen({
+			routePaths: ["index.tsx"],
+			templatePaths: [],
+			routeSources: {
+				"/": 'import { useState } from "react";\nexport default definePage("/")({ template: "default", loader: () => ({}), defineSlots: () => ({ main: { Component: () => { const [x] = useState(0); return x; } } }) });',
+			},
+		});
+
+		expect(manifest).toContain("export const hydrationManifest = ");
+		expect(manifest).toContain('"/"');
+	});
+
+	test("manifest has empty hydration manifest without route sources", () => {
+		const { manifest } = codegen({
+			routePaths: ["index.tsx"],
+			templatePaths: [],
+		});
+
+		expect(manifest).toContain("export const hydrationManifest = {};");
+	});
+
 	test("handles empty input", () => {
 		const result = codegen({ routePaths: [], templatePaths: [] });
 

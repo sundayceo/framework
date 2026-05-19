@@ -1,5 +1,6 @@
 type HydrationManifest = Record<string, Record<string, boolean>>;
 
+/** Returns virtual module IDs for all interactive slots in the hydration manifest. */
 export function buildClientEntries(manifest: HydrationManifest): string[] {
 	const entries: string[] = [];
 

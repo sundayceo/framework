@@ -11,12 +11,15 @@ type ManifestInput = {
 	importGraph: Record<string, string>;
 };
 
+/** Maps route paths to their slot names and interactivity flags. */
 export type HydrationManifest = Record<string, Record<string, boolean>>;
 
+/** Serializes a hydration manifest to a default-exporting ES module string. */
 export function serializeManifest(manifest: HydrationManifest): string {
 	return `export default ${JSON.stringify(manifest, null, 2)};\n`;
 }
 
+/** Builds a hydration manifest by extracting slots and checking interactivity for each route. */
 export function buildHydrationManifest(input: ManifestInput): HydrationManifest {
 	const { routes, importGraph } = input;
 	const manifest: HydrationManifest = {};

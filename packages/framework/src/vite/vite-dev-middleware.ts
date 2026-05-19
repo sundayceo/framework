@@ -6,10 +6,42 @@ import type { ViteDevServer } from "vite";
 import type { AppConfig } from "../runtime/create-app";
 import type { GeneratedTemplates, RouteEntry } from "../runtime/create-handler";
 
+type ConnectIncomingMessage = IncomingMessage & { originalUrl?: string };
+
+type MiddlewareInput = {
+	server: ViteDevServer;
+	srcDir: string;
+};
+
+type ConnectMiddleware = (
+	req: ConnectIncomingMessage,
+	res: ServerResponse,
+	next: () => void,
+) => void;
+
+type DispatchInput = MiddlewareInput & {
+	req: ConnectIncomingMessage;
+	res: ServerResponse;
+	next: () => void;
+};
+
+type CreateHandlerFn = (options: {
+	app: AppConfig;
+	routes: RouteEntry[];
+	templates: GeneratedTemplates;
+	errorPages?: Record<number, () => Promise<unknown>>;
+}) => { fetch: (request: Request) => Promise<Response> };
+
+type LoadedModules = {
+	app: AppConfig;
+	routes: RouteEntry[];
+	templates: GeneratedTemplates;
+	errorPages?: Record<number, () => Promise<unknown>>;
+	createHandler: CreateHandlerFn;
+};
+
 const PROTOCOL = "http";
 const METHODS_WITH_BODY = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-
-type ConnectIncomingMessage = IncomingMessage & { originalUrl?: string };
 
 function buildHeaders(req: IncomingMessage): Headers {
 	const headers = new Headers();
@@ -77,38 +109,6 @@ function isHtmlResponse(response: Response): boolean {
 	return (response.headers.get("content-type") ?? "").includes("text/html");
 }
 
-type MiddlewareInput = {
-	server: ViteDevServer;
-	srcDir: string;
-};
-
-type ConnectMiddleware = (
-	req: ConnectIncomingMessage,
-	res: ServerResponse,
-	next: () => void,
-) => void;
-
-type DispatchInput = MiddlewareInput & {
-	req: ConnectIncomingMessage;
-	res: ServerResponse;
-	next: () => void;
-};
-
-type CreateHandlerFn = (options: {
-	app: AppConfig;
-	routes: RouteEntry[];
-	templates: GeneratedTemplates;
-	errorPages?: Record<number, () => Promise<unknown>>;
-}) => { fetch: (request: Request) => Promise<Response> };
-
-type LoadedModules = {
-	app: AppConfig;
-	routes: RouteEntry[];
-	templates: GeneratedTemplates;
-	errorPages?: Record<number, () => Promise<unknown>>;
-	createHandler: CreateHandlerFn;
-};
-
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 async function loadModules(server: ViteDevServer, srcDir: string): Promise<LoadedModules> {
 	const appModule = await server.ssrLoadModule(path.join(srcDir, "app.ts"));
@@ -156,12 +156,11 @@ function buildMiddleware(input: MiddlewareInput): ConnectMiddleware {
 	};
 }
 
-function createDevMiddleware(input: MiddlewareInput): () => void {
+/** Creates a Connect middleware that dispatches requests through the framework handler during dev. */
+export function createDevMiddleware(input: MiddlewareInput): () => void {
 	const middleware = buildMiddleware(input);
 
 	return (): void => {
 		input.server.middlewares.use(middleware);
 	};
 }
-
-export { createDevMiddleware };

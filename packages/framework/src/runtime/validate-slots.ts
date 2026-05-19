@@ -15,6 +15,7 @@ type ValidationWarning = {
 	message: string;
 };
 
+/** Result of slot validation, containing any errors for missing slots and warnings for unknown slots. */
 export type ValidationResult = {
 	errors: ValidationError[];
 	warnings: ValidationWarning[];
@@ -63,6 +64,7 @@ function findClosestSlot(name: string, candidates: string[]): string | undefined
 	return bestMatch;
 }
 
+/** Validates provided slots against a template's declared slots, reporting errors and typo suggestions. */
 export function validateSlots(input: ValidateSlotsInput): ValidationResult {
 	const { providedSlots, extractedSlots } = input;
 	const errors: ValidationError[] = [];

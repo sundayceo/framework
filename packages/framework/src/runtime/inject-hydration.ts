@@ -41,6 +41,7 @@ function resolveAssetPath(input: {
 	return `virtual:hydrate${routePath}/${slotId}`;
 }
 
+/** Injects hydration boundaries, data scripts, and module scripts into server-rendered HTML. */
 export function injectHydration(input: InjectHydrationInput): string {
 	const { html, slotInteractivity, routePath, loaderData, assetPaths } = input;
 

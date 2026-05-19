@@ -1,6 +1,7 @@
 import type { MatchableRoute } from "./types";
 
-type MatchResult<T extends MatchableRoute = MatchableRoute> = {
+/** Result of a successful route match, containing the matched route and extracted params. */
+export type MatchResult<T extends MatchableRoute = MatchableRoute> = {
 	route: T;
 	params: Record<string, string>;
 };
@@ -36,7 +37,11 @@ function tryMatch<T extends MatchableRoute>(url: string, route: T): MatchResult<
 	return { route, params };
 }
 
-function matchRoute<T extends MatchableRoute>(url: string, routes: T[]): MatchResult<T> | null {
+/** Matches a URL pathname against a list of routes, returning the first match or null. */
+export function matchRoute<T extends MatchableRoute>(
+	url: string,
+	routes: T[],
+): MatchResult<T> | null {
 	const normalizedUrl = normalize(url);
 
 	for (const route of routes) {
@@ -48,5 +53,3 @@ function matchRoute<T extends MatchableRoute>(url: string, routes: T[]): MatchRe
 
 	return null;
 }
-
-export { matchRoute, type MatchResult };
