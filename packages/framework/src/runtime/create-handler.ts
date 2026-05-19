@@ -1,14 +1,14 @@
+import type { AppConfig } from "./create-app";
+import { handleError, renderErrorPage, type GeneratedErrorPages } from "./handle-error";
+import { renderPage } from "./render-page";
+import { matchRoute, type MatchResult } from "./route-matcher";
 import {
 	RouteKind,
 	type Context,
 	type HandlerModule,
 	type PageModule,
 	type TemplateComponent,
-} from "./core/index";
-import type { AppConfig } from "./create-app";
-import { handleError, renderErrorPage, type GeneratedErrorPages } from "./handle-error";
-import { renderPage } from "./render-page";
-import { matchRoute, type MatchResult } from "./route-matcher";
+} from "./types";
 
 type RouteNamespace = { default: PageModule | HandlerModule };
 

@@ -1,9 +1,9 @@
-import type { SlotMap, TemplateComponent } from "./core/index";
 import type { AppConfig } from "./create-app";
 import type { ErrorContext } from "./define-error-page";
 import { renderPage } from "./render-page";
 import { defaultNotFoundPage, defaultServerErrorPage } from "./resolve-error-page";
 import { isHttpErrorResponse, isRedirectResponse } from "./throwable-response";
+import type { SlotMap, TemplateComponent } from "./types";
 
 type MetaInfo = { title?: string; description?: string };
 type ErrorPageModule = {

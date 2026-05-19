@@ -1,9 +1,9 @@
 import { expect, expectTypeOf, test } from "vitest";
 
-import { RouteKind, type SlotMap } from "./core/index";
 import { definePage } from "./define-page";
+import { RouteKind, type SlotMap } from "./types";
 
-declare module "./index" {
+declare module "./types" {
 	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 	interface TemplateRegistry {
 		marketing: true;

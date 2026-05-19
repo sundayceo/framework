@@ -2,7 +2,18 @@ import type React from "react";
 import { expect, expectTypeOf, test } from "vitest";
 
 import {
-	VERSION,
+	createApp,
+	createHandler,
+	defineErrorPage,
+	defineHandler,
+	definePage,
+	httpError,
+	isHttpErrorResponse,
+	isRedirectResponse,
+	redirect,
+	Slot,
+	SlotProvider,
+	viewTransitionName,
 	type Context,
 	type HandlerModule,
 	type PageModule,
@@ -13,8 +24,33 @@ import {
 	type TemplateRegistry,
 } from "./index";
 
-test("exports a version string", () => {
-	expect(VERSION).toBe("0.0.0");
+test("exports runtime functions", () => {
+	expect(createApp).toBeTypeOf("function");
+	expect(createHandler).toBeTypeOf("function");
+	expect(definePage).toBeTypeOf("function");
+	expect(defineHandler).toBeTypeOf("function");
+	expect(defineErrorPage).toBeTypeOf("function");
+	expect(redirect).toBeTypeOf("function");
+	expect(httpError).toBeTypeOf("function");
+	expect(isRedirectResponse).toBeTypeOf("function");
+	expect(isHttpErrorResponse).toBeTypeOf("function");
+	expect(viewTransitionName).toBeTypeOf("function");
+	expect(Slot).toBeTypeOf("function");
+	expect(SlotProvider).toBeTypeOf("function");
+});
+
+test("does not export internal pipeline functions", async () => {
+	const barrel = await import("./index");
+	expect("renderPage" in barrel).toBe(false);
+	expect("matchRoute" in barrel).toBe(false);
+	expect("runCodegen" in barrel).toBe(false);
+	expect("scanRoutes" in barrel).toBe(false);
+	expect("resolveErrorPage" in barrel).toBe(false);
+	expect("defaultNotFoundPage" in barrel).toBe(false);
+	expect("defaultServerErrorPage" in barrel).toBe(false);
+	expect("filePathToRoutePath" in barrel).toBe(false);
+	expect("transformRouteModule" in barrel).toBe(false);
+	expect("VERSION" in barrel).toBe(false);
 });
 
 test("Context merges params with custom context properties", () => {
@@ -25,7 +61,7 @@ test("Context merges params with custom context properties", () => {
 	expectTypeOf<MyContext["request"]>().toEqualTypeOf<Request>();
 });
 
-declare module "./index" {
+declare module "./runtime/types" {
 	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 	interface TemplateRegistry {
 		default: true;

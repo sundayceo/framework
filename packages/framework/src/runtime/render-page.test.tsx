@@ -1,9 +1,9 @@
 import React from "react";
 import { describe, expect, test, vi } from "vitest";
 
-import type { Context, SlotMap, TemplateComponent } from "./core/index";
 import { renderPage } from "./render-page";
 import { Slot } from "./slot";
+import type { Context, SlotMap, TemplateComponent } from "./types";
 
 function makeTemplate(body: React.ReactNode): TemplateComponent {
 	return function Template({ head }: { head: React.ReactNode }): React.ReactNode {
