@@ -26,8 +26,8 @@ type PageConfigWithLoader<
 
 type PageConfigWithoutLoader<TTemplate extends keyof TemplateRegistry> = {
 	template: TTemplate;
-	defineSlots: (args: { loaderData: undefined }) => SlotMap;
-	meta?: MetaValue<undefined>;
+	defineSlots: () => SlotMap;
+	meta?: { title?: string; description?: string };
 };
 
 type InferParams<TPath extends string> = TPath extends keyof RouteMap

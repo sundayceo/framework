@@ -46,15 +46,13 @@ test("curried call works: definePage('/path')({ template, loader, defineSlots })
 	expect(result).toHaveProperty("defineSlots");
 });
 
-test("loader is optional — defineSlots gets { loaderData: undefined } when omitted", () => {
+test("loader is optional — defineSlots takes no arguments when omitted", () => {
 	const result = definePage("/about")({
 		template: "marketing" as const,
-		defineSlots: ({ loaderData }) => {
-			expectTypeOf(loaderData).toEqualTypeOf<undefined>();
-			return { main: null };
-		},
+		defineSlots: () => ({ main: null }),
 	});
 
+	expectTypeOf(result.defineSlots).toEqualTypeOf<() => SlotMap>();
 	expect(result).toHaveProperty("template", "marketing");
 	expect(result).toHaveProperty("defineSlots");
 	expect(result).not.toHaveProperty("loader");
