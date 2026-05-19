@@ -77,7 +77,7 @@ const scanRoutes = (filePaths: string[]): ScanResult => {
 			errorPages.push({ status: errorStatus, filePath });
 		} else {
 			routes.push({
-				pattern: buildPattern(filePath),
+				routePath: buildPattern(filePath),
 				params: extractParams(filePath),
 				filePath,
 			});
@@ -85,14 +85,14 @@ const scanRoutes = (filePaths: string[]): ScanResult => {
 	}
 
 	routes.sort((a, b) => {
-		const isDynamicA = hasDynamicSegment(a.pattern);
-		const isDynamicB = hasDynamicSegment(b.pattern);
+		const isDynamicA = hasDynamicSegment(a.routePath);
+		const isDynamicB = hasDynamicSegment(b.routePath);
 
 		if (isDynamicA !== isDynamicB) {
 			return isDynamicA ? 1 : -1;
 		}
 
-		return a.pattern.localeCompare(b.pattern);
+		return a.routePath.localeCompare(b.routePath);
 	});
 
 	return { routes, errorPages };

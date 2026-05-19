@@ -12,21 +12,21 @@ import {
 
 type RouteNamespace = { default: PageModule | HandlerModule };
 
-type GeneratedRoute = {
-	pattern: string;
+type RouteEntry = {
+	routePath: string;
 	params: string[];
-	load: () => Promise<RouteNamespace>;
+	loadModule: () => Promise<RouteNamespace>;
 };
 
 type GeneratedTemplates = Record<string, () => Promise<{ default: TemplateComponent }>>;
 
-type HandlerOptions<TPlatform = unknown> = {
+type HandlerConfig<TPlatform = unknown> = {
 	app: AppConfig<Record<string, unknown>, TPlatform>;
-	routes: GeneratedRoute[];
+	routes: RouteEntry[];
 	templates: GeneratedTemplates;
 	errorPages?: GeneratedErrorPages;
 	hydrationManifest?: Record<string, Record<string, boolean>>;
-	clientAssetMap?: Record<string, Record<string, string>>;
+	hydrationAssets?: Record<string, Record<string, string>>;
 };
 
 const NOT_FOUND = 404;
@@ -46,10 +46,10 @@ function extractModule(namespace: RouteNamespace): PageModule | HandlerModule {
 }
 
 type DispatchInput = Pick<
-	HandlerOptions,
-	"templates" | "errorPages" | "hydrationManifest" | "clientAssetMap"
+	HandlerConfig,
+	"templates" | "errorPages" | "hydrationManifest" | "hydrationAssets"
 > & {
-	match: MatchResult<GeneratedRoute>;
+	match: MatchResult<RouteEntry>;
 	request: Request;
 	appContext: Record<string, unknown>;
 	onError: AppConfig["onError"];
@@ -64,7 +64,7 @@ async function dispatchPage(routeModule: PageModule, input: DispatchInput): Prom
 		onError,
 		errorPages,
 		hydrationManifest,
-		clientAssetMap,
+		hydrationAssets,
 	} = input;
 
 	try {
@@ -73,9 +73,9 @@ async function dispatchPage(routeModule: PageModule, input: DispatchInput): Prom
 			throw new Error(`Template "${routeModule.template}" not found`);
 		}
 		const { default: template } = await loadTemplate();
-		const routePath = match.route.pattern;
+		const { routePath } = match.route;
 		const slotInteractivity = hydrationManifest?.[routePath];
-		const assetPaths = clientAssetMap?.[routePath];
+		const assetPaths = hydrationAssets?.[routePath];
 
 		return await renderPage({
 			pageModule: routeModule,
@@ -117,9 +117,9 @@ async function dispatchHandler(
 }
 
 function createHandler<TPlatform = unknown>(
-	options: HandlerOptions<TPlatform>,
+	options: HandlerConfig<TPlatform>,
 ): { fetch: (request: Request, platform?: TPlatform) => Promise<Response> } {
-	const { app, routes, templates, errorPages, hydrationManifest, clientAssetMap } = options;
+	const { app, routes, templates, errorPages, hydrationManifest, hydrationAssets } = options;
 
 	return {
 		async fetch(request: Request, platform?: TPlatform): Promise<Response> {
@@ -133,7 +133,7 @@ function createHandler<TPlatform = unknown>(
 				return renderErrorPage({ status: NOT_FOUND, errorPages, templates, request, appContext });
 			}
 
-			const namespace = await match.route.load();
+			const namespace = await match.route.loadModule();
 			const routeModule = extractModule(namespace);
 			const appContext = await app.context(request, platform);
 			const { onError } = app;
@@ -145,7 +145,7 @@ function createHandler<TPlatform = unknown>(
 				onError,
 				errorPages,
 				hydrationManifest,
-				clientAssetMap,
+				hydrationAssets,
 			};
 
 			if (isPageModule(routeModule)) {
@@ -160,7 +160,7 @@ function createHandler<TPlatform = unknown>(
 export {
 	createHandler,
 	type GeneratedErrorPages,
-	type GeneratedRoute,
+	type RouteEntry,
 	type GeneratedTemplates,
-	type HandlerOptions,
+	type HandlerConfig,
 };

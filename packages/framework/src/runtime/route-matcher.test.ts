@@ -1,12 +1,14 @@
 import { describe, expect, test } from "vitest";
 
-import type { RouteEntry } from "../codegen/route-scanner";
 import { matchRoute } from "./route-matcher";
+import type { MatchableRoute } from "./types";
 
-const staticRoutes: RouteEntry[] = [
-	{ pattern: "/", params: [], filePath: "index.tsx" },
-	{ pattern: "/about", params: [], filePath: "about.tsx" },
-	{ pattern: "/blog", params: [], filePath: "blog/index.tsx" },
+type TestRoute = MatchableRoute & { filePath: string };
+
+const staticRoutes: TestRoute[] = [
+	{ routePath: "/", params: [], filePath: "index.tsx" },
+	{ routePath: "/about", params: [], filePath: "about.tsx" },
+	{ routePath: "/blog", params: [], filePath: "blog/index.tsx" },
 ];
 
 describe("matchRoute", () => {
@@ -14,21 +16,21 @@ describe("matchRoute", () => {
 		const result = matchRoute("/about", staticRoutes);
 
 		expect(result).toEqual({
-			route: { pattern: "/about", params: [], filePath: "about.tsx" },
+			route: { routePath: "/about", params: [], filePath: "about.tsx" },
 			params: {},
 		});
 	});
 
 	test("static routes take priority over dynamic routes", () => {
-		const routes: RouteEntry[] = [
-			{ pattern: "/blog", params: [], filePath: "blog/index.tsx" },
-			{ pattern: "/blog/:slug", params: ["slug"], filePath: "blog/[slug].tsx" },
+		const routes: TestRoute[] = [
+			{ routePath: "/blog", params: [], filePath: "blog/index.tsx" },
+			{ routePath: "/blog/:slug", params: ["slug"], filePath: "blog/[slug].tsx" },
 		];
 
 		const result = matchRoute("/blog", routes);
 
 		expect(result).toEqual({
-			route: { pattern: "/blog", params: [], filePath: "blog/index.tsx" },
+			route: { routePath: "/blog", params: [], filePath: "blog/index.tsx" },
 			params: {},
 		});
 	});
@@ -37,7 +39,7 @@ describe("matchRoute", () => {
 		const result = matchRoute("/about/", staticRoutes);
 
 		expect(result).toEqual({
-			route: { pattern: "/about", params: [], filePath: "about.tsx" },
+			route: { routePath: "/about", params: [], filePath: "about.tsx" },
 			params: {},
 		});
 	});
@@ -49,15 +51,15 @@ describe("matchRoute", () => {
 	});
 
 	test("matches a dynamic route and extracts params", () => {
-		const routes: RouteEntry[] = [
-			{ pattern: "/blog", params: [], filePath: "blog/index.tsx" },
-			{ pattern: "/blog/:slug", params: ["slug"], filePath: "blog/[slug].tsx" },
+		const routes: TestRoute[] = [
+			{ routePath: "/blog", params: [], filePath: "blog/index.tsx" },
+			{ routePath: "/blog/:slug", params: ["slug"], filePath: "blog/[slug].tsx" },
 		];
 
 		const result = matchRoute("/blog/hello-world", routes);
 
 		expect(result).toEqual({
-			route: { pattern: "/blog/:slug", params: ["slug"], filePath: "blog/[slug].tsx" },
+			route: { routePath: "/blog/:slug", params: ["slug"], filePath: "blog/[slug].tsx" },
 			params: { slug: "hello-world" },
 		});
 	});
@@ -66,15 +68,15 @@ describe("matchRoute", () => {
 		const result = matchRoute("/", staticRoutes);
 
 		expect(result).toEqual({
-			route: { pattern: "/", params: [], filePath: "index.tsx" },
+			route: { routePath: "/", params: [], filePath: "index.tsx" },
 			params: {},
 		});
 	});
 
 	test("extracts multiple params from a route", () => {
-		const routes: RouteEntry[] = [
+		const routes: TestRoute[] = [
 			{
-				pattern: "/products/:category/:id",
+				routePath: "/products/:category/:id",
 				params: ["category", "id"],
 				filePath: "products/[category]/[id].tsx",
 			},
