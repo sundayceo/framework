@@ -10,16 +10,15 @@ export type {
 export { definePage } from "./runtime/define-page";
 export { defineHandler } from "./runtime/define-handler";
 export { defineErrorPage, type ErrorContext } from "./runtime/define-error-page";
-export { Slot, SlotContext, SlotProvider } from "./runtime/slot";
-export { HttpErrorResponse, httpError, isHttpErrorResponse } from "./runtime/throwable-response";
-export { RedirectResponse, isRedirectResponse, redirect } from "./runtime/throwable-response";
+export { Slot, SlotProvider } from "./runtime/slot";
+export { httpError, isHttpErrorResponse } from "./runtime/throwable-response";
+export { isRedirectResponse, redirect } from "./runtime/throwable-response";
 export { viewTransitionName } from "./runtime/view-transition";
 
 export { RouteKind } from "./runtime/types";
 export type {
 	Context,
 	HandlerModule,
-	MatchableRoute,
 	PageModule,
 	Register,
 	RouteMap,
