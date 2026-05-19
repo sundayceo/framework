@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
+import type { RouteEntry } from "../codegen/route-scanner";
 import { matchRoute } from "./route-matcher";
-import type { RouteEntry } from "./route-scanner";
 
 const staticRoutes: RouteEntry[] = [
 	{ pattern: "/", params: [], filePath: "index.tsx" },

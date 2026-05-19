@@ -1,9 +1,9 @@
 import { expect, expectTypeOf, test } from "vitest";
 
-import { RouteKind } from "./core/index";
 import { defineErrorPage, type ErrorContext } from "./define-error-page";
+import { RouteKind } from "./types";
 
-declare module "./index" {
+declare module "./types" {
 	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 	interface TemplateRegistry {
 		marketing: true;

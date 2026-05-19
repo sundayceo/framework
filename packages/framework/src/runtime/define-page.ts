@@ -4,7 +4,7 @@ import {
 	type RouteMap,
 	type SlotMap,
 	type TemplateRegistry,
-} from "./core/index";
+} from "./types";
 
 type MetaValue<TLoaderData> =
 	| { title?: string; description?: string }

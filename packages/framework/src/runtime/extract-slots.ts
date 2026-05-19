@@ -1,7 +1,7 @@
 import { Children, isValidElement, type ReactNode } from "react";
 
-import type { TemplateComponent } from "./core/index";
 import { Slot } from "./slot";
+import type { TemplateComponent } from "./types";
 
 type ExtractSlotsResult = {
 	slots: string[];

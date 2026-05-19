@@ -1,7 +1,7 @@
 import { expectTypeOf, test } from "vitest";
 
-import type { AppConfig } from "../create-app";
-import type { CustomContext, Register, RegisteredApp } from "./index";
+import type { AppConfig } from "./create-app";
+import type { CustomContext, Register, RegisteredApp } from "./types";
 
 test("Register interface exists and is exported", () => {
 	expectTypeOf<Register>().toBeObject();

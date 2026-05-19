@@ -1,4 +1,4 @@
-import type { MatchableRoute } from "./route-scanner";
+import type { MatchableRoute } from "./types";
 
 type MatchResult<T extends MatchableRoute = MatchableRoute> = {
 	route: T;

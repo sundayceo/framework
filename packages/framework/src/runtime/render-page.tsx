@@ -1,10 +1,10 @@
 import React, { type ReactNode } from "react";
 import { renderToString } from "react-dom/server";
 
-import type { Context, SlotMap, TemplateComponent } from "./core/index";
 import { extractSlots } from "./extract-slots";
 import { injectHydration } from "./inject-hydration";
 import { SlotProvider } from "./slot";
+import type { Context, SlotMap, TemplateComponent } from "./types";
 import { validateSlots } from "./validate-slots";
 
 type MetaInfo = { title?: string; description?: string };

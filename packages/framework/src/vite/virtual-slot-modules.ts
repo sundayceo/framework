@@ -1,4 +1,4 @@
-import { extractSlotModules } from "./slot-extraction";
+import { extractSlotModules } from "../codegen/slot-extraction";
 
 const HYDRATE_PREFIX = "virtual:hydrate";
 

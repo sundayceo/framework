@@ -1,7 +1,4 @@
-type MatchableRoute = {
-	pattern: string;
-	params: string[];
-};
+import type { MatchableRoute } from "../runtime/types";
 
 type RouteEntry = MatchableRoute & {
 	filePath: string;
