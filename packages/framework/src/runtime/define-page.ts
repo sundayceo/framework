@@ -34,6 +34,7 @@ type InferParams<TPath extends string> = TPath extends keyof RouteMap
 	? RouteMap[TPath]
 	: Record<string, string>;
 
+/** Returns a curried function that defines a type-safe page module for the given route path. */
 export function definePage<TPath extends string>(
 	_path: TPath,
 ): {

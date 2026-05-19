@@ -1,20 +1,26 @@
 import type { MatchableRoute } from "../runtime/types";
 
-type RouteEntry = MatchableRoute & {
+export type { MatchableRoute } from "../runtime/types";
+
+/** A scanned route with its file path, route pattern, and parameters. */
+export type RouteEntry = MatchableRoute & {
 	filePath: string;
 };
 
-type ErrorPageEntry = {
+/** An error page entry mapping an HTTP status code to its source file. */
+export type ErrorPageEntry = {
 	status: number;
 	filePath: string;
 };
 
-type ScanResult = {
+/** The result of scanning route files, separated into routes and error pages. */
+export type ScanResult = {
 	routes: RouteEntry[];
 	errorPages: ErrorPageEntry[];
 };
 
-type ManifestRouteEntry = MatchableRoute & {
+/** A route entry with a lazy module loader for use in the runtime manifest. */
+export type ManifestRouteEntry = MatchableRoute & {
 	load: () => Promise<Record<string, unknown>>;
 };
 
@@ -65,7 +71,8 @@ const getErrorStatus = (filePath: string): number | null => {
 	return Number(status);
 };
 
-const scanRoutes = (filePaths: string[]): ScanResult => {
+/** Scans file paths to produce sorted route entries and error page entries. */
+export const scanRoutes = (filePaths: string[]): ScanResult => {
 	const routeFiles = filePaths.filter(isRouteFile);
 
 	const routes: RouteEntry[] = [];
@@ -96,13 +103,4 @@ const scanRoutes = (filePaths: string[]): ScanResult => {
 	});
 
 	return { routes, errorPages };
-};
-
-export {
-	scanRoutes,
-	type ErrorPageEntry,
-	type MatchableRoute,
-	type ManifestRouteEntry,
-	type RouteEntry,
-	type ScanResult,
 };

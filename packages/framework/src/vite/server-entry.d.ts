@@ -1,3 +1,4 @@
+/** The server entry handler that processes incoming requests and returns responses. */
 declare const handler: {
 	fetch: (request: Request, platform?: unknown) => Promise<Response>;
 };

@@ -14,6 +14,7 @@ function isVendorModule(id: string): boolean {
 	return id.includes("node_modules/react") || id.includes("node_modules/react-dom");
 }
 
+/** Creates a Vite build config for the client bundle with vendor code-splitting. */
 export function createClientBuildConfig(input: ClientBuildInput): UserConfig {
 	return {
 		build: {
@@ -36,6 +37,7 @@ export function createClientBuildConfig(input: ClientBuildInput): UserConfig {
 	};
 }
 
+/** Creates a Vite build config for the SSR server bundle. */
 export function createServerBuildConfig(input: ServerBuildInput): UserConfig {
 	return {
 		build: {

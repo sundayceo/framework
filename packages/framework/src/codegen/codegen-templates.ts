@@ -1,3 +1,4 @@
+/** Generates a TypeScript TemplateRegistry declaration from template file paths. */
 export function generateTemplateRegistry(filePaths: string[]): string {
 	const entries = filePaths
 		.filter((f) => f.endsWith(".tsx"))

@@ -12,10 +12,12 @@ function htmlResponse(input: { title: string; status: number }): Response {
 	});
 }
 
+/** Returns a minimal HTML 404 Not Found response. */
 export function defaultNotFoundPage(): Response {
 	return htmlResponse({ title: "Not Found", status: NOT_FOUND });
 }
 
+/** Returns a minimal HTML 500 Internal Server Error response. */
 export function defaultServerErrorPage(): Response {
 	return htmlResponse({ title: "Internal Server Error", status: INTERNAL_SERVER_ERROR });
 }
@@ -27,6 +29,7 @@ type ResolveErrorPageInput = {
 	errorPages?: Record<number, ErrorPageRenderer>;
 };
 
+/** Resolves the appropriate error page response, falling back to built-in defaults. */
 export function resolveErrorPage(input: ResolveErrorPageInput): Response {
 	const { status, errorPages } = input;
 

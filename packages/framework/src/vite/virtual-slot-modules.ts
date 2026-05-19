@@ -2,17 +2,6 @@ import { extractSlotModules } from "../codegen/slot-extraction";
 
 const HYDRATE_PREFIX = "virtual:hydrate";
 
-export function isHydrateModuleId(id: string): boolean {
-	return id.startsWith(HYDRATE_PREFIX);
-}
-
-export function resolveHydrateId(id: string): string | undefined {
-	if (isHydrateModuleId(id)) {
-		return `\0${id}`;
-	}
-	return undefined;
-}
-
 function parseHydrateId(id: string): { routePath: string; slotName: string } | null {
 	const stripped = id.replace(/^\0/, "");
 
@@ -33,6 +22,20 @@ function parseHydrateId(id: string): { routePath: string; slotName: string } | n
 	};
 }
 
+/** Returns true if the given module ID is a virtual hydrate slot module. */
+export function isHydrateModuleId(id: string): boolean {
+	return id.startsWith(HYDRATE_PREFIX);
+}
+
+/** Resolves a hydrate module ID by prepending the null-byte prefix for Vite virtual modules. */
+export function resolveHydrateId(id: string): string | undefined {
+	if (isHydrateModuleId(id)) {
+		return `\0${id}`;
+	}
+	return undefined;
+}
+
+/** Loads the virtual module source for a hydrate slot by extracting it from the route source. */
 export function loadVirtualSlotModule(
 	id: string,
 	routeSources: Map<string, string>,

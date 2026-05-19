@@ -3,6 +3,7 @@ type GenerateHydrationScriptInput = {
 	assetPath: string;
 };
 
+/** Generates a client-side module script that hydrates a single interactive slot. */
 export function generateHydrationScript(input: GenerateHydrationScriptInput): string {
 	const { slotId, assetPath } = input;
 

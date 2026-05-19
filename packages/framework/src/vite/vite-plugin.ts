@@ -126,6 +126,7 @@ function invalidateManifest(server: ViteDevServer): void {
 	}
 }
 
+/** Returns the main Vite plugin that powers codegen, routing, and hydration. */
 export function frameworkPlugin(): Plugin {
 	let srcDir: string;
 	let routeSources = new Map<string, string>();

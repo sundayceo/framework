@@ -81,6 +81,8 @@ describe("codegenFromDisk", () => {
 
 		expect(manifest).toContain("export const templates = {");
 		expect(manifest).toContain('default: () => import("./templates/default")');
+
+		expect(manifest).toContain("export const hydrationManifest = ");
 	});
 
 	test("handles empty directories gracefully", () => {
