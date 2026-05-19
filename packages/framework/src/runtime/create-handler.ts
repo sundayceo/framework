@@ -10,13 +10,11 @@ import {
 	type TemplateComponent,
 } from "./types";
 
-type RouteNamespace = { default: PageModule | HandlerModule };
-
 /** A lazily-loadable route definition with its path pattern and parameter names. */
 export type RouteEntry = {
 	routePath: string;
 	params: string[];
-	loadModule: () => Promise<RouteNamespace>;
+	loadModule: () => Promise<{ default: unknown }>;
 };
 
 /** Map of template names to their lazy-loading import functions. */
@@ -40,12 +38,16 @@ function isHttpMethod(method: string): method is "GET" | "POST" | "PUT" | "PATCH
 	return HTTP_METHODS.has(method);
 }
 
-function isPageModule(module: PageModule | HandlerModule): module is PageModule {
-	return module[RouteKind] === "page";
+function hasRouteKind(mod: unknown): mod is { [RouteKind]: string } {
+	return typeof mod === "object" && mod !== null && RouteKind in mod;
 }
 
-function extractModule(namespace: RouteNamespace): PageModule | HandlerModule {
-	return namespace.default;
+function isPageModule(mod: unknown): mod is PageModule {
+	return hasRouteKind(mod) && mod[RouteKind] === "page";
+}
+
+function isHandlerModule(mod: unknown): mod is HandlerModule {
+	return hasRouteKind(mod) && mod[RouteKind] === "handler";
 }
 
 type DispatchInput = Pick<
@@ -138,7 +140,7 @@ export function createHandler<TPlatform = unknown>(
 			}
 
 			const namespace = await match.route.loadModule();
-			const routeModule = extractModule(namespace);
+			const mod = namespace.default;
 			const appContext = await app.context(request, platform);
 			const { onError } = app;
 			const dispatchInput: DispatchInput = {
@@ -152,11 +154,15 @@ export function createHandler<TPlatform = unknown>(
 				hydrationAssets,
 			};
 
-			if (isPageModule(routeModule)) {
-				return dispatchPage(routeModule, dispatchInput);
+			if (isPageModule(mod)) {
+				return dispatchPage(mod, dispatchInput);
 			}
 
-			return dispatchHandler(routeModule, dispatchInput);
+			if (isHandlerModule(mod)) {
+				return dispatchHandler(mod, dispatchInput);
+			}
+
+			throw new Error(`Invalid route module for ${match.route.routePath}`);
 		},
 	};
 }

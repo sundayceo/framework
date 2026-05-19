@@ -24,8 +24,8 @@ type ErrorPageConfigWithLoader<TTemplate extends keyof TemplateRegistry, TLoader
 
 type ErrorPageConfigWithoutLoader<TTemplate extends keyof TemplateRegistry> = {
 	template: TTemplate;
-	defineSlots: (args: { loaderData: undefined }) => SlotMap;
-	meta?: MetaValue<undefined>;
+	defineSlots: () => SlotMap;
+	meta?: { title?: string; description?: string };
 };
 
 /** Returns a curried function that defines a custom error page for the given HTTP status code. */

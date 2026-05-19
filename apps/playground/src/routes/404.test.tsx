@@ -7,7 +7,7 @@ test("404 page uses the default template", () => {
 });
 
 test("404 page slots contain not-found content", () => {
-	const slots = page.defineSlots({ loaderData: undefined });
+	const slots = page.defineSlots();
 
 	expect(slots.header).toBeDefined();
 	expect(slots.main).toBeDefined();

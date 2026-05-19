@@ -13,8 +13,19 @@ type ErrorPageModule = {
 	meta?: MetaInfo | ((args: { loaderData: unknown }) => MetaInfo);
 };
 
+function isErrorPageModule(mod: unknown): mod is ErrorPageModule {
+	return (
+		typeof mod === "object" &&
+		mod !== null &&
+		"template" in mod &&
+		"defineSlots" in mod &&
+		typeof mod.template === "string" &&
+		typeof mod.defineSlots === "function"
+	);
+}
+
 /** Map of HTTP status codes to their lazy-loading error page module imports. */
-export type GeneratedErrorPages = Record<number, () => Promise<{ default: ErrorPageModule }>>;
+export type GeneratedErrorPages = Record<number, () => Promise<{ default: unknown }>>;
 type GeneratedTemplates = Record<string, () => Promise<{ default: TemplateComponent }>>;
 
 const NOT_FOUND = 404;
@@ -87,8 +98,11 @@ export async function renderErrorPage(input: {
 	}
 
 	try {
-		const { default: errorModule } = await loadErrorPage();
-		const loadTemplate = templates[errorModule.template];
+		const { default: raw } = await loadErrorPage();
+		if (!isErrorPageModule(raw)) {
+			return bareErrorPage(status);
+		}
+		const loadTemplate = templates[raw.template];
 		if (loadTemplate === undefined) {
 			return bareErrorPage(status);
 		}
@@ -101,7 +115,7 @@ export async function renderErrorPage(input: {
 			error,
 			stack: isDev && error instanceof Error ? error.stack : undefined,
 		};
-		const adaptedModule = adaptErrorModule(errorModule, errorContext);
+		const adaptedModule = adaptErrorModule(raw, errorContext);
 
 		const response = await renderPage({
 			pageModule: adaptedModule,
