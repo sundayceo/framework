@@ -1,10 +1,9 @@
 import { expect, expectTypeOf, test } from "vitest";
 
-import { RouteKind } from "./core/index";
 import { defineHandler } from "./define-handler";
-import type { HandlerModule } from "./index";
+import { RouteKind, type HandlerModule } from "./types";
 
-declare module "./index" {
+declare module "./types" {
 	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 	interface RouteMap {
 		// eslint-disable-next-line @typescript-eslint/naming-convention

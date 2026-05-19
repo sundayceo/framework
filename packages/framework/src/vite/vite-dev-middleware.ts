@@ -3,8 +3,8 @@ import path from "node:path";
 
 import type { ViteDevServer } from "vite";
 
-import type { AppConfig } from "./create-app";
-import type { GeneratedRoute, GeneratedTemplates } from "./create-handler";
+import type { AppConfig } from "../runtime/create-app";
+import type { GeneratedRoute, GeneratedTemplates } from "../runtime/create-handler";
 
 const PROTOCOL = "http";
 const METHODS_WITH_BODY = new Set(["POST", "PUT", "PATCH", "DELETE"]);

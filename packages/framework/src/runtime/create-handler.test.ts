@@ -1,12 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
 
-import {
-	RouteKind,
-	type HandlerModule,
-	type PageModule,
-	type SlotMap,
-	type TemplateComponent,
-} from "./core/index";
 import type { AppConfig } from "./create-app";
 import {
 	createHandler,
@@ -16,6 +9,13 @@ import {
 } from "./create-handler";
 import type { ErrorContext } from "./define-error-page";
 import { HttpErrorResponse, RedirectResponse } from "./throwable-response";
+import {
+	RouteKind,
+	type HandlerModule,
+	type PageModule,
+	type SlotMap,
+	type TemplateComponent,
+} from "./types";
 
 const fakeTemplate: TemplateComponent = () => null;
 

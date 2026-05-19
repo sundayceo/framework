@@ -67,3 +67,8 @@ type InferCustomFromApp<T> = T extends {
 export type CustomContext = RegisteredApp extends undefined
 	? Record<string, unknown>
 	: InferCustomFromApp<RegisteredApp>;
+
+export type MatchableRoute = {
+	pattern: string;
+	params: string[];
+};

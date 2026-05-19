@@ -3,9 +3,9 @@ import path from "node:path";
 
 import type { Plugin, ViteDevServer } from "vite";
 
-import { buildHydrationManifest, serializeManifest } from "./hydration-manifest";
-import { runCodegen } from "./run-codegen";
-import { filePathToRoutePath, transformRouteModule } from "./transform-route-module";
+import { runCodegen } from "../codegen/build";
+import { buildHydrationManifest, serializeManifest } from "../codegen/hydration-manifest";
+import { filePathToRoutePath, transformRouteModule } from "../codegen/transform-route-module";
 import { isHydrateModuleId, loadVirtualSlotModule, resolveHydrateId } from "./virtual-slot-modules";
 import { createDevMiddleware } from "./vite-dev-middleware";
 

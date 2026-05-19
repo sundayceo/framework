@@ -1,4 +1,4 @@
-import { RouteKind, type SlotMap, type TemplateRegistry } from "./core/index";
+import { RouteKind, type SlotMap, type TemplateRegistry } from "./types";
 
 export type ErrorContext = {
 	status: number;

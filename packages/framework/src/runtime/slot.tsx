@@ -1,6 +1,6 @@
 import { createContext, useContext, type ReactNode } from "react";
 
-import type { SlotMap } from "./core/index";
+import type { SlotMap } from "./types";
 
 export const SlotContext = createContext<SlotMap>({});
 

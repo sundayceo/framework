@@ -4,7 +4,7 @@ import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
-import { runCodegen } from "./run-codegen";
+import { runCodegen } from "./build";
 
 function createFixtureDir(): string {
 	const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codegen-"));

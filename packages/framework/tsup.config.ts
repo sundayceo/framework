@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-	entry: ["src/index.ts", "src/vite-plugin.ts"],
+	entry: ["src/index.ts", "src/codegen/index.ts", "src/vite/vite-plugin.ts"],
 	format: ["esm"],
 	dts: {
 		compilerOptions: {
