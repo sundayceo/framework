@@ -779,10 +779,13 @@ describe("createHandler", () => {
 		expect(body).toContain("Internal Server Error");
 	});
 
-	test("404 path gracefully handles app.context failure", async () => {
+	test("404 path gracefully handles app.context failure and logs it", async () => {
+		const consoleSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
+		const contextError = new Error("context broke");
+
 		const handler = createHandler({
 			app: makeApp({
-				context: vi.fn().mockRejectedValue(new Error("context broke")),
+				context: vi.fn().mockRejectedValue(contextError),
 			}),
 			routes: [],
 			templates: makeTemplates(),
@@ -791,9 +794,16 @@ describe("createHandler", () => {
 		const response = await handler.fetch(new Request("https://example.com/missing"));
 
 		expect(response.status).toBe(404);
+		expect(consoleSpy).toHaveBeenCalledWith(
+			"app.context() threw during 404 handling:",
+			contextError,
+		);
+		consoleSpy.mockRestore();
 	});
 
-	test("app.context throwing renders error page instead of crashing", async () => {
+	test("app.context throwing during error dispatch logs and renders error page", async () => {
+		const consoleSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
+		const contextError = new Error("context factory broke");
 		const pageModule = makePageModule();
 		const route = makeRoute({
 			routePath: "/home",
@@ -802,7 +812,7 @@ describe("createHandler", () => {
 
 		const handler = createHandler({
 			app: makeApp({
-				context: vi.fn().mockRejectedValue(new Error("context factory broke")),
+				context: vi.fn().mockRejectedValue(contextError),
 			}),
 			routes: [route],
 			templates: makeTemplates(),
@@ -813,6 +823,11 @@ describe("createHandler", () => {
 		expect(response.status).toBe(500);
 		const body = await response.text();
 		expect(body).toContain("Internal Server Error");
+		expect(consoleSpy).toHaveBeenCalledWith(
+			"app.context() threw during error handling:",
+			contextError,
+		);
+		consoleSpy.mockRestore();
 	});
 
 	test("handler throwing non-Error value returns 500", async () => {
