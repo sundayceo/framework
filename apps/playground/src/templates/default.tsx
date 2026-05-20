@@ -14,10 +14,10 @@ const DefaultTemplate: TemplateComponent = ({ head }) => (
 				<Slot id="header" />
 			</header>
 			<main>
-				<Slot id="main" />
+				<Slot id="main" fallback={<p>No content provided.</p>} />
 			</main>
 			<footer>
-				<Slot id="footer" />
+				<Slot id="footer" fallback={<p>Built with @sundayceo/framework</p>} />
 			</footer>
 		</body>
 	</html>

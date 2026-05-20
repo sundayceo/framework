@@ -2,6 +2,8 @@ import React from "react";
 
 import { definePage } from "@sundayceo/framework";
 
+import { Counter } from "../../components/counter";
+
 export default definePage("/blog/[slug]")({
 	template: "default",
 	loader: ({ params }) => {
@@ -9,7 +11,12 @@ export default definePage("/blog/[slug]")({
 	},
 	defineSlots: ({ loaderData }) => ({
 		header: <h1>Blog Post</h1>,
-		main: <p data-testid="slug">slug:{loaderData.slug}</p>,
+		main: (
+			<div data-testid="slug">
+				<p>slug:{loaderData.slug}</p>
+				<Counter label={`Like ${loaderData.slug}`} />
+			</div>
+		),
 		footer: <p>footer</p>,
 	}),
 });
