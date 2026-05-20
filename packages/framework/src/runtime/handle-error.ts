@@ -76,7 +76,6 @@ async function callOnError(
 	try {
 		await onError(error, request);
 	} catch (onErrorError) {
-		// eslint-disable-next-line no-console
 		console.error("onError hook failed:", onErrorError);
 	}
 }
@@ -127,7 +126,6 @@ export async function renderErrorPage(input: {
 
 		return new Response(response.body, { status, headers: response.headers });
 	} catch (renderError) {
-		// eslint-disable-next-line no-console
 		console.error(`Failed to render error page for status ${String(status)}:`, renderError);
 		return bareErrorPage(status);
 	}
