@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- Babel parser returns untyped AST; casts are unavoidable */
 
+/** Minimal AST node shape returned by @babel/parser. */
 export type AstNode = {
 	type: string;
 	start?: number | null;
@@ -7,47 +8,8 @@ export type AstNode = {
 	[key: string]: unknown;
 };
 
-export function sliceNode(node: AstNode, source: string): string {
-	return source.slice(node.start ?? 0, node.end ?? source.length);
-}
-
 function isAstLike(value: unknown): value is AstNode {
 	return typeof value === "object" && value !== null && typeof (value as AstNode).type === "string";
-}
-
-export function walkNode(node: unknown, callback: (n: AstNode) => boolean | undefined): void {
-	if (!isAstLike(node)) {
-		return;
-	}
-	if (callback(node) === true) {
-		return;
-	}
-	for (const value of Object.values(node)) {
-		if (Array.isArray(value)) {
-			for (const item of value) {
-				walkNode(item, callback);
-			}
-		} else if (isAstLike(value)) {
-			walkNode(value, callback);
-		}
-	}
-}
-
-export function findParentOf(root: AstNode, target: AstNode): AstNode | null {
-	let found: AstNode | null = null;
-	walkNode(root, (node) => {
-		if (found !== null) {
-			return true;
-		}
-		for (const value of Object.values(node)) {
-			if (value === target || (Array.isArray(value) && value.includes(target))) {
-				found = node;
-				return true;
-			}
-		}
-		return undefined;
-	});
-	return found;
 }
 
 function nodeName(n: AstNode): string {
@@ -76,27 +38,6 @@ function isReferencedJsxComponent(n: AstNode, root: AstNode): boolean {
 		parent.name === n &&
 		/^[A-Z]/.test(nodeName(n))
 	);
-}
-
-const GLOBAL_NAMES = new Set(["React", "undefined", "null", "true", "false", "console"]);
-
-export function collectReferencedIdentifiers(node: AstNode): Set<string> {
-	const identifiers = new Set<string>();
-
-	walkNode(node, (n) => {
-		if (n.type === "Identifier" && isReferencedIdentifier(n, node)) {
-			identifiers.add(nodeName(n));
-		}
-		if (n.type === "JSXIdentifier" && isReferencedJsxComponent(n, node)) {
-			identifiers.add(nodeName(n));
-		}
-		return undefined;
-	});
-
-	for (const name of GLOBAL_NAMES) {
-		identifiers.delete(name);
-	}
-	return identifiers;
 }
 
 function collectPatternNames(node: AstNode, out: string[]): void {
@@ -129,11 +70,80 @@ function collectPatternNames(node: AstNode, out: string[]): void {
 	}
 }
 
+const GLOBAL_NAMES = new Set(["React", "undefined", "null", "true", "false", "console"]);
+
+/** Extracts a source code substring corresponding to an AST node's position. */
+export function sliceNode(node: AstNode, source: string): string {
+	return source.slice(node.start ?? 0, node.end ?? source.length);
+}
+
+/** Recursively walks an AST, calling the callback for each node; return true to skip children. */
+export function walkNode(node: unknown, callback: (n: AstNode) => boolean | undefined): void {
+	if (!isAstLike(node)) {
+		return;
+	}
+	if (callback(node) === true) {
+		return;
+	}
+	for (const value of Object.values(node)) {
+		if (Array.isArray(value)) {
+			for (const item of value) {
+				walkNode(item, callback);
+			}
+		} else if (isAstLike(value)) {
+			walkNode(value, callback);
+		}
+	}
+}
+
+/** Finds the immediate parent node of a target node within an AST. */
+export function findParentOf(root: AstNode, target: AstNode): AstNode | null {
+	let found: AstNode | null = null;
+
+	walkNode(root, (node) => {
+		if (found !== null) {
+			return true;
+		}
+		for (const value of Object.values(node)) {
+			if (value === target || (Array.isArray(value) && value.includes(target))) {
+				found = node;
+				return true;
+			}
+		}
+		return undefined;
+	});
+
+	return found;
+}
+
+/** Collects all referenced identifiers (excluding globals and non-reference positions) in an AST subtree. */
+export function collectReferencedIdentifiers(node: AstNode): Set<string> {
+	const identifiers = new Set<string>();
+
+	walkNode(node, (n) => {
+		if (n.type === "Identifier" && isReferencedIdentifier(n, node)) {
+			identifiers.add(nodeName(n));
+		}
+		if (n.type === "JSXIdentifier" && isReferencedJsxComponent(n, node)) {
+			identifiers.add(nodeName(n));
+		}
+		return undefined;
+	});
+
+	for (const name of GLOBAL_NAMES) {
+		identifiers.delete(name);
+	}
+	return identifiers;
+}
+
+/** Extracts declared variable names from a VariableDeclaration AST node. */
 export function extractDeclNames(stmt: AstNode): string[] {
 	const names: string[] = [];
+
 	const declarations = stmt.declarations as AstNode[];
 	for (const decl of declarations) {
 		collectPatternNames(decl.id as AstNode, names);
 	}
+
 	return names;
 }

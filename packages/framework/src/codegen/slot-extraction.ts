@@ -211,7 +211,10 @@ export function buildSlotKey(routePath: string, slotName: string): string {
 	return `${routePath}/${slotName}`;
 }
 
+/** Re-exported for consumers that need to inspect slot module internals. */
 export type { SlotModuleParts } from "./slot-module-assembly";
+
+/** A compiled slot module with its source code and parsed parts. */
 export type SlotModule = { moduleSource: string; parts: SlotModuleParts };
 
 /** Extracts virtual hydration slot modules from a route's defineSlots call. */
