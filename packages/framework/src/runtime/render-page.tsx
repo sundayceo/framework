@@ -56,8 +56,6 @@ function buildHeadContent(input: {
 	const { meta, cssHref, hasViewTransition } = input;
 	return (
 		<>
-			<meta charSet="utf-8" />
-			<meta name="viewport" content="width=device-width, initial-scale=1" />
 			{renderMeta(meta, hasViewTransition)}
 			{cssHref !== undefined && <link rel="stylesheet" href={cssHref} />}
 		</>
@@ -104,14 +102,13 @@ export async function renderPage(input: RenderPageInput): Promise<Response> {
 	const extractedSlots = extractSlots(Template);
 	const providedSlots = Object.keys(slotMap);
 	const validation = validateSlots({ providedSlots, extractedSlots });
-
 	for (const warning of validation.warnings) {
 		// eslint-disable-next-line no-console
-		console.warn(`[sundayceo] ${warning.message}`);
+		console.warn(`[sundayceo] ${routePath}: ${warning.message}`);
 	}
-
 	if (validation.errors.length > 0) {
-		throw new Error(validation.errors.map((e) => e.message).join("; "));
+		const details = validation.errors.map((e) => e.message).join("; ");
+		throw new Error(`Slot validation failed for "${routePath}": ${details}`);
 	}
 
 	const meta = resolveMeta(pageModule.meta, loaderData);

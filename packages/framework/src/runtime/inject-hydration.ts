@@ -8,8 +8,37 @@ type InjectHydrationInput = {
 	assetPaths?: Record<string, string>;
 };
 
-function buildSlotPattern(slotId: string): RegExp {
-	return new RegExp(`<div data-slot="${slotId}">(.*?)</div>`, "s");
+const DIV_OPEN = "<div";
+const DIV_CLOSE = "</div>";
+
+function findSlotContent(html: string, slotId: string): { start: number; end: number } | null {
+	const openTag = `<div data-slot="${slotId}">`;
+	const openIdx = html.indexOf(openTag);
+	if (openIdx === -1) {
+		return null;
+	}
+
+	const contentStart = openIdx + openTag.length;
+	let depth = 1;
+	let i = contentStart;
+
+	while (i < html.length && depth > 0) {
+		const charAfterDiv = html.charAt(i + DIV_OPEN.length);
+		if (html.startsWith(DIV_OPEN, i) && (charAfterDiv === ">" || charAfterDiv === " ")) {
+			depth++;
+			i += DIV_OPEN.length;
+		} else if (html.startsWith(DIV_CLOSE, i)) {
+			depth--;
+			if (depth === 0) {
+				return { start: openIdx, end: i + DIV_CLOSE.length };
+			}
+			i += DIV_CLOSE.length;
+		} else {
+			i++;
+		}
+	}
+
+	return null;
 }
 
 function wrapWithBoundary(input: { content: string; slotId: string }): string {
@@ -17,9 +46,14 @@ function wrapWithBoundary(input: { content: string; slotId: string }): string {
 	return `<div data-hydrate="${slotId}">${content}</div>`;
 }
 
+function escapeScriptContent(json: string): string {
+	return json.replace(/</g, "\\u003c");
+}
+
 function buildDataScript(input: { slotId: string; loaderData: unknown }): string {
 	const { slotId, loaderData } = input;
-	return `<script type="application/json" data-hydrate-data="${slotId}">${JSON.stringify(loaderData)}</script>`;
+	const raw = JSON.stringify(loaderData ?? {});
+	return `<script type="application/json" data-hydrate-data="${slotId}">${escapeScriptContent(raw)}</script>`;
 }
 
 function buildModuleScript(input: { slotId: string; assetPath: string }): string {
@@ -57,10 +91,16 @@ export function injectHydration(input: InjectHydrationInput): string {
 	const scriptsToAppend: string[] = [];
 
 	for (const slotId of interactiveSlotIds) {
-		const pattern = buildSlotPattern(slotId);
-		result = result.replace(pattern, (_match, content: string) => {
-			return wrapWithBoundary({ content, slotId });
-		});
+		const slot = findSlotContent(result, slotId);
+		if (slot !== null) {
+			const outerHtml = result.slice(slot.start, slot.end);
+			const openTag = `<div data-slot="${slotId}">`;
+			const innerContent = outerHtml.slice(openTag.length, outerHtml.length - DIV_CLOSE.length);
+			result =
+				result.slice(0, slot.start) +
+				wrapWithBoundary({ content: innerContent, slotId }) +
+				result.slice(slot.end);
+		}
 
 		const assetPath = resolveAssetPath({ slotId, routePath, assetPaths });
 		scriptsToAppend.push(buildDataScript({ slotId, loaderData }));
