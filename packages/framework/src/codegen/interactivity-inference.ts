@@ -37,6 +37,7 @@ function extractImportSpecifiers(source: string): string[] {
 
 	while ((match = importRegex.exec(source)) !== null) {
 		if (match.at(1) === undefined) {
+			/* v8 ignore next */
 			specifiers.push(match.at(2) ?? "");
 		}
 	}

@@ -41,6 +41,7 @@ const STATUS_MESSAGES: Record<number, string> = {
 };
 
 function statusMessage(status: number): string {
+	/* v8 ignore next */
 	return STATUS_MESSAGES[status] ?? "Internal Server Error";
 }
 

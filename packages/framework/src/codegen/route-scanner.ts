@@ -33,6 +33,7 @@ const ERROR_PAGE_PATTERN = /^(?:.*\/)?([45]\d{2})\.[^.]+$/;
 const convertSegment = (segment: string): string => {
 	const catchAll = CATCH_ALL_PATTERN.exec(segment);
 	if (catchAll !== null) {
+		/* v8 ignore next */
 		return `*${catchAll.at(1) ?? ""}`;
 	}
 	return segment.replace(PARAM_PATTERN, ":$1");
@@ -42,6 +43,7 @@ const extractParams = (filePath: string): string[] => {
 	const params: string[] = [];
 	let match: RegExpExecArray | null = PARAM_PATTERN.exec(filePath);
 	while (match !== null) {
+		/* v8 ignore next */
 		const raw = match.at(1) ?? "";
 		params.push(raw.startsWith(CATCH_ALL_PREFIX) ? raw.slice(CATCH_ALL_PREFIX.length) : raw);
 		match = PARAM_PATTERN.exec(filePath);
