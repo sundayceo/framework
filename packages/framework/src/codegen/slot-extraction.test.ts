@@ -155,6 +155,26 @@ export default defineHandler({
 		expect(result.size).toBe(0);
 	});
 
+	test("slot with JSX fragment: wraps fragment correctly", () => {
+		const source = `
+import React from "react";
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/frag")({
+  template: "default",
+  defineSlots: () => ({
+    main: <><p>First</p><p>Second</p></>,
+  }),
+});
+`;
+
+		const result = extractSlotModules(source, "/frag");
+		const main = result.get("virtual:hydrate/frag/main")!;
+		expect(main).toContain("First");
+		expect(main).toContain("Second");
+		expect(main).toContain("HydrateSlot()");
+	});
+
 	test("slot without loaderData: virtual module has no param", () => {
 		const source = `
 import React from "react";

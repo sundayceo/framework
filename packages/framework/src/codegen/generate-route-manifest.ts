@@ -1,5 +1,6 @@
 import type { HydrationManifest } from "./hydration-manifest";
-import { scanRoutes } from "./route-scanner";
+import { scanRoutes, type RouteEntry } from "./route-scanner";
+import { filePathToRoutePath } from "./transform-route-module";
 
 type GenerateRouteManifestInput = {
 	routePaths: string[];
@@ -8,6 +9,21 @@ type GenerateRouteManifestInput = {
 };
 
 const stripExtension = (filePath: string): string => filePath.replace(/\.(tsx|ts)$/, "");
+
+function rekeyManifest(manifest: HydrationManifest, entries: RouteEntry[]): HydrationManifest {
+	const filePathToScanner = new Map<string, string>();
+	for (const entry of entries) {
+		const bracketPath = filePathToRoutePath(entry.filePath);
+		filePathToScanner.set(bracketPath, entry.routePath);
+	}
+
+	const rekeyed: HydrationManifest = {};
+	for (const [key, value] of Object.entries(manifest)) {
+		const scannerKey = filePathToScanner.get(key) ?? key;
+		rekeyed[scannerKey] = value;
+	}
+	return rekeyed;
+}
 
 function formatParams(params: string[]): string {
 	if (params.length === 0) {
@@ -41,8 +57,9 @@ export function generateRouteManifest(input: GenerateRouteManifestInput): string
 		(entry) => `  ${entry.status}: () => import("./routes/${stripExtension(entry.filePath)}"),`,
 	);
 
-	const hydrationLines =
-		input.hydrationManifest !== undefined ? JSON.stringify(input.hydrationManifest, null, 2) : "{}";
+	const resolvedManifest =
+		input.hydrationManifest !== undefined ? rekeyManifest(input.hydrationManifest, entries) : {};
+	const hydrationLines = JSON.stringify(resolvedManifest, null, 2);
 
 	const lines = [
 		"// src/routes.gen.ts (generated — do not edit)",

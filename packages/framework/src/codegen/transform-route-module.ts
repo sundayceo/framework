@@ -1,10 +1,11 @@
 const DEFINE_PATTERN = /(definePage|defineHandler)\(("[^"]*")?\)/g;
 const DEFINE_ERROR_PAGE_PATTERN = /(defineErrorPage)\((\d+)?\)/g;
 const ERROR_STATUS_PATTERN = /^\/([45]\d{2})$/;
+const GROUP_PATTERN = /^\(.*\)$/;
 
 function filePathToRoute(filePath: string): string {
 	const withoutExtension = filePath.replace(/\.(tsx|ts)$/, "");
-	const segments = withoutExtension.split("/");
+	const segments = withoutExtension.split("/").filter((seg) => !GROUP_PATTERN.test(seg));
 	const lastSegment = segments.at(-1);
 
 	if (lastSegment === "index") {

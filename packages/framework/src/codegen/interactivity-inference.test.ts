@@ -145,6 +145,112 @@ test("static component importing only static children is not interactive", () =>
 	expect(isInteractive(source, importGraph)).toBe(false);
 });
 
+test("detects useLayoutEffect as interactive", () => {
+	const source = `
+		import { useLayoutEffect } from "react";
+		export function Measurer() {
+			useLayoutEffect(() => { /* measure DOM */ }, []);
+			return <div>measured</div>;
+		}
+	`;
+
+	expect(isInteractive(source)).toBe(true);
+});
+
+test("detects useContext as interactive", () => {
+	const source = `
+		import { useContext } from "react";
+		export function Themed() {
+			const theme = useContext(ThemeCtx);
+			return <div>{theme.color}</div>;
+		}
+	`;
+
+	expect(isInteractive(source)).toBe(true);
+});
+
+test("detects useId as interactive", () => {
+	const source = `
+		import { useId } from "react";
+		export function LabeledInput() {
+			const id = useId();
+			return <label htmlFor={id}><input id={id} /></label>;
+		}
+	`;
+
+	expect(isInteractive(source)).toBe(true);
+});
+
+test("detects useSyncExternalStore as interactive", () => {
+	const source = `
+		import { useSyncExternalStore } from "react";
+		export function Clock() {
+			const time = useSyncExternalStore(subscribe, getSnapshot);
+			return <div>{time}</div>;
+		}
+	`;
+
+	expect(isInteractive(source)).toBe(true);
+});
+
+test("detects useTransition as interactive", () => {
+	const source = `
+		import { useTransition } from "react";
+		export function NavLink() {
+			const [isPending, startTransition] = useTransition();
+			return <button>{isPending ? "Loading..." : "Go"}</button>;
+		}
+	`;
+
+	expect(isInteractive(source)).toBe(true);
+});
+
+test("does not flag non-hook function names containing hook substring", () => {
+	const source = `
+		export function useStateManager() {
+			return {};
+		}
+	`;
+
+	expect(isInteractive(source)).toBe(false);
+});
+
+test("detects useActionState as interactive", () => {
+	const source = `
+		import { useActionState } from "react";
+		export function Form() {
+			const [state, action] = useActionState(fn, initialState);
+			return <form action={action}>{state}</form>;
+		}
+	`;
+
+	expect(isInteractive(source)).toBe(true);
+});
+
+test("detects useOptimistic as interactive", () => {
+	const source = `
+		import { useOptimistic } from "react";
+		export function LikeButton() {
+			const [optimisticLikes, addOptimisticLike] = useOptimistic(likes);
+			return <button>{optimisticLikes}</button>;
+		}
+	`;
+
+	expect(isInteractive(source)).toBe(true);
+});
+
+test("detects useFormStatus as interactive", () => {
+	const source = `
+		import { useFormStatus } from "react-dom";
+		export function SubmitButton() {
+			const { pending } = useFormStatus();
+			return <button disabled={pending}>Submit</button>;
+		}
+	`;
+
+	expect(isInteractive(source)).toBe(true);
+});
+
 test("transitive interactivity — deeply nested interactive dependency", () => {
 	const source = `
 		import { Layout } from "./layout";
@@ -170,4 +276,26 @@ test("transitive interactivity — deeply nested interactive dependency", () => 
 	};
 
 	expect(isInteractive(source, importGraph)).toBe(true);
+});
+
+test("type-only import does not trigger transitive interactivity check", () => {
+	const source = `
+		import type { Props } from "./types";
+		export function Static({ title }: Props) {
+			return <h1>{title}</h1>;
+		}
+	`;
+
+	const importGraph: Record<string, string> = {
+		"./types": `
+			import { useState } from "react";
+			export type Props = { title: string };
+			export function Counter() {
+				const [count, setCount] = useState(0);
+				return <div>{count}</div>;
+			}
+		`,
+	};
+
+	expect(isInteractive(source, importGraph)).toBe(false);
 });

@@ -1,12 +1,21 @@
 const REACT_HOOKS = [
 	"useState",
 	"useEffect",
+	"useLayoutEffect",
+	"useInsertionEffect",
 	"useRef",
 	"useReducer",
 	"useCallback",
 	"useMemo",
+	"useContext",
+	"useId",
+	"useDeferredValue",
+	"useImperativeHandle",
 	"useSyncExternalStore",
 	"useTransition",
+	"useActionState",
+	"useOptimistic",
+	"useFormStatus",
 ];
 
 const HOOK_PATTERN = new RegExp(`\\b(${REACT_HOOKS.join("|")})\\s*\\(`);
@@ -23,11 +32,13 @@ function hasInteractivitySignals(source: string): boolean {
 
 function extractImportSpecifiers(source: string): string[] {
 	const specifiers: string[] = [];
-	const importRegex = /\bimport\s+.*?\s+from\s+["']([^"']+)["']/g;
+	const importRegex = /\bimport\s+(type\s+)?.*?\s+from\s+["']([^"']+)["']/g;
 	let match;
 
 	while ((match = importRegex.exec(source)) !== null) {
-		specifiers.push(match.at(1) ?? "");
+		if (match.at(1) === undefined) {
+			specifiers.push(match.at(2) ?? "");
+		}
 	}
 
 	return specifiers;
