@@ -17,6 +17,14 @@ type SlotContextValue = {
 /** React context that provides the current page's slot map and hydration metadata to Slot components. */
 export const SlotContext = createContext<SlotContextValue>({ slots: {} });
 
+function resolveAssetPath(slotId: string, hydration: HydrationMeta): string {
+	const resolved = hydration.assetPaths?.[slotId];
+	if (resolved !== undefined) {
+		return resolved;
+	}
+	return `virtual:hydrate${hydration.routePath ?? ""}/${slotId}`;
+}
+
 /** Provides a slot map and optional hydration metadata to descendant Slot components via React context. */
 export function SlotProvider({
 	slots,
@@ -28,14 +36,6 @@ export function SlotProvider({
 	children: ReactNode;
 }): ReactNode {
 	return <SlotContext.Provider value={{ slots, hydration }}>{children}</SlotContext.Provider>;
-}
-
-function resolveAssetPath(slotId: string, hydration: HydrationMeta): string {
-	const resolved = hydration.assetPaths?.[slotId];
-	if (resolved !== undefined) {
-		return resolved;
-	}
-	return `virtual:hydrate${hydration.routePath ?? ""}/${slotId}`;
 }
 
 /** Renders a named slot's content from context, falling back to a default if not provided. */
