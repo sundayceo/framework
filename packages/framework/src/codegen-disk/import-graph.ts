@@ -83,9 +83,7 @@ export function buildImportGraph(
 		if (result !== undefined) {
 			graph[result.resolvedPath] = result.depSource;
 
-			const childSpecs = parseImportSpecifiers(result.depSource).filter((s) =>
-				s.startsWith("."),
-			);
+			const childSpecs = parseImportSpecifiers(result.depSource).filter((s) => s.startsWith("."));
 			for (const childSpec of childSpecs) {
 				queue.push({ specifier: childSpec, fromDir: result.childDir });
 			}

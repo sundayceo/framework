@@ -3,7 +3,11 @@ import path from "node:path";
 import { buildSlotKey, extractSlotModules, type SlotModuleParts } from "../codegen/slot-extraction";
 import { parseHydrateId } from "./hydrate-ids";
 
-function resolveRouteDir(routePath: string, routesDir: string, filePathMap?: Record<string, string>): string {
+function resolveRouteDir(
+	routePath: string,
+	routesDir: string,
+	filePathMap?: Record<string, string>,
+): string {
 	const filePath = filePathMap?.[routePath];
 	const routeFile = filePath ?? `${routePath.replace(/^\//, "")}.tsx`;
 	return path.dirname(path.join(routesDir, routeFile));

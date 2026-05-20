@@ -50,7 +50,9 @@ export function extractSlots(template: TemplateComponent): ExtractSlotsResult {
 	const tree = template({ head: null });
 	if (tree instanceof Promise) {
 		// eslint-disable-next-line no-console
-		console.warn("[sundayceo] Template returned a Promise — async templates are not supported. Slot extraction skipped.");
+		console.warn(
+			"[sundayceo] Template returned a Promise — async templates are not supported. Slot extraction skipped.",
+		);
 		return { slots: [], requiredSlots: [] };
 	}
 	const node: ReactNode = tree;

@@ -1,7 +1,10 @@
 import path from "node:path";
 
 import { buildImportGraph, resolveFile } from "../codegen-disk/import-graph";
-import { buildHydrationManifest, type HydrationManifestResult } from "../codegen/hydration-manifest";
+import {
+	buildHydrationManifest,
+	type HydrationManifestResult,
+} from "../codegen/hydration-manifest";
 import type { SlotModuleParts } from "../codegen/slot-module-assembly";
 import { loadVirtualSlotModule } from "./virtual-slot-modules";
 
