@@ -239,7 +239,6 @@ async function safeContext<TPlatform>(input: {
 	try {
 		return await input.app.context(input.request, input.platform);
 	} catch (contextError: unknown) {
-		// eslint-disable-next-line no-console
 		console.error(`app.context() threw during ${input.label}:`, contextError);
 		return {};
 	}
