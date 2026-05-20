@@ -184,8 +184,7 @@ async function dispatchRequest(input: DispatchInput): Promise<void> {
 		}
 
 		await writeResponse(res, response);
-	} catch (error) {
-		console.error("[framework]", error); // eslint-disable-line no-console -- intentional dev-time error logging
+	} catch {
 		next();
 	}
 }

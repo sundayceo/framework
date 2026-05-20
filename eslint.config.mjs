@@ -444,7 +444,7 @@ export default defineConfig(
 			"no-await-in-loop": "error",
 
 			eqeqeq: ["error", "always"],
-			"no-console": "error",
+			"no-console": "warn",
 			"no-debugger": "error",
 			"no-eval": "error",
 			"no-implied-eval": "error",

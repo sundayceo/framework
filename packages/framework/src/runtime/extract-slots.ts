@@ -49,7 +49,6 @@ function walkTree(node: ReactNode, state: WalkState): void {
 export function extractSlots(template: TemplateComponent): ExtractSlotsResult {
 	const tree = template({ head: null });
 	if (tree instanceof Promise) {
-		// eslint-disable-next-line no-console
 		console.warn(
 			"[sundayceo] Template returned a Promise — async templates are not supported. Slot extraction skipped.",
 		);
