@@ -3,9 +3,8 @@ import { createApp } from "@sundayceo/framework";
 type Platform = { env: Record<string, unknown>; ctx: unknown };
 
 export const app = createApp<Platform>({
-	context: () => ({ appName: "production-test" }),
+	context: () => ({ appName: "example-cloudflare" }),
 	onError: (error) => {
-		// eslint-disable-next-line no-console
 		console.error("[onError]", error);
 	},
 });
