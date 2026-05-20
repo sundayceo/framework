@@ -30,6 +30,7 @@ type CreateHandlerFn = (options: {
 	routes: RouteEntry[];
 	templates: GeneratedTemplates;
 	errorPages?: Record<number, () => Promise<unknown>>;
+	hydrationManifest?: Record<string, Record<string, boolean>>;
 }) => { fetch: (request: Request) => Promise<Response> };
 
 type LoadedModules = {
@@ -37,6 +38,7 @@ type LoadedModules = {
 	routes: RouteEntry[];
 	templates: GeneratedTemplates;
 	errorPages?: Record<number, () => Promise<unknown>>;
+	hydrationManifest?: Record<string, Record<string, boolean>>;
 	createHandler: CreateHandlerFn;
 };
 
@@ -109,29 +111,31 @@ function isHtmlResponse(response: Response): boolean {
 	return (response.headers.get("content-type") ?? "").includes("text/html");
 }
 
-/* eslint-disable @typescript-eslint/consistent-type-assertions */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 async function loadModules(server: ViteDevServer, srcDir: string): Promise<LoadedModules> {
 	const appModule = await server.ssrLoadModule(path.join(srcDir, "app.ts"));
 	const routesModule = await server.ssrLoadModule(path.join(srcDir, "routes.gen.ts"));
-	const frameworkModule = await server.ssrLoadModule("@sundayceo/framework");
+	const { createHandler } = await server.ssrLoadModule("@sundayceo/framework");
 
 	return {
-		app: (appModule.app ?? appModule.default) as AppConfig,
-		routes: routesModule.routes as RouteEntry[],
-		templates: routesModule.templates as GeneratedTemplates,
-		errorPages: routesModule.errorPages as Record<number, () => Promise<unknown>> | undefined,
-		createHandler: frameworkModule.createHandler as CreateHandlerFn,
+		app: appModule.app ?? appModule.default,
+		routes: routesModule.routes,
+		templates: routesModule.templates,
+		errorPages: routesModule.errorPages,
+		hydrationManifest: routesModule.hydrationManifest,
+		createHandler,
 	};
 }
-/* eslint-enable @typescript-eslint/consistent-type-assertions */
+/* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
 async function dispatchRequest(input: DispatchInput): Promise<void> {
 	const { server, srcDir, req, res, next } = input;
 
 	try {
 		const request = await toWebRequest(req);
-		const { app, routes, templates, errorPages, createHandler } = await loadModules(server, srcDir);
-		const handler = createHandler({ app, routes, templates, errorPages });
+		const { app, routes, templates, errorPages, hydrationManifest, createHandler } =
+			await loadModules(server, srcDir);
+		const handler = createHandler({ app, routes, templates, errorPages, hydrationManifest });
 		const response = await handler.fetch(request);
 
 		if (isHtmlResponse(response)) {
