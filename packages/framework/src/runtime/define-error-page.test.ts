@@ -19,7 +19,7 @@ test("defineErrorPage stamps RouteKind brand on the config", () => {
 
 	const result = defineErrorPage(404)(config);
 
-	expect(result[RouteKind]).toBe("page");
+	expect(result[RouteKind]).toBe("error-page");
 	expect(result.template).toBe(config.template);
 	expect(result.loader).toBe(config.loader);
 	expect(result.defineSlots).toBe(config.defineSlots);

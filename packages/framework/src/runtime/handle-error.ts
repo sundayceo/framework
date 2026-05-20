@@ -3,9 +3,10 @@ import type { ErrorContext } from "./define-error-page";
 import { renderPage } from "./render-page";
 import { defaultNotFoundPage, defaultServerErrorPage } from "./resolve-error-page";
 import { isHttpErrorResponse, isRedirectResponse } from "./throwable-response";
-import type { MetaInfo, SlotMap, TemplateComponent } from "./types";
+import { RouteKind, type MetaInfo, type SlotMap, type TemplateComponent } from "./types";
 
 type ErrorPageModule = {
+	[RouteKind]: "error-page";
 	template: string;
 	loader?: (ctx: { error: ErrorContext }) => unknown;
 	defineSlots: (args: { loaderData: unknown }) => SlotMap;
@@ -16,10 +17,8 @@ function isErrorPageModule(mod: unknown): mod is ErrorPageModule {
 	return (
 		typeof mod === "object" &&
 		mod !== null &&
-		"template" in mod &&
-		"defineSlots" in mod &&
-		typeof mod.template === "string" &&
-		typeof mod.defineSlots === "function"
+		RouteKind in mod &&
+		(mod as Record<symbol, unknown>)[RouteKind] === "error-page" // eslint-disable-line @typescript-eslint/consistent-type-assertions -- symbol key access requires cast
 	);
 }
 
