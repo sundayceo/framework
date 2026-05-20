@@ -76,6 +76,33 @@ describe("extractSlots", () => {
 		expect(result.requiredSlots).toEqual(["header", "content", "footer"]);
 	});
 
+	test("returns empty arrays when template has no slots", () => {
+		function Template({ head }: { head: ReactNode }): ReactNode {
+			return (
+				<html>
+					<head>{head}</head>
+					<body>
+						<main>No slots here</main>
+					</body>
+				</html>
+			);
+		}
+
+		const result = extractSlots(Template);
+
+		expect(result.slots).toEqual([]);
+		expect(result.requiredSlots).toEqual([]);
+	});
+
+	test("handles template returning Promise by treating it as empty", () => {
+		const AsyncTemplate = (): ReactNode => Promise.resolve(<div />) as ReactNode;
+
+		const result = extractSlots(AsyncTemplate);
+
+		expect(result.slots).toEqual([]);
+		expect(result.requiredSlots).toEqual([]);
+	});
+
 	test("throws on duplicate slot IDs within a template", () => {
 		function Template({ head }: { head: ReactNode }): ReactNode {
 			return (

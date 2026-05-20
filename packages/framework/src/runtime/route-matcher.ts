@@ -6,6 +6,14 @@ export type MatchResult<T extends MatchableRoute = MatchableRoute> = {
 	params: Record<string, string>;
 };
 
+function safeDecodeURIComponent(value: string): string {
+	try {
+		return decodeURIComponent(value);
+	} catch {
+		return value;
+	}
+}
+
 const normalize = (path: string): string => {
 	if (path === "/") {
 		return path;
@@ -17,21 +25,30 @@ function tryMatch<T extends MatchableRoute>(url: string, route: T): MatchResult<
 	const urlSegments = url.split("/").filter(Boolean);
 	const patternSegments = route.routePath.split("/").filter(Boolean);
 
-	if (urlSegments.length !== patternSegments.length) {
-		return null;
-	}
-
 	const params: Record<string, string> = {};
 
 	for (let i = 0; i < patternSegments.length; i++) {
 		const patternSeg = patternSegments.at(i) ?? "";
 		const urlSeg = urlSegments.at(i) ?? "";
 
+		if (patternSeg.startsWith("*")) {
+			params[patternSeg.slice(1)] = urlSegments.slice(i).map(safeDecodeURIComponent).join("/");
+			return { route, params };
+		}
+
+		if (i >= urlSegments.length) {
+			return null;
+		}
+
 		if (patternSeg.startsWith(":")) {
-			params[patternSeg.slice(1)] = urlSeg;
+			params[patternSeg.slice(1)] = safeDecodeURIComponent(urlSeg);
 		} else if (patternSeg !== urlSeg) {
 			return null;
 		}
+	}
+
+	if (urlSegments.length !== patternSegments.length) {
+		return null;
 	}
 
 	return { route, params };

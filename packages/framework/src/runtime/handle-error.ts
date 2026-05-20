@@ -45,7 +45,8 @@ function statusMessage(status: number): string {
 }
 
 function bareErrorPage(status: number): Response {
-	return status === NOT_FOUND ? defaultNotFoundPage() : defaultServerErrorPage();
+	const base = status === NOT_FOUND ? defaultNotFoundPage() : defaultServerErrorPage();
+	return new Response(base.body, { status, headers: base.headers });
 }
 
 function adaptErrorModule(

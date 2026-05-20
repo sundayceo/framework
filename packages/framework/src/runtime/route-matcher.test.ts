@@ -89,4 +89,156 @@ describe("matchRoute", () => {
 			params: { category: "electronics", id: "42" },
 		});
 	});
+
+	test("matches catch-all route and captures remaining segments", () => {
+		const routes: TestRoute[] = [
+			{ routePath: "/docs/*slug", params: ["slug"], filePath: "docs/[...slug].tsx" },
+		];
+
+		const result = matchRoute("/docs/getting-started/install", routes);
+
+		expect(result).toEqual({
+			route: routes.at(0),
+			params: { slug: "getting-started/install" },
+		});
+	});
+
+	test("catch-all matches single segment", () => {
+		const routes: TestRoute[] = [
+			{ routePath: "/docs/*slug", params: ["slug"], filePath: "docs/[...slug].tsx" },
+		];
+
+		const result = matchRoute("/docs/intro", routes);
+
+		expect(result).toEqual({
+			route: routes.at(0),
+			params: { slug: "intro" },
+		});
+	});
+
+	test("catch-all matches deeply nested segments", () => {
+		const routes: TestRoute[] = [
+			{ routePath: "/docs/*slug", params: ["slug"], filePath: "docs/[...slug].tsx" },
+		];
+
+		const result = matchRoute("/docs/api/v2/users/list", routes);
+
+		expect(result).toEqual({
+			route: routes.at(0),
+			params: { slug: "api/v2/users/list" },
+		});
+	});
+
+	test("static route takes priority over catch-all", () => {
+		const routes: TestRoute[] = [
+			{ routePath: "/docs", params: [], filePath: "docs/index.tsx" },
+			{ routePath: "/docs/*slug", params: ["slug"], filePath: "docs/[...slug].tsx" },
+		];
+
+		const result = matchRoute("/docs", routes);
+
+		expect(result).toEqual({
+			route: routes.at(0),
+			params: {},
+		});
+	});
+
+	test("catch-all does not match prefix without trailing segments", () => {
+		const routes: TestRoute[] = [
+			{ routePath: "/docs/*slug", params: ["slug"], filePath: "docs/[...slug].tsx" },
+		];
+
+		const result = matchRoute("/doc", routes);
+
+		expect(result).toBeNull();
+	});
+
+	test("top-level catch-all matches any path", () => {
+		const routes: TestRoute[] = [
+			{ routePath: "/about", params: [], filePath: "about.tsx" },
+			{ routePath: "/*path", params: ["path"], filePath: "[...path].tsx" },
+		];
+
+		const result = matchRoute("/anything/goes/here", routes);
+
+		expect(result).toEqual({
+			route: routes.at(1),
+			params: { path: "anything/goes/here" },
+		});
+	});
+
+	test("decodes URL-encoded characters in dynamic params", () => {
+		const routes: TestRoute[] = [
+			{ routePath: "/blog/:slug", params: ["slug"], filePath: "blog/[slug].tsx" },
+		];
+
+		const result = matchRoute("/blog/hello%20world", routes);
+
+		expect(result).toEqual({
+			route: routes.at(0),
+			params: { slug: "hello world" },
+		});
+	});
+
+	test("decodes URL-encoded characters in catch-all params", () => {
+		const routes: TestRoute[] = [
+			{ routePath: "/docs/*slug", params: ["slug"], filePath: "docs/[...slug].tsx" },
+		];
+
+		const result = matchRoute("/docs/caf%C3%A9/menu%20items", routes);
+
+		expect(result).toEqual({
+			route: routes.at(0),
+			params: { slug: "café/menu items" },
+		});
+	});
+
+	test("catch-all captures empty string when no trailing segments", () => {
+		const routes: TestRoute[] = [
+			{ routePath: "/*path", params: ["path"], filePath: "[...path].tsx" },
+		];
+
+		const result = matchRoute("/", routes);
+
+		expect(result).toEqual({
+			route: routes.at(0),
+			params: { path: "" },
+		});
+	});
+
+	test("catch-all matches prefix URL with empty slug", () => {
+		const routes: TestRoute[] = [
+			{ routePath: "/docs/*slug", params: ["slug"], filePath: "docs/[...slug].tsx" },
+		];
+
+		const result = matchRoute("/docs", routes);
+
+		expect(result).toEqual({
+			route: routes.at(0),
+			params: { slug: "" },
+		});
+	});
+
+	test("handles malformed URI components without crashing", () => {
+		const routes: TestRoute[] = [
+			{ routePath: "/blog/:slug", params: ["slug"], filePath: "blog/[slug].tsx" },
+		];
+
+		const result = matchRoute("/blog/%ZZ", routes);
+
+		expect(result).toEqual({
+			route: routes.at(0),
+			params: { slug: "%ZZ" },
+		});
+	});
+
+	test("does not match when extra segments exist for non-catch-all", () => {
+		const routes: TestRoute[] = [
+			{ routePath: "/blog/:slug", params: ["slug"], filePath: "blog/[slug].tsx" },
+		];
+
+		const result = matchRoute("/blog/hello/extra", routes);
+
+		expect(result).toBeNull();
+	});
 });
