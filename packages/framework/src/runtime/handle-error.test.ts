@@ -68,6 +68,28 @@ describe("renderErrorPage", () => {
 
 		expect(res.status).toBe(404);
 	});
+
+	test("logs error when error page rendering fails", async () => {
+		const consoleSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
+		const renderError = new Error("template exploded");
+
+		const res = await renderErrorPage({
+			status: 500,
+			errorPages: {
+				[500]: () => Promise.reject(renderError),
+			},
+			templates: {},
+			request: MOCK_REQUEST,
+			appContext: EMPTY_CONTEXT,
+		});
+
+		expect(res.status).toBe(500);
+		expect(consoleSpy).toHaveBeenCalledWith(
+			"Failed to render error page for status 500:",
+			renderError,
+		);
+		consoleSpy.mockRestore();
+	});
 });
 
 describe("handleError", () => {
