@@ -3,11 +3,11 @@ import path from "node:path";
 
 import { build, transformWithOxc, type Plugin } from "vite";
 
-import { buildSlotKey, type SlotModule } from "../codegen/slot-extraction";
 import type { HydrationManifest } from "../codegen/hydration-manifest";
+import { buildSlotKey, type SlotModule } from "../codegen/slot-extraction";
 import {
-	HYDRATE_PREFIX,
 	computeHydrationManifest,
+	HYDRATE_PREFIX,
 	isHydrateModuleId,
 	loadHydrateModule,
 	resolveHydrateId,
@@ -68,7 +68,9 @@ type ViteManifestEntry = { file: string };
 type HydrationAssets = Record<string, Record<string, string>>;
 
 function isManifestEntry(value: unknown): value is ViteManifestEntry {
-	return typeof value === "object" && value !== null && "file" in value && typeof value.file === "string";
+	return (
+		typeof value === "object" && value !== null && "file" in value && typeof value.file === "string"
+	);
 }
 
 function readHydrationAssets(
@@ -107,7 +109,10 @@ type ClientBuildInput = {
 async function runClientBuild(input: ClientBuildInput): Promise<HydrationAssets | undefined> {
 	const { rootDir, srcDir, routeScan, clientBase } = input;
 
-	const { manifest: hydrationManifest, slotModulesByRoute } = computeHydrationManifest(routeScan, srcDir);
+	const { manifest: hydrationManifest, slotModulesByRoute } = computeHydrationManifest(
+		routeScan,
+		srcDir,
+	);
 	const virtualEntries = collectVirtualEntries(hydrationManifest, slotModulesByRoute);
 
 	if (virtualEntries.length === 0) {
@@ -137,9 +142,9 @@ async function runClientBuild(input: ClientBuildInput): Promise<HydrationAssets 
 const PLACEHOLDER = '"__SUNDAYCEO_HYDRATION_ASSETS__"';
 
 function patchServerBundle(serverOutDir: string, hydrationAssets: HydrationAssets): void {
-	const files = fs.readdirSync(serverOutDir, { recursive: true }).filter((f) =>
-		String(f).endsWith(".js"),
-	);
+	const files = fs
+		.readdirSync(serverOutDir, { recursive: true })
+		.filter((f) => String(f).endsWith(".js"));
 	const replacement = JSON.stringify(hydrationAssets);
 
 	for (const file of files) {

@@ -55,7 +55,10 @@ function createMockServer() {
 	const invalidated: string[] = [];
 	const modules = new Map<string, MockModuleNode>();
 	type WatcherHandler = (f: string) => void;
-	const watcherHandlers: Record<string, WatcherHandler[]> & { add: WatcherHandler[]; unlink: WatcherHandler[] } = { add: [], unlink: [] };
+	const watcherHandlers: Record<string, WatcherHandler[]> & {
+		add: WatcherHandler[];
+		unlink: WatcherHandler[];
+	} = { add: [], unlink: [] };
 
 	return {
 		invalidated,
@@ -494,7 +497,7 @@ describe("vite-plugin configureServer", () => {
 		plugin.configureServer(server);
 
 		// Trigger the add handler with a route file path
-		const addHandler = watcherHandlers.add.at(0)!
+		const addHandler = watcherHandlers.add.at(0)!;
 		addHandler(path.join(root, "src/routes/new-page.tsx"));
 
 		expect(fs.existsSync(declPath)).toBe(true);
@@ -513,7 +516,7 @@ describe("vite-plugin configureServer", () => {
 		plugin.configureServer(server);
 
 		// Trigger the unlink handler with a template file path
-		const unlinkHandler = watcherHandlers.unlink.at(0)!
+		const unlinkHandler = watcherHandlers.unlink.at(0)!;
 		unlinkHandler(path.join(root, "src/templates/main.tsx"));
 
 		expect(fs.existsSync(declPath)).toBe(true);
@@ -533,7 +536,7 @@ describe("vite-plugin configureServer", () => {
 		plugin.configureServer(server);
 
 		// Trigger with a non-watched path
-		const addHandler = watcherHandlers.add.at(0)!
+		const addHandler = watcherHandlers.add.at(0)!;
 		addHandler(path.join(root, "src/components/button.tsx"));
 
 		// Content should be unchanged (no re-write)

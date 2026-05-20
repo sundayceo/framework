@@ -61,7 +61,14 @@ export function buildClientEntries(
 
 /** Generates route/template type declarations and a route manifest from the given input. */
 export function codegen(input: CodegenInput): CodegenOutput {
-	const { routePaths, templatePaths, routeSources, importGraph = {}, resolveSpecifier, filePathMap } = input;
+	const {
+		routePaths,
+		templatePaths,
+		routeSources,
+		importGraph = {},
+		resolveSpecifier,
+		filePathMap,
+	} = input;
 
 	const templateBlock = generateTemplateRegistry(templatePaths);
 	const routeBlock = generateRouteMap(routePaths);
