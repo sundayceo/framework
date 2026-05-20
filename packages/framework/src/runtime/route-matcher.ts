@@ -28,6 +28,7 @@ function tryMatch<T extends MatchableRoute>(url: string, route: T): MatchResult<
 	const params: Record<string, string> = {};
 
 	for (let i = 0; i < patternSegments.length; i++) {
+		/* v8 ignore next 2 -- i is always within bounds of the for-loop */
 		const patternSeg = patternSegments.at(i) ?? "";
 		const urlSeg = urlSegments.at(i) ?? "";
 

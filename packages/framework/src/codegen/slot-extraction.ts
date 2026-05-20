@@ -7,6 +7,7 @@ import * as t from "@babel/types";
 
 type DoubleWrapped<T> = { default: { default: T } };
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- CJS/ESM interop: @babel/* default export is double-wrapped */
+/* v8 ignore start -- CJS/ESM interop: only one branch is reachable per environment */
 const traverse =
 	typeof traverseModule.default === "function"
 		? traverseModule.default
@@ -15,6 +16,7 @@ const generate =
 	typeof generateModule.default === "function"
 		? generateModule.default
 		: (generateModule as unknown as DoubleWrapped<typeof generateModule.default>).default.default;
+/* v8 ignore stop */
 /* eslint-enable @typescript-eslint/consistent-type-assertions */
 
 type DefineSlotsResult = {
@@ -23,6 +25,7 @@ type DefineSlotsResult = {
 };
 
 function sliceNode(node: { start?: number | null; end?: number | null }, source: string): string {
+	/* v8 ignore next -- Babel always provides start/end positions */
 	return source.slice(node.start ?? 0, node.end ?? source.length);
 }
 
@@ -165,6 +168,7 @@ function resolveLocalsForRefs(
 			requiredLocals.set(ref, local);
 			const localAst = parse(local, { sourceType: "module", plugins: ["typescript", "jsx"] });
 			const firstStmt = localAst.program.body.at(0);
+			/* v8 ignore next -- local is always a valid variable declaration */
 			if (firstStmt !== undefined) {
 				const transitiveImports = resolveImportsForRefs(
 					collectReferencedIdentifiers(firstStmt),

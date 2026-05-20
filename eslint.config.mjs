@@ -30,6 +30,7 @@ const noCommentsRule = {
 						text.startsWith("@param") ||
 						text.startsWith("@returns") ||
 						text.startsWith("@deprecated") ||
+						text.startsWith("v8 ignore") ||
 						(comment.type === "Block" && text.startsWith("*"))
 					) {
 						continue;

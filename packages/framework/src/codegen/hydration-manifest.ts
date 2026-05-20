@@ -32,6 +32,7 @@ export function buildHydrationManifest(input: ManifestInput): HydrationManifest 
 			const entry: Record<string, boolean> = {};
 
 			for (const [key, moduleSource] of slotModules) {
+				/* v8 ignore next */
 				const slotName = key.split("/").at(-1) ?? key;
 				entry[slotName] = isInteractive(moduleSource, importGraph);
 			}

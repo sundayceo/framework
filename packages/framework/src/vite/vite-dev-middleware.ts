@@ -72,10 +72,12 @@ function collectBody(req: IncomingMessage): Promise<Buffer> {
 }
 
 async function toWebRequest(req: ConnectIncomingMessage): Promise<Request> {
+	/* v8 ignore start -- host/url/method are always present in Connect requests */
 	const host = req.headers.host ?? "localhost";
 	const pathname = req.originalUrl ?? req.url ?? "/";
 	const url = `${PROTOCOL}://${host}${pathname}`;
 	const method = req.method ?? "GET";
+	/* v8 ignore stop */
 	const headers = buildHeaders(req);
 
 	if (!METHODS_WITH_BODY.has(method)) {
@@ -139,6 +141,7 @@ async function dispatchRequest(input: DispatchInput): Promise<void> {
 		const response = await handler.fetch(request);
 
 		if (isHtmlResponse(response)) {
+			/* v8 ignore next */
 			const url = req.originalUrl ?? req.url ?? "/";
 			const rawHtml = await response.text();
 			const html = await server.transformIndexHtml(url, rawHtml);

@@ -93,10 +93,8 @@ export function buildImportGraph(
 	const visited = new Set<string>();
 
 	while (queue.length > 0) {
-		const item = queue.pop();
-		if (item === undefined) {
-			break;
-		}
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- length > 0 guarantees pop() returns a value
+		const item = queue.pop()!;
 
 		const result = resolveQueueItem(item, visited);
 		if (result !== undefined) {

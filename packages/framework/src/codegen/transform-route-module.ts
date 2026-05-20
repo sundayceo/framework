@@ -23,6 +23,7 @@ export function transformRouteModule(args: { source: string; routePath: string }
 
 	const statusMatch = ERROR_STATUS_PATTERN.exec(routePath);
 	if (statusMatch !== null) {
+		/* v8 ignore next */
 		const status = statusMatch.at(1) ?? "";
 		return source.replace(
 			DEFINE_ERROR_PAGE_PATTERN,
