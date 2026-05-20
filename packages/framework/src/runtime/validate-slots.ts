@@ -75,10 +75,13 @@ export function validateSlots(input: ValidateSlotsInput): ValidationResult {
 
 	for (const required of extractedSlots.requiredSlots) {
 		if (!providedSet.has(required)) {
+			const typo = findClosestSlot(required, providedSlots);
+			const hint = typo !== undefined ? `. Did you mean "${typo}"?` : "";
+
 			errors.push({
 				type: "missing-required-slot",
 				slotName: required,
-				message: `Required slot "${required}" is missing`,
+				message: `Required slot "${required}" is missing${hint}`,
 			});
 		}
 	}

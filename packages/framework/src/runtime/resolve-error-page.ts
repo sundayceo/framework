@@ -38,9 +38,6 @@ export function resolveErrorPage(input: ResolveErrorPageInput): Response {
 		return customRenderer();
 	}
 
-	if (status === NOT_FOUND) {
-		return defaultNotFoundPage();
-	}
-
-	return defaultServerErrorPage();
+	const fallback = status === NOT_FOUND ? defaultNotFoundPage() : defaultServerErrorPage();
+	return new Response(fallback.body, { status, headers: fallback.headers });
 }
