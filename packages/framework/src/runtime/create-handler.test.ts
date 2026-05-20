@@ -377,6 +377,7 @@ describe("createHandler", () => {
 			| ((args: { loaderData: unknown }) => { title?: string; description?: string });
 
 		type ErrorPageModuleShape = {
+			[RouteKind]: "error-page";
 			template: string;
 			loader?: (ctx: { error: ErrorContext }) => unknown;
 			defineSlots: (args: { loaderData: unknown }) => SlotMap;
@@ -385,6 +386,7 @@ describe("createHandler", () => {
 
 		function makeErrorPageModule(overrides?: Partial<ErrorPageModuleShape>): ErrorPageModuleShape {
 			return {
+				[RouteKind]: "error-page",
 				template: "default",
 				loader: vi.fn(({ error }: { error: ErrorContext }) => ({
 					title: `${error.status} Error`,
