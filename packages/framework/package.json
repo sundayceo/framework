@@ -3,6 +3,9 @@
 	"version": "0.0.0",
 	"type": "module",
 	"license": "MIT",
+	"bin": {
+		"sundayceo": "./dist/cli.js"
+	},
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
