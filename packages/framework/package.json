@@ -21,9 +21,6 @@
 			"import": "./src/vite/server-entry-stub.js"
 		}
 	},
-	"bin": {
-		"sundayceo": "./dist/cli.js"
-	},
 	"publishConfig": {
 		"access": "public"
 	},

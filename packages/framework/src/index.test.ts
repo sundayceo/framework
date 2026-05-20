@@ -14,9 +14,16 @@ import {
 	Slot,
 	SlotProvider,
 	viewTransitionName,
+	type AppConfig,
 	type Context,
+	type ErrorContext,
+	type GeneratedErrorPages,
+	type GeneratedTemplates,
+	type HandlerConfig,
 	type HandlerModule,
 	type PageModule,
+	type Register,
+	type RouteEntry,
 	type RouteKind,
 	type RouteMap,
 	type SlotMap,
@@ -112,6 +119,48 @@ test("HandlerModule has RouteKind and HTTP method handlers", () => {
 	expectTypeOf<NonNullable<Handler["PUT"]>>().toBeFunction();
 	expectTypeOf<NonNullable<Handler["PATCH"]>>().toBeFunction();
 	expectTypeOf<NonNullable<Handler["DELETE"]>>().toBeFunction();
+});
+
+test("AppConfig has context and optional onError", () => {
+	expectTypeOf<AppConfig>().toHaveProperty("context");
+	expectTypeOf<AppConfig["onError"]>().toEqualTypeOf<
+		((error: unknown, request: Request) => void | Promise<void>) | undefined
+	>();
+});
+
+test("HandlerConfig has app, routes, templates, and optional hydration fields", () => {
+	expectTypeOf<HandlerConfig>().toHaveProperty("app");
+	expectTypeOf<HandlerConfig>().toHaveProperty("routes");
+	expectTypeOf<HandlerConfig>().toHaveProperty("templates");
+});
+
+test("RouteEntry has routePath, params, and loadModule", () => {
+	expectTypeOf<RouteEntry>().toHaveProperty("routePath");
+	expectTypeOf<RouteEntry>().toHaveProperty("params");
+	expectTypeOf<RouteEntry>().toHaveProperty("loadModule");
+});
+
+test("GeneratedTemplates maps names to lazy import functions", () => {
+	expectTypeOf<GeneratedTemplates>().toExtend<
+		Record<string, () => Promise<{ default: TemplateComponent }>>
+	>();
+});
+
+test("GeneratedErrorPages maps status codes to lazy import functions", () => {
+	expectTypeOf<GeneratedErrorPages>().toExtend<
+		Record<number, () => Promise<{ default: unknown }>>
+	>();
+});
+
+test("ErrorContext has status, message, and optional stack/error", () => {
+	expectTypeOf<ErrorContext["status"]>().toBeNumber();
+	expectTypeOf<ErrorContext["message"]>().toBeString();
+	expectTypeOf<ErrorContext["stack"]>().toEqualTypeOf<string | undefined>();
+	expectTypeOf<ErrorContext["error"]>().toEqualTypeOf<unknown>();
+});
+
+test("Register interface exists for declaration merging", () => {
+	expectTypeOf<Register>().toBeObject();
 });
 
 test("PageModule and HandlerModule are mutually exclusive", () => {
