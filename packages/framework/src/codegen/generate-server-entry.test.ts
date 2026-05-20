@@ -27,4 +27,26 @@ describe("generateServerEntry", () => {
 		expect(result).toContain('from "../src/routes.gen"');
 	});
 
+	test("inlines hydrationAssets when provided", () => {
+		const result = generateServerEntry({
+			appModule: "./app",
+			routesModule: "./routes.gen",
+			hydrationAssets: {
+				"/demo": { main: "/_client/assets/demo_main-abc.js" },
+			},
+		});
+
+		expect(result).toContain("const hydrationAssets =");
+		expect(result).toContain("/_client/assets/demo_main-abc.js");
+		expect(result).toContain("hydrationAssets });");
+	});
+
+	test("omits hydrationAssets declaration when not provided", () => {
+		const result = generateServerEntry({
+			appModule: "./app",
+			routesModule: "./routes.gen",
+		});
+
+		expect(result).not.toContain("hydrationAssets");
+	});
 });
