@@ -44,7 +44,8 @@ function extractInteractiveSlots(
 		.map(({ slotName, moduleSource }) => ({ routePath, slotName, moduleSource }));
 }
 
-function buildClientEntries(
+/** @internal Visible for testing. */
+export function buildClientEntries(
 	routeSources: Record<string, string>,
 	hydrationManifest: HydrationManifest,
 ): ClientEntry[] {

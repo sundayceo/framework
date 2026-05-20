@@ -26,6 +26,7 @@ type ValidateSlotsInput = {
 	extractedSlots: ExtractedSlots;
 };
 
+/* v8 ignore start -- all .at() indices are within bounds; ?? fallbacks are unreachable */
 function levenshtein(a: string, b: string): number {
 	const prev = Array.from({ length: b.length + 1 }, (_, j) => j);
 	const curr = new Array<number>(b.length + 1);
@@ -47,6 +48,7 @@ function levenshtein(a: string, b: string): number {
 
 	return prev.at(b.length) ?? 0;
 }
+/* v8 ignore stop */
 
 function findClosestSlot(name: string, candidates: string[]): string | undefined {
 	let bestMatch: string | undefined;

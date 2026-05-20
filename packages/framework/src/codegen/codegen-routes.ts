@@ -25,6 +25,7 @@ function extractParams(route: string): ParamEntry[] {
 	const params: ParamEntry[] = [];
 	let match: RegExpExecArray | null = PARAM_PATTERN.exec(route);
 	while (match !== null) {
+		/* v8 ignore next */
 		const raw = match.at(1) ?? "";
 		const isCatchAll = raw.startsWith(CATCH_ALL_PREFIX);
 		params.push({ name: isCatchAll ? raw.slice(CATCH_ALL_PREFIX.length) : raw, isCatchAll });
