@@ -1,5 +1,5 @@
 {
-	"name": "@sundayceo/production-test",
+	"name": "@sundayceo/example-cloudflare",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -15,9 +15,11 @@
 	},
 	"devDependencies": {
 		"@sundayceo/typescript-config": "workspace:*",
+		"@tailwindcss/vite": "^4.3.0",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
+		"tailwindcss": "^4.3.0",
 		"typescript": "catalog:",
 		"vite": "^8.0.13",
 		"wrangler": "^4.20.0"
