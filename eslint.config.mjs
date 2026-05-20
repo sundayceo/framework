@@ -45,10 +45,10 @@ const noCommentsRule = {
 const noBracketAccessRule = {
 	meta: {
 		type: "suggestion",
-		docs: { description: "Prefer .at() over bracket notation for array access" },
+		docs: { description: "Prefer .at() over bracket notation for negative array indices" },
 		messages: {
 			preferAt:
-				"Use .at({{index}}) instead of bracket notation for array access. Bracket notation is only allowed for known-index object access.",
+				"Use .at({{index}}) instead of bracket notation for negative indices.",
 		},
 		schema: [],
 	},
@@ -58,20 +58,14 @@ const noBracketAccessRule = {
 				if (!node.computed) {
 					return;
 				}
-				if (node.property.type !== "Literal" && node.property.type !== "UnaryExpression") {
-					return;
-				}
-				if (node.property.type === "Literal" && typeof node.property.value !== "number") {
+				if (node.property.type !== "UnaryExpression" || node.property.operator !== "-") {
 					return;
 				}
 				const parent = node.parent;
 				if (parent.type === "AssignmentExpression" && parent.left === node) {
 					return;
 				}
-				const index =
-					node.property.type === "UnaryExpression"
-						? context.sourceCode.getText(node.property)
-						: String(node.property.value);
+				const index = context.sourceCode.getText(node.property);
 				context.report({ node, messageId: "preferAt", data: { index } });
 			},
 		};

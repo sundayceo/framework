@@ -113,22 +113,22 @@ function isHtmlResponse(response: Response): boolean {
 	return (response.headers.get("content-type") ?? "").includes("text/html");
 }
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- ssrLoadModule returns Record<string, unknown>; narrowing to LoadedModules fields */
 async function loadModules(server: ViteDevServer, srcDir: string): Promise<LoadedModules> {
-	const appModule = await server.ssrLoadModule(path.join(srcDir, "app.ts"));
-	const routesModule = await server.ssrLoadModule(path.join(srcDir, "routes.gen.ts"));
-	const { createHandler } = await server.ssrLoadModule("@sundayceo/framework");
+	const appModule: Record<string, unknown> = await server.ssrLoadModule(path.join(srcDir, "app.ts"));
+	const routesModule: Record<string, unknown> = await server.ssrLoadModule(path.join(srcDir, "routes.gen.ts"));
+	const frameworkModule: Record<string, unknown> = await server.ssrLoadModule("@sundayceo/framework");
 
 	return {
-		app: appModule.app ?? appModule.default,
-		routes: routesModule.routes,
-		templates: routesModule.templates,
-		errorPages: routesModule.errorPages,
-		hydrationManifest: routesModule.hydrationManifest,
-		createHandler,
+		app: (appModule.app ?? appModule.default) as AppConfig,
+		routes: routesModule.routes as RouteEntry[],
+		templates: routesModule.templates as GeneratedTemplates,
+		errorPages: routesModule.errorPages as LoadedModules["errorPages"],
+		hydrationManifest: routesModule.hydrationManifest as LoadedModules["hydrationManifest"],
+		createHandler: frameworkModule.createHandler as CreateHandlerFn,
 	};
 }
-/* eslint-enable @typescript-eslint/no-unsafe-assignment */
+/* eslint-enable @typescript-eslint/consistent-type-assertions */
 
 async function dispatchRequest(input: DispatchInput): Promise<void> {
 	const { server, srcDir, req, res, next } = input;

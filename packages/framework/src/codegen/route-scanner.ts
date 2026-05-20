@@ -25,8 +25,7 @@ const CATCH_ALL_PATTERN = /\[\.\.\.([^\]]+)\]/;
 const convertSegment = (segment: string): string => {
 	const catchAll = CATCH_ALL_PATTERN.exec(segment);
 	if (catchAll !== null) {
-		/* v8 ignore next */
-		return `*${catchAll.at(1) ?? ""}`;
+		return `*${catchAll[1]}`;
 	}
 	return segment.replace(PARAM_PATTERN, ":$1");
 };

@@ -54,17 +54,16 @@ export type HandlerModule<
 	DELETE?: MethodHandler<TParams, TCustom>;
 };
 
+/* eslint-disable @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type -- declaration-merging requires interfaces */
 /** Declaration-merging interface for registering the app's type-safe configuration. */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
 export interface Register {}
 
 /** Declaration-merging interface for registering available template names. */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
 export interface TemplateRegistry {}
 
 /** Declaration-merging interface for registering route paths and their param types. */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
 export interface RouteMap {}
+/* eslint-enable @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type */
 
 /** Resolves to the registered app type, or undefined if none is registered. */
 export type RegisteredApp = Register extends { app: infer T } ? T : undefined;
@@ -79,6 +78,9 @@ type InferCustomFromApp<T> = T extends {
 export type CustomContext = RegisteredApp extends undefined
 	? Record<string, unknown>
 	: InferCustomFromApp<RegisteredApp>;
+
+/** Static head metadata for a page. */
+export type MetaInfo = { title?: string; description?: string };
 
 /** A route definition that can be matched against a URL path. */
 export type MatchableRoute = {

@@ -47,7 +47,6 @@ export function buildHydrationManifest(input: ManifestInput): HydrationManifestR
 					: resolveSpecifier;
 
 			for (const [key, slot] of slotModules) {
-				/* v8 ignore next */
 				const slotName = key.split("/").at(-1) ?? key;
 				entry[slotName] = isInteractive(slot.moduleSource, importGraph, routeResolver);
 			}

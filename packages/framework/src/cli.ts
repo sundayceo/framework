@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import fs from "node:fs";
 import path from "node:path";
 
@@ -19,7 +20,6 @@ function run(): void {
 	const srcDir = resolveSourceDir(process.argv.slice(2));
 
 	if (!fs.existsSync(srcDir)) {
-		// eslint-disable-next-line no-console
 		console.error(`Source directory not found: ${srcDir}`);
 		process.exitCode = 1;
 		return;
@@ -29,7 +29,6 @@ function run(): void {
 	fs.writeFileSync(path.join(srcDir, OUTPUT_FILE), declarations);
 	fs.writeFileSync(path.join(srcDir, MANIFEST_FILE), manifest);
 
-	// eslint-disable-next-line no-console
 	console.log(`Generated ${OUTPUT_FILE} and ${MANIFEST_FILE} in ${srcDir}`);
 }
 
