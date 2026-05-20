@@ -16,10 +16,14 @@ declare module "@sundayceo/framework" {
 		"/blog/featured": {};
 		"/context-test": {};
 		"/demo": {};
+		"/docs/[...slug]": { slug: string };
 		"/error-test": {};
+		"/forbidden-test": {};
+		"/full-hydrate": {};
 		"/meta-dynamic": {};
 		"/meta-static": {};
 		"/partial-slots": {};
+		"/pricing": {};
 		"/redirect-test": {};
 		"/request-test": {};
 		"/throw-test": {};

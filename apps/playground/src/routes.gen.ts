@@ -8,15 +8,19 @@ export const routes = [
   { routePath: "/context-test", params: [], loadModule: () => import("./routes/context-test") },
   { routePath: "/demo", params: [], loadModule: () => import("./routes/demo") },
   { routePath: "/error-test", params: [], loadModule: () => import("./routes/error-test") },
+  { routePath: "/forbidden-test", params: [], loadModule: () => import("./routes/forbidden-test") },
+  { routePath: "/full-hydrate", params: [], loadModule: () => import("./routes/full-hydrate") },
   { routePath: "/meta-dynamic", params: [], loadModule: () => import("./routes/meta-dynamic") },
   { routePath: "/meta-static", params: [], loadModule: () => import("./routes/meta-static") },
   { routePath: "/partial-slots", params: [], loadModule: () => import("./routes/partial-slots") },
+  { routePath: "/pricing", params: [], loadModule: () => import("./routes/(marketing)/pricing") },
   { routePath: "/redirect-test", params: [], loadModule: () => import("./routes/redirect-test") },
   { routePath: "/request-test", params: [], loadModule: () => import("./routes/request-test") },
   { routePath: "/throw-test", params: [], loadModule: () => import("./routes/throw-test") },
   { routePath: "/typo-slot", params: [], loadModule: () => import("./routes/typo-slot") },
   { routePath: "/blog/:slug", params: ["slug"], loadModule: () => import("./routes/blog/[slug]") },
   { routePath: "/users/:id/posts/:postId", params: ["id", "postId"], loadModule: () => import("./routes/users/[id]/posts/[postId]") },
+  { routePath: "/docs/*slug", params: ["slug"], loadModule: () => import("./routes/docs/[...slug]") },
 ];
 
 export const templates = {
@@ -24,11 +28,17 @@ export const templates = {
 };
 
 export const errorPages = {
+  403: () => import("./routes/403"),
   404: () => import("./routes/404"),
   500: () => import("./routes/500"),
 };
 
 export const hydrationManifest = {
+  "/403": {
+    "header": false,
+    "main": false,
+    "footer": false
+  },
   "/404": {
     "header": false,
     "main": false,
@@ -51,8 +61,13 @@ export const hydrationManifest = {
   },
   "/demo": {
     "header": false,
-    "main": false,
+    "main": true,
     "footer": false
+  },
+  "/full-hydrate": {
+    "header": true,
+    "main": true,
+    "footer": true
   },
   "/": {
     "header": false,
@@ -87,9 +102,14 @@ export const hydrationManifest = {
     "main": false,
     "footer": false
   },
-  "/blog/[slug]": {
+  "/pricing": {
     "header": false,
     "main": false,
+    "footer": false
+  },
+  "/blog/:slug": {
+    "header": false,
+    "main": true,
     "footer": false
   },
   "/blog/featured": {
@@ -97,7 +117,12 @@ export const hydrationManifest = {
     "main": false,
     "footer": false
   },
-  "/users/[id]/posts/[postId]": {
+  "/docs/*slug": {
+    "header": false,
+    "main": false,
+    "footer": false
+  },
+  "/users/:id/posts/:postId": {
     "header": false,
     "main": false,
     "footer": false
