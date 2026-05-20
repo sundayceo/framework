@@ -53,6 +53,10 @@ describe("injectHydration", () => {
 		expect(result).toContain('<script type="application/json" data-hydrate-data="header">');
 		expect(result).toContain('<script type="application/json" data-hydrate-data="counter">');
 		expect(result).toContain('<script type="application/json" data-hydrate-data="footer">');
+
+		// each interactive slot gets an independent hydration script
+		const moduleScripts = result.match(/<script type="module">/g) ?? [];
+		expect(moduleScripts.length).toBe(3);
 	});
 
 	test("mixed page only adds scripts for interactive slots", () => {
@@ -127,30 +131,6 @@ describe("injectHydration", () => {
 		expect(result).toContain("\\u003c/script>");
 	});
 
-	test("multiple interactive slots each get independent hydration", () => {
-		const result = injectHydration({
-			html: BASE_HTML,
-			slotInteractivity: {
-				header: true,
-				counter: true,
-				footer: false,
-			},
-			routePath: "/pages/home",
-			loaderData: { x: 1 },
-		});
-
-		const moduleScripts = result.match(/<script type="module">/g) ?? [];
-		expect(moduleScripts.length).toBe(2);
-
-		expect(result).toContain('data-hydrate="header"');
-		expect(result).toContain('data-hydrate="counter"');
-		expect(result).not.toContain('data-hydrate="footer"');
-
-		expect(result).toContain('data-hydrate-data="header"');
-		expect(result).toContain('data-hydrate-data="counter"');
-		expect(result).not.toContain('data-hydrate-data="footer"');
-	});
-
 	test("static slots preserve their HTML content unchanged", () => {
 		const result = injectHydration({
 			html: BASE_HTML,
@@ -189,6 +169,37 @@ describe("injectHydration", () => {
 			'<div data-hydrate="main"><div class="wrapper"><div class="inner"><p>Deep</p></div></div></div>',
 		);
 		expect(result).not.toContain('data-slot="main"');
+	});
+
+	test("skips slot when its data-slot tag is missing from HTML", () => {
+		const html = "<!DOCTYPE html><html><body><p>No slots here</p></body></html>";
+
+		const result = injectHydration({
+			html,
+			slotInteractivity: { missing: true },
+			routePath: "/test",
+			loaderData: {},
+		});
+
+		// Script tags are still appended even though the slot div was not found
+		expect(result).toContain('<script type="module">');
+		// The original slot div is not present, so no wrapping div is added
+		expect(result).not.toContain('<div data-hydrate="missing">');
+	});
+
+	test("handles unclosed slot div gracefully", () => {
+		const html = '<!DOCTYPE html><html><body><div data-slot="broken"><p>unclosed</body></html>';
+
+		const result = injectHydration({
+			html,
+			slotInteractivity: { broken: true },
+			routePath: "/test",
+			loaderData: {},
+		});
+
+		// The slot content is not wrapped because findSlotContent returns null for unclosed div
+		expect(result).not.toContain('<div data-hydrate="broken">');
+		expect(result).toContain('<script type="module">');
 	});
 
 	test("hydration script references the correct route path", () => {

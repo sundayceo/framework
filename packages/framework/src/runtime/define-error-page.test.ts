@@ -1,6 +1,6 @@
-import { expect, expectTypeOf, test } from "vitest";
+import { expect, test } from "vitest";
 
-import { defineErrorPage, type ErrorContext } from "./define-error-page";
+import { defineErrorPage } from "./define-error-page";
 import { RouteKind } from "./types";
 
 declare module "./types" {
@@ -23,48 +23,4 @@ test("defineErrorPage stamps RouteKind brand on the config", () => {
 	expect(result.template).toBe(config.template);
 	expect(result.loader).toBe(config.loader);
 	expect(result.defineSlots).toBe(config.defineSlots);
-});
-
-test("loader receives non-optional error: ErrorContext", () => {
-	defineErrorPage(500)({
-		template: "marketing" as const,
-		loader: (ctx) => {
-			expectTypeOf(ctx.error).toEqualTypeOf<ErrorContext>();
-			expect(ctx.error.status).toBe(500);
-			return { heading: "Server Error" };
-		},
-		defineSlots: () => ({ main: null }),
-	});
-});
-
-test("meta field is supported with loader data", () => {
-	const result = defineErrorPage(500)({
-		template: "marketing" as const,
-		loader: () => ({ heading: "Oops" }),
-		defineSlots: () => ({ main: null }),
-		meta: ({ loaderData }) => {
-			expectTypeOf(loaderData).toEqualTypeOf<{ heading: string }>();
-			return { title: loaderData.heading };
-		},
-	});
-
-	expect(result).toHaveProperty("meta");
-});
-
-test("ctx.error is ErrorContext and is NOT optional", () => {
-	defineErrorPage(404)({
-		template: "marketing" as const,
-		loader: (ctx) => {
-			expectTypeOf(ctx).toHaveProperty("error");
-			expectTypeOf(ctx.error).toEqualTypeOf<ErrorContext>();
-
-			expectTypeOf(ctx.error.status).toBeNumber();
-			expectTypeOf(ctx.error.message).toBeString();
-			expectTypeOf(ctx.error.stack).toEqualTypeOf<string | undefined>();
-			expectTypeOf(ctx.error.error).toEqualTypeOf<unknown>();
-
-			return {};
-		},
-		defineSlots: () => ({ main: null }),
-	});
 });

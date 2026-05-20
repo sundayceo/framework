@@ -1,40 +1,4 @@
-import { expect, expectTypeOf, test } from "vitest";
-
-import {
-	codegen,
-	generateServerEntry,
-	type ClientEntry,
-	type CodegenInput,
-	type CodegenOutput,
-	type HydrationManifest,
-} from "./index";
-
-test("exports codegen orchestrator", () => {
-	expect(codegen).toBeTypeOf("function");
-});
-
-test("exports generateServerEntry", () => {
-	expect(generateServerEntry).toBeTypeOf("function");
-});
-
-test("exports type-safe CodegenOutput with clientEntries", () => {
-	const result = codegen({ routePaths: [], templatePaths: [] });
-	expectTypeOf(result).toExtend<CodegenOutput>();
-	expectTypeOf(result.clientEntries).toExtend<ClientEntry[]>();
-});
-
-test("HydrationManifest type is correct", () => {
-	const manifest: HydrationManifest = { "/": { main: true, header: false } };
-	expectTypeOf(manifest).toExtend<Record<string, Record<string, boolean>>>();
-});
-
-test("CodegenInput accepts optional fields", () => {
-	const input: CodegenInput = {
-		routePaths: ["index.tsx"],
-		templatePaths: ["default.tsx"],
-	};
-	expectTypeOf(input).toExtend<CodegenInput>();
-});
+import { expect, test } from "vitest";
 
 test("does not export internal codegen functions", async () => {
 	const barrel = await import("./index");

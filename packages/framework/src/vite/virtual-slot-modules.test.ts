@@ -148,6 +148,14 @@ export default definePage("/pricing")({
 		expect(result).toContain("/app/src/components/Badge");
 	});
 
+	test("returns null when hydrate ID has no slot name segment", () => {
+		const routeSources = new Map<string, string>();
+
+		const result = loadVirtualSlotModule({ id: "virtual:hydrateslotonly", routeSources });
+
+		expect(result).toBeNull();
+	});
+
 	test("static slot has no loaderData param", () => {
 		const routeSources = new Map<string, string>([
 			[

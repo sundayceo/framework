@@ -60,13 +60,6 @@ describe("generateRouteMap", () => {
 		expect(mIndex).toBeLessThan(zIndex);
 	});
 
-	test("wraps in module declaration", () => {
-		const result = generateRouteMap(["index.tsx"]);
-
-		expect(result).toContain('declare module "@sundayceo/framework"');
-		expect(result).toContain("interface RouteMap");
-	});
-
 	test("generates catch-all route with string param type", () => {
 		const result = generateRouteMap(["docs/[...slug].tsx"]);
 

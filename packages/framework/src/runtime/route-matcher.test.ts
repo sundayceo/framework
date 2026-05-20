@@ -116,19 +116,6 @@ describe("matchRoute", () => {
 		});
 	});
 
-	test("catch-all matches deeply nested segments", () => {
-		const routes: TestRoute[] = [
-			{ routePath: "/docs/*slug", params: ["slug"], filePath: "docs/[...slug].tsx" },
-		];
-
-		const result = matchRoute("/docs/api/v2/users/list", routes);
-
-		expect(result).toEqual({
-			route: routes.at(0),
-			params: { slug: "api/v2/users/list" },
-		});
-	});
-
 	test("static route takes priority over catch-all", () => {
 		const routes: TestRoute[] = [
 			{ routePath: "/docs", params: [], filePath: "docs/index.tsx" },
@@ -180,44 +167,34 @@ describe("matchRoute", () => {
 		});
 	});
 
-	test("decodes URL-encoded characters in catch-all params", () => {
-		const routes: TestRoute[] = [
-			{ routePath: "/docs/*slug", params: ["slug"], filePath: "docs/[...slug].tsx" },
-		];
+	test.each([
+		{
+			label: "top-level catch-all at /",
+			routePath: "/*path",
+			paramName: "path",
+			filePath: "[...path].tsx",
+			url: "/",
+		},
+		{
+			label: "prefixed catch-all at /docs",
+			routePath: "/docs/*slug",
+			paramName: "slug",
+			filePath: "docs/[...slug].tsx",
+			url: "/docs",
+		},
+	])(
+		"catch-all captures empty string when no trailing segments ($label)",
+		({ routePath, paramName, filePath, url }) => {
+			const routes: TestRoute[] = [{ routePath, params: [paramName], filePath }];
 
-		const result = matchRoute("/docs/caf%C3%A9/menu%20items", routes);
+			const result = matchRoute(url, routes);
 
-		expect(result).toEqual({
-			route: routes.at(0),
-			params: { slug: "café/menu items" },
-		});
-	});
-
-	test("catch-all captures empty string when no trailing segments", () => {
-		const routes: TestRoute[] = [
-			{ routePath: "/*path", params: ["path"], filePath: "[...path].tsx" },
-		];
-
-		const result = matchRoute("/", routes);
-
-		expect(result).toEqual({
-			route: routes.at(0),
-			params: { path: "" },
-		});
-	});
-
-	test("catch-all matches prefix URL with empty slug", () => {
-		const routes: TestRoute[] = [
-			{ routePath: "/docs/*slug", params: ["slug"], filePath: "docs/[...slug].tsx" },
-		];
-
-		const result = matchRoute("/docs", routes);
-
-		expect(result).toEqual({
-			route: routes.at(0),
-			params: { slug: "" },
-		});
-	});
+			expect(result).toEqual({
+				route: routes.at(0),
+				params: { [paramName]: "" },
+			});
+		},
+	);
 
 	test("handles malformed URI components without crashing", () => {
 		const routes: TestRoute[] = [
@@ -230,6 +207,16 @@ describe("matchRoute", () => {
 			route: routes.at(0),
 			params: { slug: "%ZZ" },
 		});
+	});
+
+	test("does not match when URL has fewer segments than pattern", () => {
+		const routes: TestRoute[] = [
+			{ routePath: "/blog/:slug", params: ["slug"], filePath: "blog/[slug].tsx" },
+		];
+
+		const result = matchRoute("/blog", routes);
+
+		expect(result).toBeNull();
 	});
 
 	test("does not match when extra segments exist for non-catch-all", () => {

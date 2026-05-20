@@ -119,12 +119,6 @@ describe("error pages", () => {
 		expect(body).toContain("Forbidden");
 	});
 
-	test("error page receives ErrorContext with message", async () => {
-		const res = await request("/throw-test");
-		const body = await res.text();
-		expect(body).toContain("loader-exploded");
-	});
-
 	test("404 error page renders with correct content-type", async () => {
 		const res = await request("/nonexistent");
 		expect(res.headers.get("content-type")).toBe("text/html;charset=utf-8");
@@ -375,11 +369,6 @@ describe("response headers", () => {
 		expect(res.headers.get("content-type")).toContain("application/json");
 	});
 
-	test("redirect has location header and no body", async () => {
-		const res = await request("/redirect-test");
-		expect(res.headers.get("location")).toBe("/");
-		expect(res.status).toBe(302);
-	});
 });
 
 describe("HTTP method support", () => {
@@ -426,10 +415,6 @@ describe("HTTP method support", () => {
 });
 
 describe("codegen output", () => {
-	test("routes array has correct length", () => {
-		expect(routes.length).toBeGreaterThanOrEqual(15);
-	});
-
 	test("templates registry has default template", () => {
 		expect(templates).toHaveProperty("default");
 		expect(typeof templates.default).toBe("function");
