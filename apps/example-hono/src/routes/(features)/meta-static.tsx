@@ -7,8 +7,15 @@ export default definePage("/meta-static")({
 	meta: { title: "Static Title", description: "Static description" },
 	loader: () => ({}),
 	defineSlots: () => ({
-		header: <h1>Meta Static Test</h1>,
-		main: <p>has static meta</p>,
-		footer: <p>footer</p>,
+		header: (
+			<div className="space-y-4">
+				<a href="/" className="text-sm text-gray-400 hover:text-gray-600">
+					← Back
+				</a>
+				<h1 className="text-2xl font-bold tracking-tight">Meta Static Test</h1>
+			</div>
+		),
+		main: <p className="text-gray-600">has static meta</p>,
+		footer: <p className="text-sm text-gray-500">footer</p>,
 	}),
 });

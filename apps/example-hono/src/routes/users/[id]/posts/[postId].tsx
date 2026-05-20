@@ -9,12 +9,19 @@ export default definePage("/users/[id]/posts/[postId]")({
 		postId: params.postId,
 	}),
 	defineSlots: ({ loaderData }) => ({
-		header: <h1>User Post</h1>,
+		header: (
+			<div className="space-y-4">
+				<a href="/" className="text-sm text-gray-400 hover:text-gray-600">
+					← Back
+				</a>
+				<h1 className="text-2xl font-bold tracking-tight">User Post</h1>
+			</div>
+		),
 		main: (
-			<p data-testid="params">
+			<p className="font-mono text-sm bg-gray-100 rounded px-2 py-1" data-testid="params">
 				user:{loaderData.userId} post:{loaderData.postId}
 			</p>
 		),
-		footer: <p>footer</p>,
+		footer: <p className="text-sm text-gray-500">footer</p>,
 	}),
 });
