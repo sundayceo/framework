@@ -1,9 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import type { Plugin, ViteDevServer } from "vite";
+import { transformWithOxc, type Plugin, type ViteDevServer } from "vite";
 
 import { codegenFromDisk } from "../codegen-disk/codegen";
+import { buildImportGraph } from "../codegen-disk/import-graph";
 import { generateServerEntry } from "../codegen/generate-server-entry";
 import { buildHydrationManifest, serializeManifest } from "../codegen/hydration-manifest";
 import { filePathToRoutePath, transformRouteModule } from "../codegen/transform-route-module";
@@ -38,10 +39,15 @@ function buildServerEntry(srcDir: string): string {
 	});
 }
 
-function scanRouteSources(srcDir: string): Map<string, string> {
+type RouteScanResult = {
+	sources: Map<string, string>;
+	filePathMap: Record<string, string>;
+};
+
+function scanRouteSources(srcDir: string): RouteScanResult {
 	const routesDir = path.join(srcDir, "routes");
 	if (!fs.existsSync(routesDir)) {
-		return new Map();
+		return { sources: new Map(), filePathMap: {} };
 	}
 
 	const files = fs
@@ -51,16 +57,27 @@ function scanRouteSources(srcDir: string): Map<string, string> {
 		);
 
 	const sources = new Map<string, string>();
+	const filePathMap: Record<string, string> = {};
 	for (const file of files) {
 		const routePath = filePathToRoutePath(file);
 		sources.set(routePath, fs.readFileSync(path.join(routesDir, file), "utf-8"));
+		filePathMap[routePath] = file;
 	}
-	return sources;
+	return { sources, filePathMap };
 }
 
-function generateManifestSource(routeSources: Map<string, string>): string {
-	const routes = [...routeSources.entries()].map(([routePath, source]) => ({ routePath, source }));
-	const manifest = buildHydrationManifest({ routes, importGraph: {} });
+function generateManifestSource(scan: RouteScanResult, srcDir: string): string {
+	const routes = [...scan.sources.entries()].map(([routePath, source]) => ({
+		routePath,
+		source,
+	}));
+	const routesDir = path.join(srcDir, "routes");
+	const importGraph = buildImportGraph(
+		Object.fromEntries(scan.sources),
+		routesDir,
+		scan.filePathMap,
+	);
+	const manifest = buildHydrationManifest({ routes, importGraph });
 	return serializeManifest(manifest);
 }
 
@@ -116,7 +133,7 @@ const VIRTUAL_RESOLVE: Record<string, string> = {
 };
 
 function resolveVirtualId(source: string): string | undefined {
-	return VIRTUAL_RESOLVE[source] ?? resolveHydrateId(source) ?? undefined;
+	return VIRTUAL_RESOLVE[source] ?? resolveHydrateId(source);
 }
 
 function invalidateManifest(server: ViteDevServer): void {
@@ -126,57 +143,72 @@ function invalidateManifest(server: ViteDevServer): void {
 	}
 }
 
+function loadHydrateModule(id: string, scan: RouteScanResult, srcDir: string): string | undefined {
+	const bareId = stripNullByte(id);
+	if (!isHydrateModuleId(bareId)) {
+		return undefined;
+	}
+	const routesDir = path.join(srcDir, "routes");
+	return (
+		loadVirtualSlotModule({
+			id: bareId,
+			routeSources: scan.sources,
+			routesDir,
+			filePathMap: scan.filePathMap,
+		}) ?? undefined
+	);
+}
+
+async function transformJsxModule(code: string, id: string): ReturnType<typeof transformWithOxc> {
+	return transformWithOxc(code, id, {
+		lang: "jsx",
+		jsx: { runtime: "automatic" },
+	});
+}
+
 /** Returns the main Vite plugin that powers codegen, routing, and hydration. */
 export function frameworkPlugin(): Plugin {
-	let srcDir: string;
-	let routeSources = new Map<string, string>();
+	let srcDir = "";
+	let routeScan: RouteScanResult = { sources: new Map(), filePathMap: {} };
 	let manifestSource: string | null = null;
 
 	return {
 		name: PLUGIN_NAME,
 		enforce: "pre",
-
 		configResolved(config) {
 			srcDir = path.join(config.root, "src");
 		},
-
 		resolveId: (source: string) => resolveVirtualId(source),
-
-		load(id: string) {
+		load(id) {
 			if (id === RESOLVED_VIRTUAL_MODULE_ID) {
 				return buildServerEntry(srcDir);
 			}
 			if (id === RESOLVED_HYDRATION_MANIFEST_ID) {
-				manifestSource ??= generateManifestSource(routeSources);
+				manifestSource ??= generateManifestSource(routeScan, srcDir);
 				return manifestSource;
 			}
-			const bareId = stripNullByte(id);
-			if (isHydrateModuleId(bareId)) {
-				return loadVirtualSlotModule(bareId, routeSources) ?? undefined;
-			}
-			return undefined;
+			return loadHydrateModule(id, routeScan, srcDir);
 		},
-
 		buildStart() {
 			writeCodegen(srcDir);
-			routeSources = scanRouteSources(srcDir);
-			manifestSource = generateManifestSource(routeSources);
+			routeScan = scanRouteSources(srcDir);
+			manifestSource = generateManifestSource(routeScan, srcDir);
 		},
-
-		transform(code, id) {
+		async transform(code, id) {
+			if (isHydrateModuleId(stripNullByte(id))) {
+				return transformJsxModule(code, id);
+			}
 			return transformRoute(code, id, srcDir);
 		},
-
 		handleHotUpdate({ file, server }) {
 			if (!isRouteFile(file, path.join(srcDir, "routes"))) {
 				return;
 			}
-			routeSources = scanRouteSources(srcDir);
+			routeScan = scanRouteSources(srcDir);
 			manifestSource = null;
 			invalidateManifest(server);
 			invalidateHydrateModules(server);
 		},
-
 		configureServer(server) {
 			watchCodegen(server.watcher, srcDir);
 			return createDevMiddleware({ server, srcDir });
