@@ -596,12 +596,11 @@ export default defineConfig(
 
 	{
 		files: [
-			"**/routes/404.tsx",
-			"**/routes/404.test.tsx",
-			"**/routes/500.tsx",
-			"**/routes/500.test.tsx",
+			"**/routes/[0-9]*.tsx",
+			"**/routes/[0-9]*.test.tsx",
 			"**/routes/**/*\\[*\\]*.tsx",
 			"**/routes/**/*\\[*\\]*.ts",
+			"**/routes/**(*)/**",
 		],
 		rules: {
 			"check-file/filename-naming-convention": "off",
