@@ -3,25 +3,34 @@
 	"version": "0.0.0",
 	"type": "module",
 	"license": "MIT",
+	"bin": {
+		"sundayceo": "./dist/cli.js"
+	},
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
 		},
+		"./codegen": {
+			"types": "./dist/codegen/index.d.ts",
+			"import": "./dist/codegen/index.js"
+		},
 		"./vite": {
-			"types": "./dist/vite-plugin.d.ts",
-			"import": "./dist/vite-plugin.js"
+			"types": "./dist/vite/vite-plugin.d.ts",
+			"import": "./dist/vite/vite-plugin.js"
 		},
 		"./server-entry": {
-			"types": "./src/server-entry.d.ts",
-			"import": "./src/server-entry-stub.js"
+			"types": "./src/vite/server-entry.d.ts",
+			"import": "./src/vite/server-entry-stub.js"
 		}
 	},
 	"publishConfig": {
 		"access": "public"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"src/vite/server-entry-stub.js",
+		"src/vite/server-entry.d.ts"
 	],
 	"scripts": {
 		"build": "tsup",

@@ -28,12 +28,20 @@ describe("build output", () => {
 		expect(existsSync(resolve(DIST, "index.d.ts"))).toBe(true);
 	});
 
-	test("dist contains vite-plugin.js", () => {
-		expect(existsSync(resolve(DIST, "vite-plugin.js"))).toBe(true);
+	test("dist contains codegen/index.js", () => {
+		expect(existsSync(resolve(DIST, "codegen", "index.js"))).toBe(true);
 	});
 
-	test("dist contains vite-plugin.d.ts", () => {
-		expect(existsSync(resolve(DIST, "vite-plugin.d.ts"))).toBe(true);
+	test("dist contains codegen/index.d.ts", () => {
+		expect(existsSync(resolve(DIST, "codegen", "index.d.ts"))).toBe(true);
+	});
+
+	test("dist contains vite/vite-plugin.js", () => {
+		expect(existsSync(resolve(DIST, "vite", "vite-plugin.js"))).toBe(true);
+	});
+
+	test("dist contains vite/vite-plugin.d.ts", () => {
+		expect(existsSync(resolve(DIST, "vite", "vite-plugin.d.ts"))).toBe(true);
 	});
 });
 
@@ -46,23 +54,36 @@ describe("package.json exports map", () => {
 		});
 	});
 
-	test("vite export points to dist/vite-plugin", async () => {
+	test("codegen export points to dist/codegen/index", async () => {
+		const pkg = await readPackageJson();
+		expect(pkg.exports["./codegen"]).toStrictEqual({
+			types: "./dist/codegen/index.d.ts",
+			import: "./dist/codegen/index.js",
+		});
+	});
+
+	test("vite export points to dist/vite/vite-plugin", async () => {
 		const pkg = await readPackageJson();
 		expect(pkg.exports["./vite"]).toStrictEqual({
-			types: "./dist/vite-plugin.d.ts",
-			import: "./dist/vite-plugin.js",
+			types: "./dist/vite/vite-plugin.d.ts",
+			import: "./dist/vite/vite-plugin.js",
 		});
 	});
 
 	test("server-entry export provides types and stub import", async () => {
 		const pkg = await readPackageJson();
 		expect(pkg.exports["./server-entry"]).toStrictEqual({
-			types: "./src/server-entry.d.ts",
-			import: "./src/server-entry-stub.js",
+			types: "./src/vite/server-entry.d.ts",
+			import: "./src/vite/server-entry-stub.js",
 		});
 	});
 
-	test("cloudflare subpath export is removed", async () => {
+	test("has no build subpath export", async () => {
+		const pkg = await readPackageJson();
+		expect(pkg.exports["./build"]).toBeUndefined();
+	});
+
+	test("has no cloudflare subpath export", async () => {
 		const pkg = await readPackageJson();
 		expect(pkg.exports["./cloudflare"]).toBeUndefined();
 	});
@@ -84,9 +105,13 @@ describe("package.json publish config", () => {
 		expect(pkg.peerDependencies.vite).toBeDefined();
 	});
 
-	test("files field includes only dist", async () => {
+	test("files field includes dist and server-entry source files", async () => {
 		const pkg = await readPackageJson();
-		expect(pkg.files).toStrictEqual(["dist"]);
+		expect(pkg.files).toStrictEqual([
+			"dist",
+			"src/vite/server-entry-stub.js",
+			"src/vite/server-entry.d.ts",
+		]);
 	});
 
 	test("publishConfig sets public access", async () => {

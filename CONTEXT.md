@@ -96,6 +96,10 @@ _Avoid_: Error template, error handler, error route
 Additional data available on the loader's `ctx.error` field when rendering an error page. Contains `status`, `message`, and in dev mode `stack` and `error`. Never present on regular pages.
 _Avoid_: Error data, error info
 
+**Hydration Manifest**:
+A build-time map from route paths to slot interactivity flags. Each entry records which slots in a route are **interactive** (need **hydration**) and which are **static** (zero JS). Produced by **interactivity inference** during **codegen** and embedded in `routes.gen.ts`. When all slots are static, the **render pipeline** skips hydration injection entirely.
+_Avoid_: Interactivity map, slot manifest
+
 ## Relationships
 
 - A **template** declares one or more **slots**
@@ -108,6 +112,9 @@ _Avoid_: Error data, error info
 - The **platform context** flows from the **entry shim** → `handler.fetch` → **context factory** → **request context**
 - The **server entry** (virtual module) is resolved by the Vite plugin and wires `app.ts` + `routes.gen.ts` into a handler
 - **Interactivity inference** determines whether **slot content** is **static** or **interactive**
+- **Interactivity inference** produces the **hydration manifest** — a per-route, per-slot map of interactivity flags
+- The **hydration manifest** is embedded in `routes.gen.ts` by **codegen**
+- The **render pipeline** reads the **hydration manifest** to decide which slots receive **hydration** scripts
 - **Interactive** slot content undergoes **hydration**; **static** slot content does not
 - **Type codegen** produces types for templates and routes; the **route transform** auto-fills route paths
 - The **request pipeline** branches into the page path (which uses the **render pipeline**) or the handler path

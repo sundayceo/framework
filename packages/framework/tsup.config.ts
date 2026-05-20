@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-	entry: ["src/index.ts", "src/vite-plugin.ts"],
+	entry: ["src/index.ts", "src/codegen/index.ts", "src/vite/vite-plugin.ts", "src/cli.ts"],
 	format: ["esm"],
 	dts: {
 		compilerOptions: {
@@ -9,6 +9,14 @@ export default defineConfig({
 		},
 	},
 	clean: true,
+	async onSuccess() {
+		const { readFileSync, writeFileSync } = await import("node:fs");
+		const cliPath = "dist/cli.js";
+		const content = readFileSync(cliPath, "utf-8");
+		if (!content.startsWith("#!")) {
+			writeFileSync(cliPath, `#!/usr/bin/env node\n${content}`);
+		}
+	},
 	external: [
 		"react",
 		"react-dom",
