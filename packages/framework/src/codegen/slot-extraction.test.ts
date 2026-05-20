@@ -22,11 +22,11 @@ export default definePage("/demo")({
 
 		expect(result.size).toBe(2);
 
-		const header = result.get("virtual:hydrate/demo/header")!;
+		const header = result.get("/demo/header")!.moduleSource;
 		expect(header).toContain("{ loaderData }");
 		expect(header).toContain("loaderData.title");
 
-		const footer = result.get("virtual:hydrate/demo/footer")!;
+		const footer = result.get("/demo/footer")!.moduleSource;
 		expect(footer).not.toContain("{ loaderData }");
 		expect(footer).toContain("Static footer");
 	});
@@ -50,11 +50,11 @@ export default definePage("/demo")({
 
 		const result = extractSlotModules(source, "/demo");
 
-		const main = result.get("virtual:hydrate/demo/main")!;
+		const main = result.get("/demo/main")!.moduleSource;
 		expect(main).toContain("Counter");
 		expect(main).toContain('import Counter from "../components/Counter"');
 
-		const header = result.get("virtual:hydrate/demo/header")!;
+		const header = result.get("/demo/header")!.moduleSource;
 		expect(header).not.toContain("Counter");
 	});
 
@@ -81,12 +81,12 @@ export default definePage("/blog/[slug]")({
 
 		const result = extractSlotModules(source, "/blog/[slug]");
 
-		const main = result.get("virtual:hydrate/blog/[slug]/main")!;
+		const main = result.get("/blog/[slug]/main")!.moduleSource;
 		expect(main).toContain("formatted");
 		expect(main).toContain("formatDate");
 		expect(main).toContain("{ loaderData }");
 
-		const footer = result.get("virtual:hydrate/blog/[slug]/footer")!;
+		const footer = result.get("/blog/[slug]/footer")!.moduleSource;
 		expect(footer).not.toContain("formatDate");
 		expect(footer).not.toContain("{ loaderData }");
 	});
@@ -110,11 +110,11 @@ export default definePage("/complex")({
 
 		const result = extractSlotModules(source, "/complex");
 
-		const main = result.get("virtual:hydrate/complex/main")!;
+		const main = result.get("/complex/main")!.moduleSource;
 		expect(main).toContain("Counter");
 		expect(main).toContain("Badge");
 
-		const footer = result.get("virtual:hydrate/complex/footer")!;
+		const footer = result.get("/complex/footer")!.moduleSource;
 		expect(footer).not.toContain("Counter");
 		expect(footer).not.toContain("Badge");
 	});
@@ -137,7 +137,7 @@ export default definePage("/cond")({
 
 		const result = extractSlotModules(source, "/cond");
 
-		const main = result.get("virtual:hydrate/cond/main")!;
+		const main = result.get("/cond/main")!.moduleSource;
 		expect(main).toContain("Counter");
 		expect(main).toContain("Fallback");
 	});
@@ -169,7 +169,7 @@ export default definePage("/frag")({
 `;
 
 		const result = extractSlotModules(source, "/frag");
-		const main = result.get("virtual:hydrate/frag/main")!;
+		const main = result.get("/frag/main")!.moduleSource;
 		expect(main).toContain("First");
 		expect(main).toContain("Second");
 		expect(main).toContain("HydrateSlot()");
@@ -206,7 +206,7 @@ export default definePage("/num")({
 
 		const result = extractSlotModules(source, "/num");
 		// Numeric key produces a NumericLiteral, which is skipped
-		expect(result.has("virtual:hydrate/num/header")).toBe(true);
+		expect(result.has("/num/header")).toBe(true);
 		expect(result.size).toBe(1);
 	});
 
@@ -224,7 +224,7 @@ export default definePage("/str")({
 `;
 
 		const result = extractSlotModules(source, "/str");
-		expect(result.has("virtual:hydrate/str/my-slot")).toBe(true);
+		expect(result.has("/str/my-slot")).toBe(true);
 	});
 
 	test("spread element in slots object is skipped", () => {
@@ -243,7 +243,7 @@ export default definePage("/spread")({
 `;
 
 		const result = extractSlotModules(source, "/spread");
-		expect(result.has("virtual:hydrate/spread/header")).toBe(true);
+		expect(result.has("/spread/header")).toBe(true);
 		// spread is not an ObjectProperty, so it's skipped
 	});
 
@@ -297,10 +297,10 @@ export default definePage("/local")({
 `;
 
 		const result = extractSlotModules(source, "/local");
-		const main = result.get("virtual:hydrate/local/main");
-		expect(main).toBeDefined();
+		const slot = result.get("/local/main");
+		expect(slot).toBeDefined();
 		// The local "prefix" does not use loaderData, so the slot has no loaderData param
-		expect(main).toContain("HydrateSlot()");
+		expect(slot!.moduleSource).toContain("HydrateSlot()");
 	});
 
 	test("slot without loaderData: virtual module has no param", () => {
@@ -317,7 +317,7 @@ export default definePage("/static")({
 `;
 
 		const result = extractSlotModules(source, "/static");
-		const content = result.get("virtual:hydrate/static/content")!;
+		const content = result.get("/static/content")!.moduleSource;
 		expect(content).toContain("HydrateSlot()");
 		expect(content).not.toContain("loaderData");
 	});

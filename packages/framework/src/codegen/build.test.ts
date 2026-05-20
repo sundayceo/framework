@@ -26,7 +26,7 @@ describe("codegen", () => {
 	});
 
 	test("buildClientEntries returns empty when route source is missing", () => {
-		const result = buildClientEntries({}, { "/missing": { main: true } });
+		const result = buildClientEntries({ "/missing": { main: true } }, new Map());
 
 		expect(result).toEqual([]);
 	});

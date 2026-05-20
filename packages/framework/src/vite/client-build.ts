@@ -3,38 +3,19 @@ import path from "node:path";
 
 import { build, transformWithOxc, type Plugin } from "vite";
 
-import { buildImportGraph } from "../codegen-disk/import-graph";
-import { buildHydrationManifest } from "../codegen/hydration-manifest";
-import { extractSlotModules } from "../codegen/slot-extraction";
-import { isHydrateModuleId, loadVirtualSlotModule, resolveHydrateId } from "./virtual-slot-modules";
+import { buildSlotKey, type SlotModule } from "../codegen/slot-extraction";
+import type { HydrationManifest } from "../codegen/hydration-manifest";
+import {
+	HYDRATE_PREFIX,
+	computeHydrationManifest,
+	isHydrateModuleId,
+	loadHydrateModule,
+	resolveHydrateId,
+	stripNullByte,
+	type RouteScanResult,
+} from "./hydrate-ids";
 
 const CLIENT_OUT_DIR = "dist/client";
-const HYDRATE_PREFIX = "virtual:hydrate";
-
-type RouteScanResult = {
-	sources: Map<string, string>;
-	filePathMap: Record<string, string>;
-};
-
-function stripNullByte(id: string): string {
-	return id.replace(/^\0/, "");
-}
-
-function loadHydrateModule(id: string, scan: RouteScanResult, srcDir: string): string | undefined {
-	const bareId = stripNullByte(id);
-	if (!isHydrateModuleId(bareId)) {
-		return undefined;
-	}
-	const routesDir = path.join(srcDir, "routes");
-	return (
-		loadVirtualSlotModule({
-			id: bareId,
-			routeSources: scan.sources,
-			routesDir,
-			filePathMap: scan.filePathMap,
-		}) ?? undefined
-	);
-}
 
 function frameworkClientPlugin(scan: RouteScanResult, srcDir: string): Plugin {
 	return {
@@ -56,22 +37,6 @@ function frameworkClientPlugin(scan: RouteScanResult, srcDir: string): Plugin {
 	};
 }
 
-type HydrationManifest = Record<string, Record<string, boolean>>;
-
-function computeHydrationManifest(scan: RouteScanResult, srcDir: string): HydrationManifest {
-	const routes = [...scan.sources.entries()].map(([routePath, source]) => ({
-		routePath,
-		source,
-	}));
-	const routesDir = path.join(srcDir, "routes");
-	const importGraph = buildImportGraph(
-		Object.fromEntries(scan.sources),
-		routesDir,
-		scan.filePathMap,
-	);
-	return buildHydrationManifest({ routes, importGraph });
-}
-
 type VirtualEntry = {
 	routePath: string;
 	slotName: string;
@@ -80,18 +45,17 @@ type VirtualEntry = {
 
 function collectVirtualEntries(
 	hydrationManifest: HydrationManifest,
-	routeSources: Map<string, string>,
+	slotModulesByRoute: Map<string, Map<string, SlotModule>>,
 ): VirtualEntry[] {
 	return Object.entries(hydrationManifest).flatMap(([routePath, slots]) => {
-		const source = routeSources.get(routePath);
-		if (source === undefined) {
+		const slotModules = slotModulesByRoute.get(routePath);
+		if (slotModules === undefined) {
 			return [];
 		}
 
-		const slotModules = extractSlotModules(source, routePath);
 		return Object.entries(slots)
 			.filter(([, isInteractive]) => isInteractive)
-			.filter(([slotName]) => slotModules.has(`${HYDRATE_PREFIX}${routePath}/${slotName}`))
+			.filter(([slotName]) => slotModules.has(buildSlotKey(routePath, slotName)))
 			.map(([slotName]) => ({
 				routePath,
 				slotName,
@@ -136,14 +100,11 @@ type ClientBuildInput = {
 	clientBase: string;
 };
 
-/** Runs the client-side Vite build for interactive slot entries and returns asset mappings. */
-export async function runClientBuild(
-	input: ClientBuildInput,
-): Promise<HydrationAssets | undefined> {
+async function runClientBuild(input: ClientBuildInput): Promise<HydrationAssets | undefined> {
 	const { rootDir, srcDir, routeScan, clientBase } = input;
 
-	const hydrationManifest = computeHydrationManifest(routeScan, srcDir);
-	const virtualEntries = collectVirtualEntries(hydrationManifest, routeScan.sources);
+	const { manifest: hydrationManifest, slotModulesByRoute } = computeHydrationManifest(routeScan, srcDir);
+	const virtualEntries = collectVirtualEntries(hydrationManifest, slotModulesByRoute);
 
 	if (virtualEntries.length === 0) {
 		return undefined;
@@ -167,4 +128,31 @@ export async function runClientBuild(
 	});
 
 	return readHydrationAssets(clientOutDir, virtualEntries, clientBase);
+}
+
+const PLACEHOLDER = '"__SUNDAYCEO_HYDRATION_ASSETS__"';
+
+function patchServerBundle(serverOutDir: string, hydrationAssets: HydrationAssets): void {
+	const files = fs.readdirSync(serverOutDir, { recursive: true }).filter((f) =>
+		String(f).endsWith(".js"),
+	);
+	const replacement = JSON.stringify(hydrationAssets);
+
+	for (const file of files) {
+		const filePath = path.join(serverOutDir, String(file));
+		const content = fs.readFileSync(filePath, "utf-8");
+		if (content.includes(PLACEHOLDER)) {
+			fs.writeFileSync(filePath, content.replaceAll(PLACEHOLDER, replacement));
+		}
+	}
+}
+
+type ProductionBuildInput = ClientBuildInput & { serverOutDir: string };
+
+/** Runs the client build, then patches the server bundle with resolved hydration asset paths. */
+export async function runProductionBuild(input: ProductionBuildInput): Promise<void> {
+	const assets = await runClientBuild(input);
+	if (assets !== undefined) {
+		patchServerBundle(path.resolve(input.rootDir, input.serverOutDir), assets);
+	}
 }

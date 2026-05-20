@@ -39,7 +39,8 @@ type MockModuleNode = { id: string };
 function createMockServer() {
 	const invalidated: string[] = [];
 	const modules = new Map<string, MockModuleNode>();
-	const watcherHandlers: Record<string, ((f: string) => void)[]> = {};
+	type WatcherHandler = (f: string) => void;
+	const watcherHandlers: Record<string, WatcherHandler[]> & { add: WatcherHandler[]; unlink: WatcherHandler[] } = { add: [], unlink: [] };
 
 	return {
 		invalidated,
@@ -291,10 +292,7 @@ describe("vite-plugin transform", () => {
 			"}",
 		].join("\n");
 
-		const result = await (plugin as any).transform(
-			jsxCode,
-			"\0virtual:hydrate/demo/main.jsx",
-		);
+		const result = await (plugin as any).transform(jsxCode, "\0virtual:hydrate/demo/main.jsx");
 		// transformWithOxc returns an object with code property
 		expect(result).toBeDefined();
 		expect(result.code).toContain("jsx");
@@ -432,9 +430,7 @@ describe("vite-plugin configureServer", () => {
 		const { server, watcherHandlers } = createMockServer();
 		(plugin as any).configureServer(server);
 
-		expect(watcherHandlers.add).toBeDefined();
 		expect(watcherHandlers.add.length).toBeGreaterThan(0);
-		expect(watcherHandlers.unlink).toBeDefined();
 		expect(watcherHandlers.unlink.length).toBeGreaterThan(0);
 	});
 
@@ -482,7 +478,7 @@ describe("vite-plugin configureServer", () => {
 		(plugin as any).configureServer(server);
 
 		// Trigger the add handler with a route file path
-		const addHandler = watcherHandlers.add.at(0)!;
+		const addHandler = watcherHandlers.add.at(0)!
 		addHandler(path.join(root, "src/routes/new-page.tsx"));
 
 		expect(fs.existsSync(declPath)).toBe(true);
@@ -501,7 +497,7 @@ describe("vite-plugin configureServer", () => {
 		(plugin as any).configureServer(server);
 
 		// Trigger the unlink handler with a template file path
-		const unlinkHandler = watcherHandlers.unlink.at(0)!;
+		const unlinkHandler = watcherHandlers.unlink.at(0)!
 		unlinkHandler(path.join(root, "src/templates/main.tsx"));
 
 		expect(fs.existsSync(declPath)).toBe(true);
@@ -521,7 +517,7 @@ describe("vite-plugin configureServer", () => {
 		(plugin as any).configureServer(server);
 
 		// Trigger with a non-watched path
-		const addHandler = watcherHandlers.add.at(0)!;
+		const addHandler = watcherHandlers.add.at(0)!
 		addHandler(path.join(root, "src/components/button.tsx"));
 
 		// Content should be unchanged (no re-write)

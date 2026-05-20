@@ -4,9 +4,21 @@ import { scanRoutes } from "./route-scanner";
 
 describe("scanRoutes", () => {
 	test.each([
-		["simple static route", ["about.tsx"], [{ routePath: "/about", params: [], filePath: "about.tsx" }]],
-		["index.tsx to root path", ["index.tsx"], [{ routePath: "/", params: [], filePath: "index.tsx" }]],
-		["nested index route", ["blog/index.tsx"], [{ routePath: "/blog", params: [], filePath: "blog/index.tsx" }]],
+		[
+			"simple static route",
+			["about.tsx"],
+			[{ routePath: "/about", params: [], filePath: "about.tsx" }],
+		],
+		[
+			"index.tsx to root path",
+			["index.tsx"],
+			[{ routePath: "/", params: [], filePath: "index.tsx" }],
+		],
+		[
+			"nested index route",
+			["blog/index.tsx"],
+			[{ routePath: "/blog", params: [], filePath: "blog/index.tsx" }],
+		],
 		[
 			"dynamic segment",
 			["blog/[slug].tsx"],
@@ -15,7 +27,13 @@ describe("scanRoutes", () => {
 		[
 			"multiple dynamic segments",
 			["products/[category]/[id].tsx"],
-			[{ routePath: "/products/:category/:id", params: ["category", "id"], filePath: "products/[category]/[id].tsx" }],
+			[
+				{
+					routePath: "/products/:category/:id",
+					params: ["category", "id"],
+					filePath: "products/[category]/[id].tsx",
+				},
+			],
 		],
 		[
 			"catch-all route [...slug]",

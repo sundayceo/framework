@@ -105,8 +105,8 @@ async function writeResponse(res: ServerResponse, response: Response): Promise<v
 		return;
 	}
 
-	const text = await response.text();
-	res.end(text);
+	const buffer = await response.arrayBuffer();
+	res.end(Buffer.from(buffer));
 }
 
 function isHtmlResponse(response: Response): boolean {
@@ -152,7 +152,8 @@ async function dispatchRequest(input: DispatchInput): Promise<void> {
 		}
 
 		await writeResponse(res, response);
-	} catch {
+	} catch (error) {
+		console.error("[framework]", error); // eslint-disable-line no-console -- intentional dev-time error logging
 		next();
 	}
 }

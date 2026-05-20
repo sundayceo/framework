@@ -12,6 +12,7 @@ export const routes = [
   { routePath: "/full-hydrate", params: [], loadModule: () => import("./routes/full-hydrate") },
   { routePath: "/meta-dynamic", params: [], loadModule: () => import("./routes/meta-dynamic") },
   { routePath: "/meta-static", params: [], loadModule: () => import("./routes/meta-static") },
+  { routePath: "/minimal-test", params: [], loadModule: () => import("./routes/minimal-test") },
   { routePath: "/partial-slots", params: [], loadModule: () => import("./routes/partial-slots") },
   { routePath: "/pricing", params: [], loadModule: () => import("./routes/(marketing)/pricing") },
   { routePath: "/redirect-test", params: [], loadModule: () => import("./routes/redirect-test") },
@@ -25,6 +26,7 @@ export const routes = [
 
 export const templates = {
   default: () => import("./templates/default"),
+  minimal: () => import("./templates/minimal"),
 };
 
 export const errorPages = {
@@ -83,6 +85,9 @@ export const hydrationManifest = {
     "header": false,
     "main": false,
     "footer": false
+  },
+  "/minimal-test": {
+    "content": false
   },
   "/partial-slots": {
     "header": false

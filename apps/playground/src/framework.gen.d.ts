@@ -3,6 +3,7 @@ export {};
 declare module "@sundayceo/framework" {
 	interface TemplateRegistry {
 		default: typeof import("./templates/default").default;
+		minimal: typeof import("./templates/minimal").default;
 	}
 }
 
@@ -22,6 +23,7 @@ declare module "@sundayceo/framework" {
 		"/full-hydrate": {};
 		"/meta-dynamic": {};
 		"/meta-static": {};
+		"/minimal-test": {};
 		"/partial-slots": {};
 		"/pricing": {};
 		"/redirect-test": {};
