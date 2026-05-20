@@ -4,6 +4,6 @@ const FORBIDDEN = 403;
 
 export default defineHandler("/forbidden-test")({
 	GET: () => {
-		httpError(FORBIDDEN, "Access denied");
+		throw httpError(FORBIDDEN, "Access denied");
 	},
 });

@@ -25,14 +25,14 @@ export class HttpErrorResponse extends Error {
 	}
 }
 
-/** Throws a RedirectResponse to interrupt request handling and redirect the client. */
-export function redirect(url: string, status?: number): never {
-	throw new RedirectResponse(url, status);
+/** Creates a RedirectResponse that can be thrown to interrupt request handling and redirect the client. */
+export function redirect(url: string, status?: number): RedirectResponse {
+	return new RedirectResponse(url, status);
 }
 
-/** Throws an HttpErrorResponse to interrupt request handling with an HTTP error status. */
-export function httpError(status: number, message?: string): never {
-	throw new HttpErrorResponse(status, message);
+/** Creates an HttpErrorResponse that can be thrown to interrupt request handling with an HTTP error status. */
+export function httpError(status: number, message?: string): HttpErrorResponse {
+	return new HttpErrorResponse(status, message);
 }
 
 /** Type guard that checks whether an error is a RedirectResponse. */

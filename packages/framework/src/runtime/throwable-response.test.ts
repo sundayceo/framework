@@ -9,60 +9,40 @@ import {
 	RedirectResponse,
 } from "./throwable-response";
 
-test("redirect throws RedirectResponse with 302 status and Location header", () => {
-	try {
-		redirect("/login");
-		expect.fail("should have thrown");
-	} catch (error) {
-		expect(error).toBeInstanceOf(RedirectResponse);
+test("redirect returns RedirectResponse with 302 status and Location header", () => {
+	const error = redirect("/login");
 
-		const redirectError = error as RedirectResponse;
-		expect(redirectError.response.status).toBe(302);
-		expect(redirectError.response.headers.get("location")).toBe("/login");
-		expect(redirectError.message).toBe("Redirect to /login");
-	}
+	expect(error).toBeInstanceOf(RedirectResponse);
+	expect(error.response.status).toBe(302);
+	expect(error.response.headers.get("location")).toBe("/login");
+	expect(error.message).toBe("Redirect to /login");
 });
 
 test("redirect supports custom status code", () => {
-	try {
-		redirect("/login", 301);
-		expect.fail("should have thrown");
-	} catch (error) {
-		expect(error).toBeInstanceOf(RedirectResponse);
+	const error = redirect("/login", 301);
 
-		const redirectError = error as RedirectResponse;
-		expect(redirectError.response.status).toBe(301);
-		expect(redirectError.response.headers.get("location")).toBe("/login");
-	}
+	expect(error).toBeInstanceOf(RedirectResponse);
+	expect(error.response.status).toBe(301);
+	expect(error.response.headers.get("location")).toBe("/login");
 });
 
-test("httpError throws HttpErrorResponse with given status", () => {
-	try {
-		httpError(404);
-		expect.fail("should have thrown");
-	} catch (error) {
-		expect(error).toBeInstanceOf(HttpErrorResponse);
+test("httpError returns HttpErrorResponse with given status", () => {
+	const error = httpError(404);
 
-		const httpErr = error as HttpErrorResponse;
-		expect(httpErr.response.status).toBe(404);
-		expect(httpErr.message).toBe("HTTP Error 404");
-	}
+	expect(error).toBeInstanceOf(HttpErrorResponse);
+	expect(error.response.status).toBe(404);
+	expect(error.message).toBe("HTTP Error 404");
 });
 
 test("httpError supports custom message in body", async () => {
-	try {
-		httpError(403, "Forbidden");
-		expect.fail("should have thrown");
-	} catch (error) {
-		expect(error).toBeInstanceOf(HttpErrorResponse);
+	const error = httpError(403, "Forbidden");
 
-		const httpErr = error as HttpErrorResponse;
-		expect(httpErr.response.status).toBe(403);
-		expect(httpErr.message).toBe("Forbidden");
+	expect(error).toBeInstanceOf(HttpErrorResponse);
+	expect(error.response.status).toBe(403);
+	expect(error.message).toBe("Forbidden");
 
-		const body = await httpErr.response.text();
-		expect(body).toBe("Forbidden");
-	}
+	const body = await error.response.text();
+	expect(body).toBe("Forbidden");
 });
 
 test.each([
