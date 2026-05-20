@@ -1,17 +1,13 @@
 import {
 	RouteKind,
 	type Context,
+	type MetaInfo,
 	type RouteMap,
 	type SlotMap,
 	type TemplateRegistry,
 } from "./types";
 
-type MetaValue<TLoaderData> =
-	| { title?: string; description?: string }
-	| ((args: { loaderData: TLoaderData }) => {
-			title?: string;
-			description?: string;
-	  });
+type MetaValue<TLoaderData> = MetaInfo | ((args: { loaderData: TLoaderData }) => MetaInfo);
 
 type PageConfigWithLoader<
 	TTemplate extends keyof TemplateRegistry,
@@ -27,7 +23,7 @@ type PageConfigWithLoader<
 type PageConfigWithoutLoader<TTemplate extends keyof TemplateRegistry> = {
 	template: TTemplate;
 	defineSlots: () => SlotMap;
-	meta?: { title?: string; description?: string };
+	meta?: MetaInfo;
 };
 
 type InferParams<TPath extends string> = TPath extends keyof RouteMap

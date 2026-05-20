@@ -67,6 +67,10 @@ function collectVirtualEntries(
 type ViteManifestEntry = { file: string };
 type HydrationAssets = Record<string, Record<string, string>>;
 
+function isManifestEntry(value: unknown): value is ViteManifestEntry {
+	return typeof value === "object" && value !== null && "file" in value && typeof value.file === "string";
+}
+
 function readHydrationAssets(
 	clientOutDir: string,
 	virtualEntries: VirtualEntry[],
@@ -74,8 +78,8 @@ function readHydrationAssets(
 ): HydrationAssets {
 	const manifestPath = path.join(clientOutDir, ".vite", "manifest.json");
 	const raw = fs.readFileSync(manifestPath, "utf-8");
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	const manifest = JSON.parse(raw) as Record<string, ViteManifestEntry>;
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- JSON.parse returns any
+	const manifest: Record<string, unknown> = JSON.parse(raw) as Record<string, unknown>;
 
 	const idToEntry = new Map(virtualEntries.map((e) => [`${e.moduleId}.jsx`, e]));
 	const assets: HydrationAssets = {};
@@ -83,7 +87,7 @@ function readHydrationAssets(
 	for (const [key, value] of Object.entries(manifest)) {
 		const normalizedKey = key.replace(/^(?:\.\.\/)*\0?/, "");
 		const match = idToEntry.get(normalizedKey);
-		if (match !== undefined) {
+		if (match !== undefined && isManifestEntry(value)) {
 			const routeAssets = assets[match.routePath] ?? {};
 			routeAssets[match.slotName] = `${assetBase}/${value.file}`;
 			assets[match.routePath] = routeAssets;

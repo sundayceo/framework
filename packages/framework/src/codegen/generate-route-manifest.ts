@@ -18,7 +18,6 @@ function rekeyManifest(manifest: HydrationManifest, entries: RouteEntry[]): Hydr
 
 	const rekeyed: HydrationManifest = {};
 	for (const [key, value] of Object.entries(manifest)) {
-		/* v8 ignore next */
 		const scannerKey = filePathToScanner.get(key) ?? key;
 		rekeyed[scannerKey] = value;
 	}

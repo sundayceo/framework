@@ -11,11 +11,25 @@ const RESOLVED_VIRTUAL_MODULE_ID = "\0@sundayceo/framework/server-entry";
 const HYDRATION_MANIFEST_ID = "virtual:hydration-manifest";
 const RESOLVED_HYDRATION_MANIFEST_ID = "\0virtual:hydration-manifest";
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function createPlugin() {
+type PluginHooks = {
+	configResolved: (config: { root: string; build: { outDir: string }; command?: string }) => void;
+	resolveId: (source: string) => string | undefined;
+	load: (id: string) => string | undefined;
+	buildStart: () => void;
+	transform: (code: string, id: string) => Promise<unknown>;
+	handleHotUpdate: (ctx: { file: string; server: unknown }) => void;
+	configureServer: (server: unknown) => (() => void) | undefined;
+};
+
+function asHooks(plugin: ReturnType<typeof frameworkPlugin>): PluginHooks {
+	return plugin as unknown as PluginHooks;
+}
+
+function createPlugin(): PluginHooks {
 	const plugin = frameworkPlugin();
-	(plugin as any).configResolved({ root: "/test", build: { outDir: "dist" } });
-	return plugin;
+	const hooks = asHooks(plugin);
+	hooks.configResolved({ root: "/test", build: { outDir: "dist" } });
+	return hooks;
 }
 
 /** Creates a temp project directory with src/routes and returns the root path. */
@@ -27,10 +41,11 @@ function createTempProject(): string {
 	return root;
 }
 
-function createPluginWithRoot(root: string): ReturnType<typeof frameworkPlugin> {
+function createPluginWithRoot(root: string): PluginHooks {
 	const plugin = frameworkPlugin();
-	(plugin as any).configResolved({ root, build: { outDir: "dist" } });
-	return plugin;
+	const hooks = asHooks(plugin);
+	hooks.configResolved({ root, build: { outDir: "dist" } });
+	return hooks;
 }
 
 type MockModuleNode = { id: string };
@@ -81,34 +96,34 @@ afterEach(() => {
 describe("vite-plugin resolveId", () => {
 	it("returns virtual module ID for @sundayceo/framework/server-entry", () => {
 		const plugin = createPlugin();
-		const resolved = (plugin as any).resolveId(VIRTUAL_MODULE_ID);
+		const resolved = plugin.resolveId(VIRTUAL_MODULE_ID);
 		expect(resolved).toBe(RESOLVED_VIRTUAL_MODULE_ID);
 	});
 
 	it("resolves hydration-manifest virtual module", () => {
 		const plugin = createPlugin();
-		const resolved = (plugin as any).resolveId(HYDRATION_MANIFEST_ID);
+		const resolved = plugin.resolveId(HYDRATION_MANIFEST_ID);
 		expect(resolved).toBe(RESOLVED_HYDRATION_MANIFEST_ID);
 	});
 
 	it("resolves hydrate slot virtual module IDs", () => {
 		const plugin = createPlugin();
-		const resolved = (plugin as any).resolveId("virtual:hydrate/demo/main");
+		const resolved = plugin.resolveId("virtual:hydrate/demo/main");
 		expect(resolved).toBe("\0virtual:hydrate/demo/main.jsx");
 	});
 
 	it("returns undefined for other module IDs", () => {
 		const plugin = createPlugin();
-		expect((plugin as any).resolveId("react")).toBeUndefined();
-		expect((plugin as any).resolveId("@sundayceo/framework")).toBeUndefined();
-		expect((plugin as any).resolveId("./src/app")).toBeUndefined();
+		expect(plugin.resolveId("react")).toBeUndefined();
+		expect(plugin.resolveId("@sundayceo/framework")).toBeUndefined();
+		expect(plugin.resolveId("./src/app")).toBeUndefined();
 	});
 });
 
 describe("vite-plugin load", () => {
 	it("returns generated code for the virtual module ID", () => {
 		const plugin = createPlugin();
-		const code = (plugin as any).load(RESOLVED_VIRTUAL_MODULE_ID);
+		const code = plugin.load(RESOLVED_VIRTUAL_MODULE_ID);
 		expect(code).toBeTypeOf("string");
 		expect(code).toContain('import { createHandler } from "@sundayceo/framework"');
 		expect(code).toContain('import { app } from "/test/src/app"');
@@ -122,9 +137,9 @@ describe("vite-plugin load", () => {
 
 	it("returns undefined for non-virtual module IDs", () => {
 		const plugin = createPlugin();
-		expect((plugin as any).load("react")).toBeUndefined();
-		expect((plugin as any).load("./src/app.ts")).toBeUndefined();
-		expect((plugin as any).load(VIRTUAL_MODULE_ID)).toBeUndefined();
+		expect(plugin.load("react")).toBeUndefined();
+		expect(plugin.load("./src/app.ts")).toBeUndefined();
+		expect(plugin.load(VIRTUAL_MODULE_ID)).toBeUndefined();
 	});
 });
 
@@ -144,7 +159,7 @@ describe("vite-plugin buildStart", () => {
 		fs.writeFileSync(path.join(root, "src/routes/index.tsx"), routeSource);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		const declPath = path.join(root, "src", "framework.gen.d.ts");
 		const manifestPath = path.join(root, "src", "routes.gen.ts");
@@ -163,7 +178,7 @@ describe("vite-plugin buildStart", () => {
 		fs.rmSync(path.join(root, "src/routes"), { recursive: true });
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		const manifestPath = path.join(root, "src", "routes.gen.ts");
 		expect(fs.existsSync(manifestPath)).toBe(true);
@@ -177,9 +192,9 @@ describe("vite-plugin buildStart", () => {
 		fs.writeFileSync(path.join(root, "src/routes/about.tsx"), routeSource);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
-		const manifest = (plugin as any).load(RESOLVED_HYDRATION_MANIFEST_ID);
+		const manifest = plugin.load(RESOLVED_HYDRATION_MANIFEST_ID);
 		expect(manifest).toBeTypeOf("string");
 		expect(manifest).toContain("export default");
 	});
@@ -201,9 +216,9 @@ describe("vite-plugin load hydrate module", () => {
 		fs.writeFileSync(path.join(root, "src/routes/demo.tsx"), routeSource);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
-		const code = (plugin as any).load("\0virtual:hydrate/demo/main.jsx");
+		const code = plugin.load("\0virtual:hydrate/demo/main.jsx");
 		expect(code).toBeTypeOf("string");
 		expect(code).toContain("HydrateSlot");
 	});
@@ -216,10 +231,10 @@ describe("vite-plugin load hydrate module", () => {
 		fs.writeFileSync(path.join(root, "src/routes/demo.tsx"), routeSource);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		// Route exists but has no defineSlots, so the slot module won't be found
-		const code = (plugin as any).load("\0virtual:hydrate/demo/nonexistent.jsx");
+		const code = plugin.load("\0virtual:hydrate/demo/nonexistent.jsx");
 		expect(code).toBeUndefined();
 	});
 
@@ -228,9 +243,9 @@ describe("vite-plugin load hydrate module", () => {
 		tempRoots.push(root);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
-		expect((plugin as any).load("./some-module.ts")).toBeUndefined();
+		expect(plugin.load("./some-module.ts")).toBeUndefined();
 	});
 });
 
@@ -244,9 +259,9 @@ describe("vite-plugin transform", () => {
 		fs.writeFileSync(routeFile, routeSource);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
-		const result = await (plugin as any).transform(routeSource, routeFile);
+		const result = await plugin.transform(routeSource, routeFile);
 		expect(result).toBeTypeOf("string");
 		expect(result).toContain('definePage("/about")');
 	});
@@ -256,9 +271,9 @@ describe("vite-plugin transform", () => {
 		tempRoots.push(root);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
-		const result = await (plugin as any).transform("const x = 1;", "/some/other/file.ts");
+		const result = await plugin.transform("const x = 1;", "/some/other/file.ts");
 		expect(result).toBeUndefined();
 	});
 
@@ -272,9 +287,9 @@ describe("vite-plugin transform", () => {
 		fs.writeFileSync(routeFile, routeSource);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
-		const result = await (plugin as any).transform(routeSource, routeFile);
+		const result = await plugin.transform(routeSource, routeFile);
 		expect(result).toBeUndefined();
 	});
 
@@ -283,7 +298,7 @@ describe("vite-plugin transform", () => {
 		tempRoots.push(root);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		const jsxCode = [
 			'import React from "react";',
@@ -292,10 +307,11 @@ describe("vite-plugin transform", () => {
 			"}",
 		].join("\n");
 
-		const result = await (plugin as any).transform(jsxCode, "\0virtual:hydrate/demo/main.jsx");
-		// transformWithOxc returns an object with code property
+		const result = (await plugin.transform(jsxCode, "\0virtual:hydrate/demo/main.jsx")) as
+			| { code: string }
+			| undefined;
 		expect(result).toBeDefined();
-		expect(result.code).toContain("jsx");
+		expect(result?.code).toContain("jsx");
 	});
 });
 
@@ -308,7 +324,7 @@ describe("vite-plugin handleHotUpdate", () => {
 		fs.writeFileSync(path.join(root, "src/routes/index.tsx"), routeSource);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		const { server, modules, invalidated } = createMockServer();
 
@@ -317,7 +333,7 @@ describe("vite-plugin handleHotUpdate", () => {
 		modules.set(RESOLVED_HYDRATION_MANIFEST_ID, { id: RESOLVED_HYDRATION_MANIFEST_ID });
 
 		const routeFile = path.join(root, "src/routes/index.tsx");
-		(plugin as any).handleHotUpdate({ file: routeFile, server });
+		plugin.handleHotUpdate({ file: routeFile, server });
 
 		expect(invalidated).toContain(RESOLVED_HYDRATION_MANIFEST_ID);
 		expect(invalidated).toContain("\0virtual:hydrate/index/main.jsx");
@@ -331,7 +347,7 @@ describe("vite-plugin handleHotUpdate", () => {
 		fs.writeFileSync(path.join(root, "src/routes/index.tsx"), routeSource);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		const invalidated: string[] = [];
 		const modules = new Map<string, MockModuleNode | undefined>();
@@ -353,7 +369,7 @@ describe("vite-plugin handleHotUpdate", () => {
 		};
 
 		const routeFile = path.join(root, "src/routes/index.tsx");
-		(plugin as any).handleHotUpdate({ file: routeFile, server });
+		plugin.handleHotUpdate({ file: routeFile, server });
 
 		// Nothing invalidated because getModuleById returned undefined
 		expect(invalidated).toHaveLength(0);
@@ -364,11 +380,11 @@ describe("vite-plugin handleHotUpdate", () => {
 		tempRoots.push(root);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		const { server, invalidated } = createMockServer();
 
-		(plugin as any).handleHotUpdate({
+		plugin.handleHotUpdate({
 			file: path.join(root, "src/components/button.tsx"),
 			server,
 		});
@@ -384,12 +400,12 @@ describe("vite-plugin handleHotUpdate", () => {
 		fs.writeFileSync(path.join(root, "src/routes/index.tsx"), routeSource);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		const { server, invalidated } = createMockServer();
 
 		const routeFile = path.join(root, "src/routes/index.tsx");
-		(plugin as any).handleHotUpdate({ file: routeFile, server });
+		plugin.handleHotUpdate({ file: routeFile, server });
 
 		// No modules were in graph, so nothing gets invalidated
 		expect(invalidated).toHaveLength(0);
@@ -403,18 +419,18 @@ describe("vite-plugin handleHotUpdate", () => {
 		fs.writeFileSync(path.join(root, "src/routes/index.tsx"), routeSource);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		// First load caches the manifest
-		const first = (plugin as any).load(RESOLVED_HYDRATION_MANIFEST_ID);
+		const first = plugin.load(RESOLVED_HYDRATION_MANIFEST_ID);
 		expect(first).toBeTypeOf("string");
 
 		const { server } = createMockServer();
 		const routeFile = path.join(root, "src/routes/index.tsx");
-		(plugin as any).handleHotUpdate({ file: routeFile, server });
+		plugin.handleHotUpdate({ file: routeFile, server });
 
 		// After HMR, the manifest is regenerated (nullified then lazily re-created)
-		const second = (plugin as any).load(RESOLVED_HYDRATION_MANIFEST_ID);
+		const second = plugin.load(RESOLVED_HYDRATION_MANIFEST_ID);
 		expect(second).toBeTypeOf("string");
 	});
 });
@@ -425,10 +441,10 @@ describe("vite-plugin configureServer", () => {
 		tempRoots.push(root);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		const { server, watcherHandlers } = createMockServer();
-		(plugin as any).configureServer(server);
+		plugin.configureServer(server);
 
 		expect(watcherHandlers.add.length).toBeGreaterThan(0);
 		expect(watcherHandlers.unlink.length).toBeGreaterThan(0);
@@ -439,10 +455,10 @@ describe("vite-plugin configureServer", () => {
 		tempRoots.push(root);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		const { server } = createMockServer();
-		const result = (plugin as any).configureServer(server);
+		const result = plugin.configureServer(server);
 		expect(result).toBeTypeOf("function");
 	});
 
@@ -451,11 +467,11 @@ describe("vite-plugin configureServer", () => {
 		tempRoots.push(root);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		const { server } = createMockServer();
-		const init = (plugin as any).configureServer(server) as () => void;
-		init();
+		const init = plugin.configureServer(server);
+		init?.();
 
 		expect(server.middlewares.use).toHaveBeenCalledOnce();
 	});
@@ -468,14 +484,14 @@ describe("vite-plugin configureServer", () => {
 		fs.writeFileSync(path.join(root, "src/routes/index.tsx"), routeSource);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		// Remove codegen output to verify it gets re-created
 		const declPath = path.join(root, "src", "framework.gen.d.ts");
 		fs.unlinkSync(declPath);
 
 		const { server, watcherHandlers } = createMockServer();
-		(plugin as any).configureServer(server);
+		plugin.configureServer(server);
 
 		// Trigger the add handler with a route file path
 		const addHandler = watcherHandlers.add.at(0)!
@@ -489,12 +505,12 @@ describe("vite-plugin configureServer", () => {
 		tempRoots.push(root);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		const declPath = path.join(root, "src", "framework.gen.d.ts");
 
 		const { server, watcherHandlers } = createMockServer();
-		(plugin as any).configureServer(server);
+		plugin.configureServer(server);
 
 		// Trigger the unlink handler with a template file path
 		const unlinkHandler = watcherHandlers.unlink.at(0)!
@@ -508,13 +524,13 @@ describe("vite-plugin configureServer", () => {
 		tempRoots.push(root);
 
 		const plugin = createPluginWithRoot(root);
-		(plugin as any).buildStart();
+		plugin.buildStart();
 
 		const declPath = path.join(root, "src", "framework.gen.d.ts");
 		const originalContent = fs.readFileSync(declPath, "utf-8");
 
 		const { server, watcherHandlers } = createMockServer();
-		(plugin as any).configureServer(server);
+		plugin.configureServer(server);
 
 		// Trigger with a non-watched path
 		const addHandler = watcherHandlers.add.at(0)!

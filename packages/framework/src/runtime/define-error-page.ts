@@ -1,4 +1,4 @@
-import { RouteKind, type SlotMap, type TemplateRegistry } from "./types";
+import { RouteKind, type MetaInfo, type SlotMap, type TemplateRegistry } from "./types";
 
 /** Context passed to error page loaders, containing status, message, and optional error details. */
 export type ErrorContext = {
@@ -8,12 +8,7 @@ export type ErrorContext = {
 	error?: unknown;
 };
 
-type MetaValue<TLoaderData> =
-	| { title?: string; description?: string }
-	| ((args: { loaderData: TLoaderData }) => {
-			title?: string;
-			description?: string;
-	  });
+type MetaValue<TLoaderData> = MetaInfo | ((args: { loaderData: TLoaderData }) => MetaInfo);
 
 type ErrorPageConfigWithLoader<TTemplate extends keyof TemplateRegistry, TLoaderData> = {
 	template: TTemplate;
@@ -25,7 +20,7 @@ type ErrorPageConfigWithLoader<TTemplate extends keyof TemplateRegistry, TLoader
 type ErrorPageConfigWithoutLoader<TTemplate extends keyof TemplateRegistry> = {
 	template: TTemplate;
 	defineSlots: () => SlotMap;
-	meta?: { title?: string; description?: string };
+	meta?: MetaInfo;
 };
 
 /** Returns a curried function that defines a custom error page for the given HTTP status code. */

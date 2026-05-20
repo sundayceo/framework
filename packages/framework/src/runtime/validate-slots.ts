@@ -26,7 +26,7 @@ type ValidateSlotsInput = {
 	extractedSlots: ExtractedSlots;
 };
 
-/* v8 ignore start -- all .at() indices are within bounds; ?? fallbacks are unreachable */
+/* eslint-disable @typescript-eslint/no-non-null-assertion -- all indices are in-bounds by loop invariants */
 function levenshtein(a: string, b: string): number {
 	const prev = Array.from({ length: b.length + 1 }, (_, j) => j);
 	const curr = new Array<number>(b.length + 1);
@@ -36,19 +36,19 @@ function levenshtein(a: string, b: string): number {
 		for (let j = 1; j <= b.length; j++) {
 			const cost = a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1;
 			curr[j] = Math.min(
-				(prev.at(j) ?? 0) + 1,
-				(curr.at(j - 1) ?? 0) + 1,
-				(prev.at(j - 1) ?? 0) + cost,
+				prev[j]! + 1,
+				curr[j - 1]! + 1,
+				prev[j - 1]! + cost,
 			);
 		}
 		for (let j = 0; j <= b.length; j++) {
-			prev[j] = curr.at(j) ?? 0;
+			prev[j] = curr[j]!;
 		}
 	}
 
-	return prev.at(b.length) ?? 0;
+	return prev[b.length]!;
 }
-/* v8 ignore stop */
+/* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 function findClosestSlot(name: string, candidates: string[]): string | undefined {
 	let bestMatch: string | undefined;

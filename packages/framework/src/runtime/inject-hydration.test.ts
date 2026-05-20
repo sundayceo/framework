@@ -128,7 +128,7 @@ describe("injectHydration", () => {
 		});
 
 		expect(result).not.toContain("</script><script>");
-		expect(result).toContain("\\u003c/script>");
+		expect(result).toContain("\\u003c/script\\u003e");
 	});
 
 	test("static slots preserve their HTML content unchanged", () => {

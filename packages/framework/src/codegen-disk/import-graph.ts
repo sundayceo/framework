@@ -77,10 +77,8 @@ export function buildImportGraph(
 	const queue = seedQueue(routeSources, routesDir, filePathMap);
 	const visited = new Set<string>();
 
-	while (queue.length > 0) {
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- length > 0 guarantees pop() returns a value
-		const item = queue.pop()!;
-
+	let item: QueueItem | undefined;
+	while ((item = queue.pop()) !== undefined) {
 		const result = resolveQueueItem(item, visited);
 		if (result !== undefined) {
 			graph[result.resolvedPath] = result.depSource;
