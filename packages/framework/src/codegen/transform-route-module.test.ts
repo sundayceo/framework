@@ -96,4 +96,34 @@ describe("transformRouteModule", () => {
 
 		expect(result).toBe(`export const page = defineErrorPage(404)({`);
 	});
+
+	test("handles 4xx error pages beyond 404", () => {
+		const source = `export default defineErrorPage()({`;
+		const result = transformRouteModule({ source, routePath: "/403" });
+
+		expect(result).toBe(`export default defineErrorPage(403)({`);
+	});
+
+	test("converts [param] segments to :param in routes", () => {
+		expect(filePathToRoutePath("users/[id]/posts/[postId].tsx")).toBe("/users/[id]/posts/[postId]");
+	});
+
+	test("preserves catch-all [...slug] in route path", () => {
+		expect(filePathToRoutePath("docs/[...slug].tsx")).toBe("/docs/[...slug]");
+	});
+
+	test("fills empty definePage for catch-all route", () => {
+		const source = `export default definePage()({`;
+		const result = transformRouteModule({ source, routePath: "/docs/[...slug]" });
+
+		expect(result).toBe(`export default definePage("/docs/[...slug]")({`);
+	});
+
+	test("strips route group from file path", () => {
+		expect(filePathToRoutePath("(marketing)/about.tsx")).toBe("/about");
+	});
+
+	test("strips nested route group from file path", () => {
+		expect(filePathToRoutePath("(app)/users/[id].tsx")).toBe("/users/[id]");
+	});
 });

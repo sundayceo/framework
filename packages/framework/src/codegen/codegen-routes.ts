@@ -1,11 +1,14 @@
 const PARAM_PATTERN = /\[([^\]]+)\]/g;
+const CATCH_ALL_PREFIX = "...";
+const GROUP_PATTERN = /^\(.*\)$/;
 const ROUTE_EXTENSIONS = [".tsx", ".ts"];
 const TEST_PATTERN = /\.test\.[^.]+$/;
 const ERROR_PAGE_PATTERN = /^(?:.*\/)?[45]\d{2}\.[^.]+$/;
 
+/** Converts a file path to a URL route pattern. */
 function filePathToRoute(filePath: string): string {
 	const withoutExtension = filePath.replace(/\.(tsx|ts)$/, "");
-	const segments = withoutExtension.split("/");
+	const segments = withoutExtension.split("/").filter((seg) => !GROUP_PATTERN.test(seg));
 	const lastSegment = segments.at(-1);
 
 	if (lastSegment === "index") {
@@ -16,21 +19,25 @@ function filePathToRoute(filePath: string): string {
 	return `/${joined}`;
 }
 
-function extractParams(route: string): string[] {
-	const params: string[] = [];
+type ParamEntry = { name: string; isCatchAll: boolean };
+
+function extractParams(route: string): ParamEntry[] {
+	const params: ParamEntry[] = [];
 	let match: RegExpExecArray | null = PARAM_PATTERN.exec(route);
 	while (match !== null) {
-		params.push(match.at(1) ?? "");
+		const raw = match.at(1) ?? "";
+		const isCatchAll = raw.startsWith(CATCH_ALL_PREFIX);
+		params.push({ name: isCatchAll ? raw.slice(CATCH_ALL_PREFIX.length) : raw, isCatchAll });
 		match = PARAM_PATTERN.exec(route);
 	}
 	return params;
 }
 
-function formatParamType(params: string[]): string {
+function formatParamType(params: ParamEntry[]): string {
 	if (params.length === 0) {
 		return "{}";
 	}
-	return `{ ${params.map((p) => `${p}: string`).join("; ")} }`;
+	return `{ ${params.map((p) => `${p.name}: string`).join("; ")} }`;
 }
 
 /** Generates a TypeScript RouteMap declaration from route file paths. */
