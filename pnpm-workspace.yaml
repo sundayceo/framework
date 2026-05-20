@@ -1,7 +1,6 @@
 packages:
   - apps/*
   - packages/*
-
 catalog:
   "@commitlint/cli": 21.0.1
   "@commitlint/config-conventional": 21.0.1
@@ -37,6 +36,7 @@ minimumReleaseAgeExclude:
 onlyBuiltDependencies:
   - esbuild
   - rolldown
+  - workerd
 
 supportedArchitectures:
   cpu:
