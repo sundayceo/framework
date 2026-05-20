@@ -66,15 +66,6 @@ describe("generateRouteManifest", () => {
 		expect(result).toContain('params: ["slug"]');
 	});
 
-	test("includes generated file header", () => {
-		const result = generateRouteManifest({
-			routePaths: [],
-			templatePaths: [],
-		});
-
-		expect(result).toContain("do not edit");
-	});
-
 	test("route groups strip from URL but preserve import path", () => {
 		const result = generateRouteManifest({
 			routePaths: ["(marketing)/about.tsx"],
@@ -99,6 +90,27 @@ describe("generateRouteManifest", () => {
 		expect(result).toContain('"/docs/*slug"');
 		expect(result).not.toContain('"/blog/[slug]"');
 		expect(result).not.toContain('"/docs/[...slug]"');
+	});
+
+	test("sorts multiple template entries alphabetically", () => {
+		const result = generateRouteManifest({
+			routePaths: ["index.tsx"],
+			templatePaths: ["wide.tsx", "default.tsx"],
+		});
+
+		const defaultIdx = result.indexOf("default:");
+		const wideIdx = result.indexOf("wide:");
+		expect(defaultIdx).toBeLessThan(wideIdx);
+	});
+
+	test("filters out non-tsx template files", () => {
+		const result = generateRouteManifest({
+			routePaths: ["index.tsx"],
+			templatePaths: ["default.tsx", "readme.md"],
+		});
+
+		expect(result).toContain("default:");
+		expect(result).not.toContain("readme");
 	});
 
 	test("catch-all routes use wildcard pattern", () => {

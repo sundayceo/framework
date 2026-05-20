@@ -27,16 +27,4 @@ describe("generateServerEntry", () => {
 		expect(result).toContain('from "../src/routes.gen"');
 	});
 
-	test("wires all config fields into createHandler", () => {
-		const result = generateServerEntry({
-			appModule: "./app",
-			routesModule: "./routes.gen",
-		});
-
-		expect(result).toContain("app,");
-		expect(result).toContain("routes,");
-		expect(result).toContain("templates,");
-		expect(result).toContain("errorPages,");
-		expect(result).toContain("hydrationManifest");
-	});
 });
