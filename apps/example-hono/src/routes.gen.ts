@@ -3,22 +3,22 @@ export const routes = [
   { routePath: "/", params: [], loadModule: () => import("./routes/index") },
   { routePath: "/api/echo", params: [], loadModule: () => import("./routes/api/echo") },
   { routePath: "/api/health", params: [], loadModule: () => import("./routes/api/health") },
-  { routePath: "/async-loader", params: [], loadModule: () => import("./routes/async-loader") },
+  { routePath: "/app-context", params: [], loadModule: () => import("./routes/(features)/app-context") },
+  { routePath: "/async-data", params: [], loadModule: () => import("./routes/(features)/async-data") },
   { routePath: "/blog/featured", params: [], loadModule: () => import("./routes/blog/featured") },
-  { routePath: "/context-test", params: [], loadModule: () => import("./routes/context-test") },
-  { routePath: "/demo", params: [], loadModule: () => import("./routes/demo") },
-  { routePath: "/error-test", params: [], loadModule: () => import("./routes/error-test") },
-  { routePath: "/forbidden-test", params: [], loadModule: () => import("./routes/forbidden-test") },
-  { routePath: "/full-hydrate", params: [], loadModule: () => import("./routes/full-hydrate") },
-  { routePath: "/meta-dynamic", params: [], loadModule: () => import("./routes/meta-dynamic") },
-  { routePath: "/meta-static", params: [], loadModule: () => import("./routes/meta-static") },
-  { routePath: "/minimal-test", params: [], loadModule: () => import("./routes/minimal-test") },
-  { routePath: "/partial-slots", params: [], loadModule: () => import("./routes/partial-slots") },
+  { routePath: "/counter", params: [], loadModule: () => import("./routes/(features)/counter") },
+  { routePath: "/full-hydration", params: [], loadModule: () => import("./routes/(features)/full-hydration") },
+  { routePath: "/meta-dynamic", params: [], loadModule: () => import("./routes/(features)/meta-dynamic") },
+  { routePath: "/meta-static", params: [], loadModule: () => import("./routes/(features)/meta-static") },
+  { routePath: "/minimal-template", params: [], loadModule: () => import("./routes/(features)/minimal-template") },
+  { routePath: "/partial-slots", params: [], loadModule: () => import("./routes/(features)/partial-slots") },
   { routePath: "/pricing", params: [], loadModule: () => import("./routes/(marketing)/pricing") },
-  { routePath: "/redirect-test", params: [], loadModule: () => import("./routes/redirect-test") },
-  { routePath: "/request-test", params: [], loadModule: () => import("./routes/request-test") },
-  { routePath: "/throw-test", params: [], loadModule: () => import("./routes/throw-test") },
-  { routePath: "/typo-slot", params: [], loadModule: () => import("./routes/typo-slot") },
+  { routePath: "/request-data", params: [], loadModule: () => import("./routes/(features)/request-data") },
+  { routePath: "/trigger-403", params: [], loadModule: () => import("./routes/(test)/trigger-403") },
+  { routePath: "/trigger-404", params: [], loadModule: () => import("./routes/(test)/trigger-404") },
+  { routePath: "/trigger-500", params: [], loadModule: () => import("./routes/(test)/trigger-500") },
+  { routePath: "/trigger-redirect", params: [], loadModule: () => import("./routes/(test)/trigger-redirect") },
+  { routePath: "/typo-slot", params: [], loadModule: () => import("./routes/(test)/typo-slot") },
   { routePath: "/blog/:slug", params: ["slug"], loadModule: () => import("./routes/blog/[slug]") },
   { routePath: "/users/:id/posts/:postId", params: ["id", "postId"], loadModule: () => import("./routes/users/[id]/posts/[postId]") },
   { routePath: "/docs/*slug", params: ["slug"], loadModule: () => import("./routes/docs/[...slug]") },
@@ -51,30 +51,30 @@ export const hydrationManifest = {
     "main": false,
     "footer": false
   },
-  "/async-loader": {
-    "header": false,
-    "main": false,
-    "footer": false
-  },
-  "/context-test": {
-    "header": false,
-    "main": false,
-    "footer": false
-  },
-  "/demo": {
-    "header": false,
-    "main": true,
-    "footer": false
-  },
-  "/full-hydrate": {
-    "header": true,
-    "main": true,
-    "footer": true
-  },
   "/": {
     "header": false,
     "main": false,
     "footer": false
+  },
+  "/app-context": {
+    "header": false,
+    "main": false,
+    "footer": false
+  },
+  "/async-data": {
+    "header": false,
+    "main": false,
+    "footer": false
+  },
+  "/counter": {
+    "header": false,
+    "main": true,
+    "footer": false
+  },
+  "/full-hydration": {
+    "header": true,
+    "main": true,
+    "footer": true
   },
   "/meta-dynamic": {
     "header": false,
@@ -86,29 +86,29 @@ export const hydrationManifest = {
     "main": false,
     "footer": false
   },
-  "/minimal-test": {
+  "/minimal-template": {
     "content": false
   },
   "/partial-slots": {
     "header": false
   },
-  "/request-test": {
+  "/request-data": {
     "header": false,
     "main": false,
     "footer": false
   },
-  "/throw-test": {
+  "/pricing": {
+    "header": false,
+    "main": false,
+    "footer": false
+  },
+  "/trigger-500": {
     "header": false,
     "main": false,
     "footer": false
   },
   "/typo-slot": {
     "headr": false,
-    "main": false,
-    "footer": false
-  },
-  "/pricing": {
-    "header": false,
     "main": false,
     "footer": false
   },

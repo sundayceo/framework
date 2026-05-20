@@ -9,13 +9,21 @@ export default defineErrorPage(500)({
 		stack: ctx.error.stack,
 	}),
 	defineSlots: ({ loaderData }) => ({
-		header: <h1>500</h1>,
+		header: <div />,
 		main: (
-			<div>
-				<p>Something went wrong: {loaderData.message}</p>
-				{loaderData.stack !== undefined && <pre>{loaderData.stack}</pre>}
+			<div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
+				<p className="text-6xl font-bold text-gray-300">500</p>
+				<p className="mt-4 text-xl text-gray-600">Something went wrong: {loaderData.message}</p>
+				{loaderData.stack !== undefined && (
+					<pre className="mt-4 font-mono text-sm bg-gray-100 rounded px-4 py-2 text-left max-w-xl overflow-auto">
+						{loaderData.stack}
+					</pre>
+				)}
+				<a href="/" className="mt-6 text-sm text-blue-600 underline">
+					Go home
+				</a>
 			</div>
 		),
-		footer: <p>Built with @sundayceo/framework</p>,
+		footer: <p className="text-sm text-gray-500">Built with @sundayceo/framework</p>,
 	}),
 });

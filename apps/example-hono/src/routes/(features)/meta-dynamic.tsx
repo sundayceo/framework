@@ -10,8 +10,15 @@ export default definePage("/meta-dynamic")({
 		description: `Description for ${loaderData.pageTitle}`,
 	}),
 	defineSlots: ({ loaderData }) => ({
-		header: <h1>{loaderData.pageTitle}</h1>,
-		main: <p>has dynamic meta</p>,
-		footer: <p>footer</p>,
+		header: (
+			<div className="space-y-4">
+				<a href="/" className="text-sm text-gray-400 hover:text-gray-600">
+					← Back
+				</a>
+				<h1 className="text-2xl font-bold tracking-tight">{loaderData.pageTitle}</h1>
+			</div>
+		),
+		main: <p className="text-gray-600">has dynamic meta</p>,
+		footer: <p className="text-sm text-gray-500">footer</p>,
 	}),
 });
