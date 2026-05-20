@@ -8,11 +8,12 @@ export function generateHydrationScript(input: GenerateHydrationScriptInput): st
 	const { slotId, assetPath } = input;
 
 	return [
-		`import HydrateSlot from "${assetPath}";`,
+		`import { createElement } from "react";`,
 		`import { hydrateRoot } from "react-dom/client";`,
+		`import HydrateSlot from "${assetPath}";`,
 		`const dataEl = document.querySelector('script[data-hydrate-data="${slotId}"]');`,
 		`const loaderData = dataEl ? JSON.parse(dataEl.textContent || "{}") : {};`,
 		`const root = document.querySelector('[data-hydrate="${slotId}"]');`,
-		`if (root) { hydrateRoot(root, HydrateSlot({ loaderData })); }`,
+		`if (root) { hydrateRoot(root, createElement(HydrateSlot, { loaderData })); }`,
 	].join("\n");
 }

@@ -104,9 +104,27 @@ describe("injectHydration", () => {
 			loaderData,
 		});
 
-		expect(result).toContain(
-			`<script type="application/json" data-hydrate-data="counter">${JSON.stringify(loaderData)}</script>`,
-		);
+		expect(result).toContain('data-hydrate-data="counter">');
+		expect(result).toContain('"items"');
+		expect(result).toContain('"count":42');
+	});
+
+	test("escapes script-breaking characters in loader data", () => {
+		const loaderData = { html: '</script><script>alert("xss")</script>' };
+
+		const result = injectHydration({
+			html: BASE_HTML,
+			slotInteractivity: {
+				header: false,
+				counter: true,
+				footer: false,
+			},
+			routePath: "/pages/home",
+			loaderData,
+		});
+
+		expect(result).not.toContain("</script><script>");
+		expect(result).toContain("\\u003c/script>");
 	});
 
 	test("multiple interactive slots each get independent hydration", () => {
@@ -147,6 +165,30 @@ describe("injectHydration", () => {
 
 		expect(result).toContain('<div data-slot="header"><h1>Header</h1></div>');
 		expect(result).toContain('<div data-slot="footer"><footer>Footer</footer></div>');
+	});
+
+	test("handles nested divs inside slot content", () => {
+		const htmlWithNestedDivs = [
+			"<!DOCTYPE html>",
+			'<html lang="en">',
+			"<head><title>Test</title></head>",
+			"<body>",
+			'<div data-slot="main"><div class="wrapper"><div class="inner"><p>Deep</p></div></div></div>',
+			"</body>",
+			"</html>",
+		].join("");
+
+		const result = injectHydration({
+			html: htmlWithNestedDivs,
+			slotInteractivity: { main: true },
+			routePath: "/nested",
+			loaderData: {},
+		});
+
+		expect(result).toContain(
+			'<div data-hydrate="main"><div class="wrapper"><div class="inner"><p>Deep</p></div></div></div>',
+		);
+		expect(result).not.toContain('data-slot="main"');
 	});
 
 	test("hydration script references the correct route path", () => {
