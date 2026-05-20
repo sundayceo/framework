@@ -126,7 +126,7 @@ function loadVirtualModule(id: string, ctx: PluginContext): string | undefined {
 		});
 	}
 	if (id === RESOLVED_HYDRATION_MANIFEST_ID) {
-		ctx.manifestSource ??= generateManifestSource(ctx.routeScan, ctx.srcDir); // eslint-disable-line no-param-reassign
+		ctx.manifestSource ??= generateManifestSource(ctx.routeScan, ctx.srcDir); // eslint-disable-line no-param-reassign -- mutable plugin context
 		return ctx.manifestSource;
 	}
 	return loadHydrateModule(id, ctx.routeScan, ctx.srcDir);
@@ -151,8 +151,10 @@ function handleHotUpdateHook(file: string, server: ViteDevServer, ctx: PluginCon
 	if (!isRouteFile(file, path.join(ctx.srcDir, "routes"))) {
 		return;
 	}
-	ctx.routeScan = scanRouteSources(ctx.srcDir); // eslint-disable-line no-param-reassign
-	ctx.manifestSource = null; // eslint-disable-line no-param-reassign
+	/* eslint-disable no-param-reassign -- mutable plugin context, invalidated on file change */
+	ctx.routeScan = scanRouteSources(ctx.srcDir);
+	ctx.manifestSource = null;
+	/* eslint-enable no-param-reassign */
 	invalidateModules(server);
 }
 

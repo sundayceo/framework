@@ -48,7 +48,12 @@ function walkTree(node: ReactNode, state: WalkState): void {
 /** Walks a template's render tree to discover all declared Slot IDs and which are required. */
 export function extractSlots(template: TemplateComponent): ExtractSlotsResult {
 	const tree = template({ head: null });
-	const node: ReactNode = tree instanceof Promise ? null : tree;
+	if (tree instanceof Promise) {
+		// eslint-disable-next-line no-console
+		console.warn("[sundayceo] Template returned a Promise — async templates are not supported. Slot extraction skipped.");
+		return { slots: [], requiredSlots: [] };
+	}
+	const node: ReactNode = tree;
 
 	const state: WalkState = {
 		slots: [],

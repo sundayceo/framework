@@ -4,10 +4,8 @@ import { renderToString } from "react-dom/server";
 import { extractSlots } from "./extract-slots";
 import { injectHydration } from "./inject-hydration";
 import { SlotProvider } from "./slot";
-import type { Context, SlotMap, TemplateComponent } from "./types";
+import type { Context, MetaInfo, SlotMap, TemplateComponent } from "./types";
 import { validateSlots } from "./validate-slots";
-
-type MetaInfo = { title?: string; description?: string };
 
 type RenderablePageModule = {
 	loader?: (ctx: Context) => unknown;

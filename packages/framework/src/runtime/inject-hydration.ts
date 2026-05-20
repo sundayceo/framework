@@ -11,6 +11,7 @@ type InjectHydrationInput = {
 const DIV_OPEN = "<div";
 const DIV_CLOSE = "</div>";
 
+/** Assumes well-formed HTML from React's renderToString (no divs in attributes or comments). */
 function findSlotContent(html: string, slotId: string): { start: number; end: number } | null {
 	const openTag = `<div data-slot="${slotId}">`;
 	const openIdx = html.indexOf(openTag);
@@ -47,7 +48,7 @@ function wrapWithBoundary(input: { content: string; slotId: string }): string {
 }
 
 function escapeScriptContent(json: string): string {
-	return json.replace(/</g, "\\u003c");
+	return json.replaceAll("<", "\\u003c").replaceAll(">", "\\u003e");
 }
 
 function buildDataScript(input: { slotId: string; loaderData: unknown }): string {
@@ -56,10 +57,8 @@ function buildDataScript(input: { slotId: string; loaderData: unknown }): string
 	return `<script type="application/json" data-hydrate-data="${slotId}">${escapeScriptContent(raw)}</script>`;
 }
 
-function buildModuleScript(input: { slotId: string; assetPath: string }): string {
-	const { slotId, assetPath } = input;
-	const code = generateHydrationScript({ slotId, assetPath });
-	return `<script type="module">${code}</script>`;
+function buildModuleScript(assetPath: string): string {
+	return `<script type="module">${generateHydrationScript(assetPath)}</script>`;
 }
 
 function resolveAssetPath(input: {
@@ -104,7 +103,7 @@ export function injectHydration(input: InjectHydrationInput): string {
 
 		const assetPath = resolveAssetPath({ slotId, routePath, assetPaths });
 		scriptsToAppend.push(buildDataScript({ slotId, loaderData }));
-		scriptsToAppend.push(buildModuleScript({ slotId, assetPath }));
+		scriptsToAppend.push(buildModuleScript(assetPath));
 	}
 
 	const scriptsHtml = scriptsToAppend.join("");

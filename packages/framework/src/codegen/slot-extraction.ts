@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention -- Babel visitors must be PascalCase */
 import * as generateModule from "@babel/generator";
 import { parse } from "@babel/parser";
 import type { NodePath } from "@babel/traverse";
@@ -7,17 +6,16 @@ import * as t from "@babel/types";
 
 import { assembleSlotModule, type SlotModuleParts } from "./slot-module-assembly";
 
-type DoubleWrapped<T> = { default: { default: T } };
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- CJS/ESM interop: @babel/* default export is double-wrapped */
 /* v8 ignore start -- CJS/ESM interop: only one branch is reachable per environment */
-const traverse =
-	typeof traverseModule.default === "function"
-		? traverseModule.default
-		: (traverseModule as unknown as DoubleWrapped<typeof traverseModule.default>).default.default;
-const generate =
-	typeof generateModule.default === "function"
-		? generateModule.default
-		: (generateModule as unknown as DoubleWrapped<typeof generateModule.default>).default.default;
+type DoubleWrapped<T> = { default: { default: T } };
+function unwrapDefault<T>(mod: { default: T } | DoubleWrapped<T>): T {
+	return typeof mod.default === "function"
+		? mod.default
+		: (mod as unknown as DoubleWrapped<T>).default.default;
+}
+const traverse = unwrapDefault(traverseModule);
+const generate = unwrapDefault(generateModule);
 /* v8 ignore stop */
 /* eslint-enable @typescript-eslint/consistent-type-assertions */
 
@@ -50,6 +48,7 @@ function collectImports(ast: t.File, source: string): Map<string, ImportEntry> {
 function findDefineSlotsNode(ast: t.File): DefineSlotsResult | null {
 	let result: DefineSlotsResult | null = null;
 
+	/* eslint-disable @typescript-eslint/naming-convention -- Babel visitors must be PascalCase */
 	traverse(ast, {
 		ObjectProperty(path: NodePath<t.ObjectProperty>) {
 			if (!t.isIdentifier(path.node.key, { name: "defineSlots" })) {
@@ -77,6 +76,7 @@ function findDefineSlotsNode(ast: t.File): DefineSlotsResult | null {
 			}
 		},
 	});
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	return result;
 }
@@ -90,6 +90,7 @@ function collectReferencedIdentifiers(node: t.Node): Set<string> {
 		: (node as t.Statement); // eslint-disable-line @typescript-eslint/consistent-type-assertions -- narrowing from t.Node
 	const dummyFile = t.file(t.program([wrapped]));
 
+	/* eslint-disable @typescript-eslint/naming-convention -- Babel visitors must be PascalCase */
 	traverse(dummyFile, {
 		Identifier(path: NodePath<t.Identifier>) {
 			if (t.isMemberExpression(path.parent) && path.parent.property === path.node) {
@@ -110,6 +111,7 @@ function collectReferencedIdentifiers(node: t.Node): Set<string> {
 			}
 		},
 	});
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	for (const name of GLOBAL_NAMES) {
 		identifiers.delete(name);

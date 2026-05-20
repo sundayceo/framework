@@ -230,6 +230,21 @@ async function dispatchRoute<TPlatform>(input: {
 	);
 }
 
+async function safeContext<TPlatform>(input: {
+	app: AppConfig<Record<string, unknown>, TPlatform>;
+	request: Request;
+	platform: TPlatform | undefined;
+	label: string;
+}): Promise<Record<string, unknown>> {
+	try {
+		return await input.app.context(input.request, input.platform);
+	} catch (contextError: unknown) {
+		// eslint-disable-next-line no-console
+		console.error(`app.context() threw during ${input.label}:`, contextError);
+		return {};
+	}
+}
+
 /** Creates a fetch-compatible request handler that routes requests to pages and API handlers. */
 export function createHandler<TPlatform = unknown>(
 	options: HandlerConfig<TPlatform>,
@@ -242,13 +257,7 @@ export function createHandler<TPlatform = unknown>(
 
 			const match = matchRoute(url.pathname, routes);
 			if (match === null) {
-				const appContext = await Promise.resolve(app.context(request, platform)).catch(
-					(contextError: unknown): Record<string, unknown> => {
-						// eslint-disable-next-line no-console
-						console.error("app.context() threw during 404 handling:", contextError);
-						return {};
-					},
-				);
+				const appContext = await safeContext({ app, request, platform, label: "404 handling" });
 				return renderErrorPage({ status: NOT_FOUND, errorPages, templates, request, appContext });
 			}
 
@@ -264,13 +273,7 @@ export function createHandler<TPlatform = unknown>(
 					hydrationAssets,
 				});
 			} catch (error) {
-				const appContext = await Promise.resolve(app.context(request, platform)).catch(
-					(contextError: unknown): Record<string, unknown> => {
-						// eslint-disable-next-line no-console
-						console.error("app.context() threw during error handling:", contextError);
-						return {};
-					},
-				);
+				const appContext = await safeContext({ app, request, platform, label: "error handling" });
 				return handleError({
 					error,
 					request,

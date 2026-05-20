@@ -24,8 +24,7 @@ export function extractParamNames(route: string): string[] {
 	const params: string[] = [];
 	let match: RegExpExecArray | null = PARAM_PATTERN.exec(route);
 	while (match !== null) {
-		/* v8 ignore next */
-		const raw = match.at(1) ?? "";
+		const raw = match[1] ?? "";
 		params.push(raw.startsWith(CATCH_ALL_PREFIX) ? raw.slice(CATCH_ALL_PREFIX.length) : raw);
 		match = PARAM_PATTERN.exec(route);
 	}
