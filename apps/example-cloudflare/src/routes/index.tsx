@@ -69,7 +69,7 @@ export default definePage("/")({
 	defineSlots: () => ({
 		header: (
 			<div className="flex items-center justify-between">
-				<h1 className="text-xl font-semibold tracking-tight">sundayceo</h1>
+				<img src="/logo.svg" alt="sundayceo" className="h-6" />
 				<span className="text-sm text-gray-400">framework playground</span>
 			</div>
 		),
