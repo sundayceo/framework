@@ -153,4 +153,20 @@ describe("codegenFromDisk", () => {
 		expect(routeLines).toHaveLength(1);
 		expect(routeLines.at(0)).toContain('routePath: "/"');
 	});
+
+	test("route groups strip parenthesized directory from route path", () => {
+		fs.mkdirSync(path.join(srcDir, "routes", "(marketing)"), { recursive: true });
+		fs.writeFileSync(path.join(srcDir, "routes", "(marketing)", "about.tsx"), "");
+		fs.writeFileSync(path.join(srcDir, "routes", "(marketing)", "pricing.tsx"), "");
+
+		const { manifest, declarations } = codegenFromDisk(srcDir);
+
+		expect(manifest).toContain('routePath: "/about"');
+		expect(manifest).toContain('routePath: "/pricing"');
+		expect(manifest).toContain('import("./routes/(marketing)/about")');
+		expect(manifest).toContain('import("./routes/(marketing)/pricing")');
+
+		expect(declarations).toContain('"/about": {};');
+		expect(declarations).toContain('"/pricing": {};');
+	});
 });

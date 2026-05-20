@@ -4,11 +4,12 @@ import { frameworkPlugin } from "./vite-plugin";
 
 const VIRTUAL_MODULE_ID = "@sundayceo/framework/server-entry";
 const RESOLVED_VIRTUAL_MODULE_ID = "\0@sundayceo/framework/server-entry";
+const HYDRATION_MANIFEST_ID = "virtual:hydration-manifest";
+const RESOLVED_HYDRATION_MANIFEST_ID = "\0virtual:hydration-manifest";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function createPlugin() {
 	const plugin = frameworkPlugin();
-	// Simulate configResolved so srcDir is set
 	(plugin as any).configResolved({ root: "/test" });
 	return plugin;
 }
@@ -18,6 +19,18 @@ describe("vite-plugin resolveId", () => {
 		const plugin = createPlugin();
 		const resolved = (plugin as any).resolveId(VIRTUAL_MODULE_ID);
 		expect(resolved).toBe(RESOLVED_VIRTUAL_MODULE_ID);
+	});
+
+	it("resolves hydration-manifest virtual module", () => {
+		const plugin = createPlugin();
+		const resolved = (plugin as any).resolveId(HYDRATION_MANIFEST_ID);
+		expect(resolved).toBe(RESOLVED_HYDRATION_MANIFEST_ID);
+	});
+
+	it("resolves hydrate slot virtual module IDs", () => {
+		const plugin = createPlugin();
+		const resolved = (plugin as any).resolveId("virtual:hydrate/demo/main");
+		expect(resolved).toBe("\0virtual:hydrate/demo/main.jsx");
 	});
 
 	it("returns undefined for other module IDs", () => {
@@ -48,5 +61,17 @@ describe("vite-plugin load", () => {
 		expect((plugin as any).load("react")).toBeUndefined();
 		expect((plugin as any).load("./src/app.ts")).toBeUndefined();
 		expect((plugin as any).load(VIRTUAL_MODULE_ID)).toBeUndefined();
+	});
+});
+
+describe("vite-plugin metadata", () => {
+	it("has correct plugin name", () => {
+		const plugin = frameworkPlugin();
+		expect(plugin.name).toBe("sundayceo-framework");
+	});
+
+	it("enforces pre ordering", () => {
+		const plugin = frameworkPlugin();
+		expect(plugin.enforce).toBe("pre");
 	});
 });

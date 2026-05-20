@@ -200,10 +200,11 @@ describe("createDevMiddleware", () => {
 		expect(server.ssrLoadModule).toHaveBeenCalledWith("@sundayceo/framework");
 	});
 
-	test("calls createHandler with app, routes, templates, and errorPages", async () => {
+	test("calls createHandler with app, routes, templates, errorPages, and hydrationManifest", async () => {
 		const mockRoutes = [{ routePath: "/", params: [], loadModule: vi.fn() }];
 		const mockTemplates = { main: vi.fn() };
 		const mockErrorPages = { 404: vi.fn(), 500: vi.fn() };
+		const mockHydrationManifest = { "/": { main: true } };
 		const mockApp = { context: () => ({}) };
 		const createHandler = vi.fn().mockReturnValue({
 			fetch: () => Promise.resolve(new Response("OK")),
@@ -211,7 +212,12 @@ describe("createDevMiddleware", () => {
 
 		const server = createMockServer({
 			appModule: { app: mockApp },
-			routesModule: { routes: mockRoutes, templates: mockTemplates, errorPages: mockErrorPages },
+			routesModule: {
+				routes: mockRoutes,
+				templates: mockTemplates,
+				errorPages: mockErrorPages,
+				hydrationManifest: mockHydrationManifest,
+			},
 			frameworkModule: { createHandler },
 		});
 
@@ -223,6 +229,7 @@ describe("createDevMiddleware", () => {
 			routes: mockRoutes,
 			templates: mockTemplates,
 			errorPages: mockErrorPages,
+			hydrationManifest: mockHydrationManifest,
 		});
 	});
 
