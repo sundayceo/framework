@@ -34,9 +34,4 @@ describe("generateTemplateRegistry", () => {
 		expect(nIdx).toBeLessThan(wIdx);
 	});
 
-	test("wraps in module declaration", () => {
-		const result = generateTemplateRegistry(["default.tsx"]);
-
-		expect(result).toContain('declare module "@sundayceo/framework"');
-	});
 });

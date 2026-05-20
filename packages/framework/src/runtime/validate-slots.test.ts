@@ -125,6 +125,19 @@ describe("validateSlots", () => {
 		expect(result.warnings).toEqual([]);
 	});
 
+	test("suggests closest match for missing required slot with typo", () => {
+		const result = validateSlots({
+			providedSlots: ["heder"],
+			extractedSlots: {
+				slots: ["header", "content"],
+				requiredSlots: ["header"],
+			},
+		});
+
+		expect(result.errors).toHaveLength(1);
+		expect(result.errors.at(0)?.message).toContain('Did you mean "heder"');
+	});
+
 	test("does not warn for optional slots that are not provided", () => {
 		const result = validateSlots({
 			providedSlots: ["header"],

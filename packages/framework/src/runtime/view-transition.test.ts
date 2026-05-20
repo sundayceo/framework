@@ -1,11 +1,7 @@
-import { describe, expect, test } from "vitest";
+import { expect, test } from "vitest";
 
 import { viewTransitionName } from "./view-transition";
 
-describe("viewTransitionName", () => {
-	test("returns style object with viewTransitionName", () => {
-		const result = viewTransitionName("hero");
-
-		expect(result).toEqual({ style: { viewTransitionName: "hero" } });
-	});
+test("returns a style prop with the given view-transition-name", () => {
+	expect(viewTransitionName("hero")).toEqual({ style: { viewTransitionName: "hero" } });
 });

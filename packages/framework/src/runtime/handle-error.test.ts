@@ -149,9 +149,12 @@ describe("handleError", () => {
 		expect(onError).not.toHaveBeenCalled();
 	});
 
-	test("handles non-Error thrown values gracefully", async () => {
+	test.each([
+		{ label: "string", error: "string error" },
+		{ label: "null", error: null },
+	])("handles non-Error thrown values gracefully ($label)", async ({ error }) => {
 		const res = await handleError({
-			error: "string error",
+			error,
 			request: MOCK_REQUEST,
 			onError: undefined,
 			errorPages: undefined,
@@ -162,9 +165,11 @@ describe("handleError", () => {
 		expect(res.status).toBe(500);
 	});
 
-	test("handles null thrown value gracefully", async () => {
+	test("uses default message for unknown status codes", async () => {
+		const error = new HttpErrorResponse(418);
+
 		const res = await handleError({
-			error: null,
+			error,
 			request: MOCK_REQUEST,
 			onError: undefined,
 			errorPages: undefined,
@@ -172,7 +177,7 @@ describe("handleError", () => {
 			appContext: EMPTY_CONTEXT,
 		});
 
-		expect(res.status).toBe(500);
+		expect(res.status).toBe(418);
 	});
 
 	test("survives onError hook that throws", async () => {

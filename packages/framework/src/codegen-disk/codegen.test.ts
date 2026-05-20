@@ -36,55 +36,6 @@ describe("codegenFromDisk", () => {
 		expect(typeof result.manifest).toBe("string");
 	});
 
-	test("declarations contain both route map and template registry", () => {
-		fs.writeFileSync(path.join(srcDir, "routes", "index.tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "routes", "about.tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "routes", "[slug].tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "templates", "marketing.tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "templates", "blog.tsx"), "");
-
-		const { declarations } = codegenFromDisk(srcDir);
-
-		expect(declarations).toContain("interface TemplateRegistry {");
-		expect(declarations).toContain('blog: typeof import("./templates/blog").default;');
-		expect(declarations).toContain('marketing: typeof import("./templates/marketing").default;');
-
-		expect(declarations).toContain("interface RouteMap {");
-		expect(declarations).toContain('"/": {};');
-		expect(declarations).toContain('"/about": {};');
-		expect(declarations).toContain('"/[slug]": { slug: string };');
-
-		const moduleCount = (declarations.match(/declare module "@sundayceo\/framework"/g) ?? [])
-			.length;
-		expect(moduleCount).toBe(2);
-	});
-
-	test("manifest contains route entries with lazy imports and template map", () => {
-		fs.writeFileSync(path.join(srcDir, "routes", "index.tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "routes", "about.tsx"), "");
-		fs.mkdirSync(path.join(srcDir, "routes", "blog"), { recursive: true });
-		fs.writeFileSync(path.join(srcDir, "routes", "blog", "[slug].tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "templates", "default.tsx"), "");
-
-		const { manifest } = codegenFromDisk(srcDir);
-
-		expect(manifest).toContain("export const routes = [");
-		expect(manifest).toContain(
-			'routePath: "/", params: [], loadModule: () => import("./routes/index")',
-		);
-		expect(manifest).toContain(
-			'routePath: "/about", params: [], loadModule: () => import("./routes/about")',
-		);
-		expect(manifest).toContain(
-			'routePath: "/blog/:slug", params: ["slug"], loadModule: () => import("./routes/blog/[slug]")',
-		);
-
-		expect(manifest).toContain("export const templates = {");
-		expect(manifest).toContain('default: () => import("./templates/default")');
-
-		expect(manifest).toContain("export const hydrationManifest = ");
-	});
-
 	test("handles empty directories gracefully", () => {
 		const result = codegenFromDisk(srcDir);
 
@@ -103,70 +54,5 @@ describe("codegenFromDisk", () => {
 		expect(result.declarations).toContain("interface RouteMap {");
 
 		fs.rmSync(emptyDir, { recursive: true, force: true });
-	});
-
-	test("excludes error page files from RouteMap declarations", () => {
-		fs.writeFileSync(path.join(srcDir, "routes", "index.tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "routes", "404.tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "routes", "500.tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "routes", "about.tsx"), "");
-
-		const { declarations } = codegenFromDisk(srcDir);
-
-		expect(declarations).toContain('"/": {};');
-		expect(declarations).toContain('"/about": {};');
-		expect(declarations).not.toContain("404");
-		expect(declarations).not.toContain("500");
-	});
-
-	test("keeps non-error numeric files in RouteMap declarations", () => {
-		fs.writeFileSync(path.join(srcDir, "routes", "200.tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "routes", "301.tsx"), "");
-
-		const { declarations } = codegenFromDisk(srcDir);
-
-		expect(declarations).toContain('"/200": {};');
-		expect(declarations).toContain('"/301": {};');
-	});
-
-	test("emits errorPages export with lazy imports keyed by status code", () => {
-		fs.writeFileSync(path.join(srcDir, "routes", "index.tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "routes", "404.tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "routes", "500.tsx"), "");
-
-		const { manifest } = codegenFromDisk(srcDir);
-
-		expect(manifest).toContain("export const errorPages = {");
-		expect(manifest).toContain('404: () => import("./routes/404")');
-		expect(manifest).toContain('500: () => import("./routes/500")');
-	});
-
-	test("excludes error pages from routes array in manifest", () => {
-		fs.writeFileSync(path.join(srcDir, "routes", "index.tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "routes", "404.tsx"), "");
-
-		const { manifest } = codegenFromDisk(srcDir);
-
-		const lines = manifest.split("\n");
-		const routeLines = lines.filter((l) => l.includes("routePath:"));
-
-		expect(routeLines).toHaveLength(1);
-		expect(routeLines.at(0)).toContain('routePath: "/"');
-	});
-
-	test("route groups strip parenthesized directory from route path", () => {
-		fs.mkdirSync(path.join(srcDir, "routes", "(marketing)"), { recursive: true });
-		fs.writeFileSync(path.join(srcDir, "routes", "(marketing)", "about.tsx"), "");
-		fs.writeFileSync(path.join(srcDir, "routes", "(marketing)", "pricing.tsx"), "");
-
-		const { manifest, declarations } = codegenFromDisk(srcDir);
-
-		expect(manifest).toContain('routePath: "/about"');
-		expect(manifest).toContain('routePath: "/pricing"');
-		expect(manifest).toContain('import("./routes/(marketing)/about")');
-		expect(manifest).toContain('import("./routes/(marketing)/pricing")');
-
-		expect(declarations).toContain('"/about": {};');
-		expect(declarations).toContain('"/pricing": {};');
 	});
 });

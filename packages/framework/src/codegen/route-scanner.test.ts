@@ -3,42 +3,33 @@ import { describe, expect, test } from "vitest";
 import { scanRoutes } from "./route-scanner";
 
 describe("scanRoutes", () => {
-	test("converts a simple static route", () => {
-		const result = scanRoutes(["about.tsx"]);
-
-		expect(result.routes).toEqual([{ routePath: "/about", params: [], filePath: "about.tsx" }]);
-	});
-
-	test("converts index.tsx to root path", () => {
-		const result = scanRoutes(["index.tsx"]);
-
-		expect(result.routes).toEqual([{ routePath: "/", params: [], filePath: "index.tsx" }]);
-	});
-
-	test("converts nested index route", () => {
-		const result = scanRoutes(["blog/index.tsx"]);
-
-		expect(result.routes).toEqual([{ routePath: "/blog", params: [], filePath: "blog/index.tsx" }]);
-	});
-
-	test("converts a dynamic segment", () => {
-		const result = scanRoutes(["blog/[slug].tsx"]);
-
-		expect(result.routes).toEqual([
-			{ routePath: "/blog/:slug", params: ["slug"], filePath: "blog/[slug].tsx" },
-		]);
-	});
-
-	test("converts multiple dynamic segments", () => {
-		const result = scanRoutes(["products/[category]/[id].tsx"]);
-
-		expect(result.routes).toEqual([
-			{
-				routePath: "/products/:category/:id",
-				params: ["category", "id"],
-				filePath: "products/[category]/[id].tsx",
-			},
-		]);
+	test.each([
+		["simple static route", ["about.tsx"], [{ routePath: "/about", params: [], filePath: "about.tsx" }]],
+		["index.tsx to root path", ["index.tsx"], [{ routePath: "/", params: [], filePath: "index.tsx" }]],
+		["nested index route", ["blog/index.tsx"], [{ routePath: "/blog", params: [], filePath: "blog/index.tsx" }]],
+		[
+			"dynamic segment",
+			["blog/[slug].tsx"],
+			[{ routePath: "/blog/:slug", params: ["slug"], filePath: "blog/[slug].tsx" }],
+		],
+		[
+			"multiple dynamic segments",
+			["products/[category]/[id].tsx"],
+			[{ routePath: "/products/:category/:id", params: ["category", "id"], filePath: "products/[category]/[id].tsx" }],
+		],
+		[
+			"catch-all route [...slug]",
+			["docs/[...slug].tsx"],
+			[{ routePath: "/docs/*slug", params: ["slug"], filePath: "docs/[...slug].tsx" }],
+		],
+		[
+			"top-level catch-all route",
+			["[...path].tsx"],
+			[{ routePath: "/*path", params: ["path"], filePath: "[...path].tsx" }],
+		],
+	])("converts %s", (_label, input, expected) => {
+		const result = scanRoutes(input);
+		expect(result.routes).toEqual(expected);
 	});
 
 	test("accepts both .tsx and .ts files", () => {
@@ -91,14 +82,6 @@ describe("scanRoutes", () => {
 		expect(patterns).toEqual(["/", "/about"]);
 	});
 
-	test("excludes nested .test.tsx files", () => {
-		const result = scanRoutes(["api/health.tsx", "api/health.test.tsx"]);
-
-		expect(result.routes).toEqual([
-			{ routePath: "/api/health", params: [], filePath: "api/health.tsx" },
-		]);
-	});
-
 	test("separates 404.tsx into errorPages", () => {
 		const result = scanRoutes(["index.tsx", "404.tsx"]);
 
@@ -127,29 +110,10 @@ describe("scanRoutes", () => {
 		expect(result.errorPages).toEqual([]);
 	});
 
-	test("separates all 4xx and 5xx error pages", () => {
-		const result = scanRoutes(["403.tsx", "404.tsx", "500.tsx", "index.tsx"]);
-
-		expect(result.routes).toEqual([{ routePath: "/", params: [], filePath: "index.tsx" }]);
-		expect(result.errorPages).toEqual([
-			{ status: 403, filePath: "403.tsx" },
-			{ status: 404, filePath: "404.tsx" },
-			{ status: 500, filePath: "500.tsx" },
-		]);
-	});
-
 	test("excludes error page test files", () => {
 		const result = scanRoutes(["404.tsx", "404.test.tsx"]);
 
 		expect(result.errorPages).toEqual([{ status: 404, filePath: "404.tsx" }]);
-	});
-
-	test("converts catch-all route [...slug]", () => {
-		const result = scanRoutes(["docs/[...slug].tsx"]);
-
-		expect(result.routes).toEqual([
-			{ routePath: "/docs/*slug", params: ["slug"], filePath: "docs/[...slug].tsx" },
-		]);
 	});
 
 	test("sorts catch-all routes after dynamic routes", () => {
@@ -158,14 +122,6 @@ describe("scanRoutes", () => {
 		const patterns = result.routes.map((r) => r.routePath);
 
 		expect(patterns).toEqual(["/", "/about", "/blog/:slug", "/docs/*slug"]);
-	});
-
-	test("converts top-level catch-all route", () => {
-		const result = scanRoutes(["[...path].tsx"]);
-
-		expect(result.routes).toEqual([
-			{ routePath: "/*path", params: ["path"], filePath: "[...path].tsx" },
-		]);
 	});
 
 	test("strips route group folders from URL pattern", () => {

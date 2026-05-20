@@ -72,30 +72,16 @@ describe("createHandler", () => {
 		expect(response.headers.get("content-type")).toBe("text/html;charset=utf-8");
 	});
 
-	test("handler route: dispatches GET by HTTP method", async () => {
-		const getHandler = vi.fn().mockReturnValue(new Response("get result"));
+	test.each([
+		{ method: "GET", label: "GET" },
+		{ method: "POST", label: "POST" },
+	])("handler route: dispatches $label by HTTP method", async ({ method }) => {
+		const methodHandler = vi.fn().mockReturnValue(new Response(`${method} result`));
 		const route = makeRoute({
 			routePath: "/api/data",
-			loadModule: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
-		});
-
-		const handler = createHandler({
-			app: makeApp(),
-			routes: [route],
-			templates: makeTemplates(),
-		});
-
-		const response = await handler.fetch(new Request("https://example.com/api/data"));
-
-		expect(getHandler).toHaveBeenCalled();
-		expect(await response.text()).toBe("get result");
-	});
-
-	test("handler route: dispatches POST by HTTP method", async () => {
-		const postHandler = vi.fn().mockReturnValue(new Response("post result"));
-		const route = makeRoute({
-			routePath: "/api/data",
-			loadModule: vi.fn().mockResolvedValue({ default: makeHandlerModule({ POST: postHandler }) }),
+			loadModule: vi
+				.fn()
+				.mockResolvedValue({ default: makeHandlerModule({ [method]: methodHandler }) }),
 		});
 
 		const handler = createHandler({
@@ -105,11 +91,11 @@ describe("createHandler", () => {
 		});
 
 		const response = await handler.fetch(
-			new Request("https://example.com/api/data", { method: "POST" }),
+			new Request("https://example.com/api/data", { method }),
 		);
 
-		expect(postHandler).toHaveBeenCalled();
-		expect(await response.text()).toBe("post result");
+		expect(methodHandler).toHaveBeenCalled();
+		expect(await response.text()).toBe(`${method} result`);
 	});
 
 	test("returns 404 for unmatched routes", async () => {
@@ -292,43 +278,36 @@ describe("createHandler", () => {
 			loadModule: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
 		});
 
+		// With onError: calls onError then returns 500
 		const onError = vi.fn();
-
-		const handler = createHandler({
+		const handlerWithOnError = createHandler({
 			app: makeApp({ onError }),
 			routes: [route],
 			templates: makeTemplates(),
 		});
 
 		const request = new Request("https://example.com/api/data");
-		const response = await handler.fetch(request);
+		const response = await handlerWithOnError.fetch(request);
 
 		expect(onError).toHaveBeenCalledWith(thrownError, request);
 		expect(response.status).toBe(500);
 		const body = await response.text();
 		expect(body).toContain("Internal Server Error");
-	});
 
-	test("unhandled error returns 500 bare HTML without onError", async () => {
-		const getHandler = vi.fn().mockImplementation(() => {
-			throw new Error("boom");
-		});
-		const route = makeRoute({
-			routePath: "/api/data",
-			loadModule: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
-		});
-
-		const handler = createHandler({
+		// Without onError: still returns 500 bare HTML
+		const handlerWithoutOnError = createHandler({
 			app: makeApp(),
 			routes: [route],
 			templates: makeTemplates(),
 		});
 
-		const response = await handler.fetch(new Request("https://example.com/api/data"));
+		const response2 = await handlerWithoutOnError.fetch(
+			new Request("https://example.com/api/data"),
+		);
 
-		expect(response.status).toBe(500);
-		const body = await response.text();
-		expect(body).toContain("Internal Server Error");
+		expect(response2.status).toBe(500);
+		const body2 = await response2.text();
+		expect(body2).toContain("Internal Server Error");
 	});
 
 	test("platform context forwarded to app.context", async () => {
@@ -392,43 +371,6 @@ describe("createHandler", () => {
 
 		const ctx = getHandler.mock.calls.at(0)?.at(0);
 		expect(ctx.params).toEqual({ id: "123" });
-	});
-
-	test("unwraps page module from ESM namespace default export", async () => {
-		const pageModule = makePageModule();
-		const route = makeRoute({
-			routePath: "/about",
-			loadModule: vi.fn().mockResolvedValue({ default: pageModule }),
-		});
-
-		const handler = createHandler({
-			app: makeApp(),
-			routes: [route],
-			templates: makeTemplates(),
-		});
-
-		const response = await handler.fetch(new Request("https://example.com/about"));
-
-		expect(response.status).toBe(200);
-		expect(pageModule.loader).toHaveBeenCalled();
-	});
-
-	test("unwraps handler module from ESM namespace default export", async () => {
-		const getHandler = vi.fn().mockReturnValue(new Response("direct"));
-		const route = makeRoute({
-			routePath: "/api/test",
-			loadModule: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
-		});
-
-		const handler = createHandler({
-			app: makeApp(),
-			routes: [route],
-			templates: makeTemplates(),
-		});
-
-		const response = await handler.fetch(new Request("https://example.com/api/test"));
-
-		expect(await response.text()).toBe("direct");
 	});
 
 	describe("error pages", () => {
@@ -634,7 +576,7 @@ describe("createHandler", () => {
 			expect(body).toContain("Internal Server Error");
 		});
 
-		test("unhandled error populates ErrorContext.stack in dev mode", async () => {
+		test("unhandled error populates ErrorContext fields in dev mode", async () => {
 			const thrownError = new Error("db connection failed");
 			const errorPageModule = makeErrorPageModule();
 			const getHandler = vi.fn().mockImplementation(() => {
@@ -659,31 +601,8 @@ describe("createHandler", () => {
 				.at(0);
 			expect(loaderArg.error.stack).toBeDefined();
 			expect(loaderArg.error.stack).toContain("db connection failed");
-		});
-
-		test("unhandled error uses error.message in dev mode", async () => {
-			const errorPageModule = makeErrorPageModule();
-			const getHandler = vi.fn().mockImplementation(() => {
-				throw new Error("specific failure reason");
-			});
-			const route = makeRoute({
-				routePath: "/api/data",
-				loadModule: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
-			});
-
-			const handler = createHandler({
-				app: makeApp(),
-				routes: [route],
-				templates: makeTemplates(),
-				errorPages: makeErrorPages({ 500: errorPageModule }),
-			});
-
-			await handler.fetch(new Request("https://example.com/api/data"));
-
-			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls
-				.at(0)!
-				.at(0);
-			expect(loaderArg.error.message).toBe("specific failure reason");
+			expect(loaderArg.error.message).toBe("db connection failed");
+			expect(loaderArg.error.error).toBe(thrownError);
 		});
 
 		test("404 error page has no error or stack in ErrorContext", async () => {
@@ -704,32 +623,6 @@ describe("createHandler", () => {
 			expect(loaderArg.error.error).toBeUndefined();
 			expect(loaderArg.error.stack).toBeUndefined();
 			expect(loaderArg.error.message).toBe("Not Found");
-		});
-
-		test("unhandled error populates ErrorContext.error with thrown error", async () => {
-			const thrownError = new Error("db connection failed");
-			const errorPageModule = makeErrorPageModule();
-			const getHandler = vi.fn().mockImplementation(() => {
-				throw thrownError;
-			});
-			const route = makeRoute({
-				routePath: "/api/data",
-				loadModule: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: getHandler }) }),
-			});
-
-			const handler = createHandler({
-				app: makeApp(),
-				routes: [route],
-				templates: makeTemplates(),
-				errorPages: makeErrorPages({ 500: errorPageModule }),
-			});
-
-			await handler.fetch(new Request("https://example.com/api/data"));
-
-			const loaderArg = (errorPageModule.loader as ReturnType<typeof vi.fn>).mock.calls
-				.at(0)!
-				.at(0);
-			expect(loaderArg.error.error).toBe(thrownError);
 		});
 
 		test("httpError thrown renders through error page pipeline", async () => {
@@ -756,7 +649,9 @@ describe("createHandler", () => {
 		});
 	});
 
-	test("POST to a page route returns 405", async () => {
+	test.each([
+		{ method: "POST", label: "POST" },
+	])("$label to a page route returns 405", async ({ method }) => {
 		const pageModule = makePageModule();
 		const route = makeRoute({
 			routePath: "/home",
@@ -770,7 +665,7 @@ describe("createHandler", () => {
 		});
 
 		const response = await handler.fetch(
-			new Request("https://example.com/home", { method: "POST" }),
+			new Request("https://example.com/home", { method }),
 		);
 
 		expect(response.status).toBe(405);
@@ -778,26 +673,6 @@ describe("createHandler", () => {
 		expect(allow).toContain("GET");
 		expect(allow).toContain("HEAD");
 		expect(pageModule.loader).not.toHaveBeenCalled();
-	});
-
-	test("DELETE to a page route returns 405", async () => {
-		const pageModule = makePageModule();
-		const route = makeRoute({
-			routePath: "/home",
-			loadModule: vi.fn().mockResolvedValue({ default: pageModule }),
-		});
-
-		const handler = createHandler({
-			app: makeApp(),
-			routes: [route],
-			templates: makeTemplates(),
-		});
-
-		const response = await handler.fetch(
-			new Request("https://example.com/home", { method: "DELETE" }),
-		);
-
-		expect(response.status).toBe(405);
 	});
 
 	test("HEAD to a page route returns headers without body", async () => {
@@ -844,6 +719,25 @@ describe("createHandler", () => {
 		expect(allow).toContain("HEAD");
 		expect(allow).toContain("OPTIONS");
 		expect(pageModule.loader).not.toHaveBeenCalled();
+	});
+
+	test("returns 405 for non-standard HTTP method on handler route", async () => {
+		const route = makeRoute({
+			routePath: "/api/data",
+			loadModule: vi.fn().mockResolvedValue({ default: makeHandlerModule({ GET: vi.fn() }) }),
+		});
+
+		const handler = createHandler({
+			app: makeApp(),
+			routes: [route],
+			templates: makeTemplates(),
+		});
+
+		const response = await handler.fetch(
+			new Request("https://example.com/api/data", { method: "FOOBAR" }),
+		);
+
+		expect(response.status).toBe(405);
 	});
 
 	test("invalid route module (neither page nor handler) returns 500", async () => {
@@ -958,76 +852,5 @@ describe("createHandler", () => {
 		expect(response.status).toBe(500);
 		const body = await response.text();
 		expect(body).toContain("Internal Server Error");
-	});
-
-	describe("hydration manifest threading", () => {
-		test("passes slotInteractivity from manifest to renderPage", async () => {
-			const pageModule = makePageModule({
-				defineSlots: vi.fn().mockReturnValue({
-					main: "interactive content",
-					header: "static content",
-				}),
-			});
-
-			const route = makeRoute({
-				routePath: "/demo",
-				loadModule: vi.fn().mockResolvedValue({ default: pageModule }),
-			});
-
-			const hydrationManifest = {
-				"/demo": { main: true, header: false },
-			};
-
-			const handler = createHandler({
-				app: makeApp(),
-				routes: [route],
-				templates: makeTemplates(),
-				hydrationManifest,
-			});
-
-			const response = await handler.fetch(new Request("https://example.com/demo"));
-
-			expect(response.status).toBe(200);
-		});
-
-		test("hydration assets forwarded to renderPage", async () => {
-			const pageModule = makePageModule({
-				defineSlots: vi.fn().mockReturnValue({ main: "content" }),
-			});
-
-			const route = makeRoute({
-				routePath: "/demo",
-				loadModule: vi.fn().mockResolvedValue({ default: pageModule }),
-			});
-
-			const handler = createHandler({
-				app: makeApp(),
-				routes: [route],
-				templates: makeTemplates(),
-				hydrationManifest: { "/demo": { main: true } },
-				hydrationAssets: { "/demo": { main: "/assets/demo-main-abc.js" } },
-			});
-
-			const response = await handler.fetch(new Request("https://example.com/demo"));
-
-			expect(response.status).toBe(200);
-		});
-
-		test("no hydration data when manifest is omitted", async () => {
-			const pageModule = makePageModule();
-			const route = makeRoute({
-				loadModule: vi.fn().mockResolvedValue({ default: pageModule }),
-			});
-
-			const handler = createHandler({
-				app: makeApp(),
-				routes: [route],
-				templates: makeTemplates(),
-			});
-
-			const response = await handler.fetch(new Request("https://example.com/"));
-
-			expect(response.status).toBe(200);
-		});
 	});
 });

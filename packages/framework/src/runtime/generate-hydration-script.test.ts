@@ -12,6 +12,15 @@ describe("generateHydrationScript", () => {
 		expect(script).toContain('from "virtual:hydrate/demo/main"');
 		expect(script).toContain("HydrateSlot");
 		expect(script).not.toContain("defineSlots");
+
+		// reads loader data from the JSON script tag
+		expect(script).toContain('[data-hydrate-data="main"]');
+		expect(script).toContain("JSON.parse");
+
+		// passes loaderData to HydrateSlot via createElement and hydrateRoot
+		expect(script).toContain("createElement(HydrateSlot, { loaderData }");
+		expect(script).toContain("hydrateRoot");
+		expect(script).toContain('import { createElement } from "react"');
 	});
 
 	test("targets the correct hydration boundary element", () => {
@@ -21,27 +30,6 @@ describe("generateHydrationScript", () => {
 		});
 
 		expect(script).toContain('[data-hydrate="sidebar"]');
-	});
-
-	test("reads loader data from the JSON script tag", () => {
-		const script = generateHydrationScript({
-			slotId: "main",
-			assetPath: "virtual:hydrate/blog/main",
-		});
-
-		expect(script).toContain('[data-hydrate-data="main"]');
-		expect(script).toContain("JSON.parse");
-	});
-
-	test("passes loaderData to HydrateSlot via createElement", () => {
-		const script = generateHydrationScript({
-			slotId: "counter",
-			assetPath: "virtual:hydrate/demo/counter",
-		});
-
-		expect(script).toContain("createElement(HydrateSlot, { loaderData }");
-		expect(script).toContain("hydrateRoot");
-		expect(script).toContain('import { createElement } from "react"');
 	});
 
 	test("uses production asset path when provided", () => {

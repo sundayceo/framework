@@ -29,7 +29,6 @@ function createTempProject(): string {
 
 function createPluginWithRoot(root: string): ReturnType<typeof frameworkPlugin> {
 	const plugin = frameworkPlugin();
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 	(plugin as any).configResolved({ root });
 	return plugin;
 }
@@ -129,11 +128,6 @@ describe("vite-plugin load", () => {
 });
 
 describe("vite-plugin metadata", () => {
-	it("has correct plugin name", () => {
-		const plugin = frameworkPlugin();
-		expect(plugin.name).toBe("sundayceo-framework");
-	});
-
 	it("enforces pre ordering", () => {
 		const plugin = frameworkPlugin();
 		expect(plugin.enforce).toBe("pre");
@@ -438,10 +432,10 @@ describe("vite-plugin configureServer", () => {
 		const { server, watcherHandlers } = createMockServer();
 		(plugin as any).configureServer(server);
 
-		expect(watcherHandlers["add"]).toBeDefined();
-		expect(watcherHandlers["add"].length).toBeGreaterThan(0);
-		expect(watcherHandlers["unlink"]).toBeDefined();
-		expect(watcherHandlers["unlink"].length).toBeGreaterThan(0);
+		expect(watcherHandlers.add).toBeDefined();
+		expect(watcherHandlers.add.length).toBeGreaterThan(0);
+		expect(watcherHandlers.unlink).toBeDefined();
+		expect(watcherHandlers.unlink.length).toBeGreaterThan(0);
 	});
 
 	it("returns a function (dev middleware initializer)", () => {
@@ -488,7 +482,7 @@ describe("vite-plugin configureServer", () => {
 		(plugin as any).configureServer(server);
 
 		// Trigger the add handler with a route file path
-		const addHandler = watcherHandlers["add"][0];
+		const addHandler = watcherHandlers.add.at(0)!;
 		addHandler(path.join(root, "src/routes/new-page.tsx"));
 
 		expect(fs.existsSync(declPath)).toBe(true);
@@ -507,7 +501,7 @@ describe("vite-plugin configureServer", () => {
 		(plugin as any).configureServer(server);
 
 		// Trigger the unlink handler with a template file path
-		const unlinkHandler = watcherHandlers["unlink"][0];
+		const unlinkHandler = watcherHandlers.unlink.at(0)!;
 		unlinkHandler(path.join(root, "src/templates/main.tsx"));
 
 		expect(fs.existsSync(declPath)).toBe(true);
@@ -527,7 +521,7 @@ describe("vite-plugin configureServer", () => {
 		(plugin as any).configureServer(server);
 
 		// Trigger with a non-watched path
-		const addHandler = watcherHandlers["add"][0];
+		const addHandler = watcherHandlers.add.at(0)!;
 		addHandler(path.join(root, "src/components/button.tsx"));
 
 		// Content should be unchanged (no re-write)

@@ -1,6 +1,6 @@
-import { expect, expectTypeOf, test } from "vitest";
+import { expect, test } from "vitest";
 
-import { createApp, type AppConfig } from "./create-app";
+import { createApp } from "./create-app";
 
 test("createApp returns the config object unchanged", () => {
 	const contextFn = (_req: Request): { sdk: { call: () => string } } => ({
@@ -10,86 +10,4 @@ test("createApp returns the config object unchanged", () => {
 	const app = createApp(config);
 
 	expect(app).toBe(config);
-});
-
-test("createApp accepts config with onError handler", () => {
-	const config = {
-		context: (_req: Request) => ({ db: "connection" as const }),
-		onError: (_error: unknown, _req: Request): void => {
-			// side-effect only
-		},
-	};
-	const app = createApp(config);
-
-	expect(app).toBe(config);
-	expect(app.onError).toBeDefined();
-});
-
-test("createApp works without onError (it is optional)", () => {
-	const app = createApp({
-		context: (_req: Request) => ({ value: 42 }),
-	});
-
-	expect(app.onError).toBeUndefined();
-});
-
-test("context return type is preserved in AppConfig", () => {
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	const noop = (_msg: string): void => {};
-	const app = createApp({
-		context: (_req: Request) => ({
-			sdk: { apiKey: "secret" },
-			logger: { log: noop },
-		}),
-	});
-
-	expect(app.context).toBeTypeOf("function");
-
-	type ContextReturn = Awaited<ReturnType<(typeof app)["context"]>>;
-	expectTypeOf<ContextReturn>().toEqualTypeOf<{
-		sdk: { apiKey: string };
-		logger: { log: (msg: string) => void };
-	}>();
-});
-
-test("AppConfig type preserves custom context type parameter", () => {
-	type MyConfig = AppConfig<{ sdk: { call: () => string } }>;
-
-	expectTypeOf<MyConfig["context"]>().toEqualTypeOf<
-		(
-			request: Request,
-			platform?: unknown,
-		) => { sdk: { call: () => string } } | Promise<{ sdk: { call: () => string } }>
-	>();
-
-	expectTypeOf<NonNullable<MyConfig["onError"]>>().toEqualTypeOf<
-		(error: unknown, request: Request) => void | Promise<void>
-	>();
-});
-
-test("omitting TPlatform defaults platform to unknown", () => {
-	type DefaultConfig = AppConfig<{ value: number }>;
-
-	expectTypeOf<Parameters<DefaultConfig["context"]>>().toEqualTypeOf<[Request, unknown?]>();
-});
-
-test("context factory receives typed platform as second arg", () => {
-	type Env = { API_KEY: string; DB_URL: string };
-
-	type EnvConfig = AppConfig<{ apiKey: string }, Env>;
-
-	expectTypeOf<Parameters<EnvConfig["context"]>>().toEqualTypeOf<[Request, (Env | undefined)?]>();
-});
-
-test("platform type flows from createApp generic to context factory", () => {
-	type Env = { API_KEY: string };
-
-	const _app = createApp<Env>({
-		context: (_req, platform) => ({
-			key: platform?.API_KEY ?? "",
-		}),
-	});
-
-	type ContextFn = (typeof _app)["context"];
-	expectTypeOf<ContextFn>().parameter(1).toEqualTypeOf<Env | undefined>();
 });

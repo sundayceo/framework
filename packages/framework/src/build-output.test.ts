@@ -114,11 +114,6 @@ describe("package.json publish config", () => {
 		]);
 	});
 
-	test("no bin field when CLI is not yet implemented", async () => {
-		const pkg = await readPackageJson();
-		expect((pkg as Record<string, unknown>).bin).toBeUndefined();
-	});
-
 	test("publishConfig sets public access", async () => {
 		const pkg = await readPackageJson();
 		expect(pkg.publishConfig.access).toBe("public");

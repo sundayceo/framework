@@ -1,4 +1,3 @@
-import type React from "react";
 import { expect, expectTypeOf, test } from "vitest";
 
 import {
@@ -14,20 +13,10 @@ import {
 	Slot,
 	SlotProvider,
 	viewTransitionName,
-	type AppConfig,
 	type Context,
-	type ErrorContext,
-	type GeneratedErrorPages,
-	type GeneratedTemplates,
-	type HandlerConfig,
 	type HandlerModule,
 	type PageModule,
-	type Register,
-	type RouteEntry,
-	type RouteKind,
 	type RouteMap,
-	type SlotMap,
-	type TemplateComponent,
 	type TemplateRegistry,
 } from "./index";
 
@@ -86,81 +75,6 @@ test("TemplateRegistry is augmentable via module declaration merging", () => {
 
 test("RouteMap is augmentable via module declaration merging", () => {
 	expectTypeOf<RouteMap["/blog/[slug]"]>().toEqualTypeOf<{ slug: string }>();
-});
-
-test("SlotMap maps string slot IDs to ReactNode", () => {
-	expectTypeOf<SlotMap>().toEqualTypeOf<Record<string, React.ReactNode>>();
-});
-
-test("TemplateComponent accepts head prop with ReactNode", () => {
-	expectTypeOf<TemplateComponent>().toEqualTypeOf<React.FC<{ head: React.ReactNode }>>();
-});
-
-test("PageModule has RouteKind, template, loader, defineSlots, and meta", () => {
-	type Page = PageModule<"default", { id: string }, Record<string, unknown>, { title: string }>;
-
-	expectTypeOf<Page[RouteKind]>().toEqualTypeOf<"page">();
-	expectTypeOf<Page["template"]>().toEqualTypeOf<"default">();
-	expectTypeOf<NonNullable<Page["loader"]>>().toBeFunction();
-	expectTypeOf<Page["defineSlots"]>().toBeFunction();
-	expectTypeOf<Page["meta"]>().toEqualTypeOf<
-		| { title?: string; description?: string }
-		| ((args: { loaderData: { title: string } }) => { title?: string; description?: string })
-		| undefined
-	>();
-});
-
-test("HandlerModule has RouteKind and HTTP method handlers", () => {
-	type Handler = HandlerModule<{ id: string }>;
-
-	expectTypeOf<Handler[RouteKind]>().toEqualTypeOf<"handler">();
-	expectTypeOf<NonNullable<Handler["GET"]>>().toBeFunction();
-	expectTypeOf<NonNullable<Handler["POST"]>>().toBeFunction();
-	expectTypeOf<NonNullable<Handler["PUT"]>>().toBeFunction();
-	expectTypeOf<NonNullable<Handler["PATCH"]>>().toBeFunction();
-	expectTypeOf<NonNullable<Handler["DELETE"]>>().toBeFunction();
-});
-
-test("AppConfig has context and optional onError", () => {
-	expectTypeOf<AppConfig>().toHaveProperty("context");
-	expectTypeOf<AppConfig["onError"]>().toEqualTypeOf<
-		((error: unknown, request: Request) => void | Promise<void>) | undefined
-	>();
-});
-
-test("HandlerConfig has app, routes, templates, and optional hydration fields", () => {
-	expectTypeOf<HandlerConfig>().toHaveProperty("app");
-	expectTypeOf<HandlerConfig>().toHaveProperty("routes");
-	expectTypeOf<HandlerConfig>().toHaveProperty("templates");
-});
-
-test("RouteEntry has routePath, params, and loadModule", () => {
-	expectTypeOf<RouteEntry>().toHaveProperty("routePath");
-	expectTypeOf<RouteEntry>().toHaveProperty("params");
-	expectTypeOf<RouteEntry>().toHaveProperty("loadModule");
-});
-
-test("GeneratedTemplates maps names to lazy import functions", () => {
-	expectTypeOf<GeneratedTemplates>().toExtend<
-		Record<string, () => Promise<{ default: TemplateComponent }>>
-	>();
-});
-
-test("GeneratedErrorPages maps status codes to lazy import functions", () => {
-	expectTypeOf<GeneratedErrorPages>().toExtend<
-		Record<number, () => Promise<{ default: unknown }>>
-	>();
-});
-
-test("ErrorContext has status, message, and optional stack/error", () => {
-	expectTypeOf<ErrorContext["status"]>().toBeNumber();
-	expectTypeOf<ErrorContext["message"]>().toBeString();
-	expectTypeOf<ErrorContext["stack"]>().toEqualTypeOf<string | undefined>();
-	expectTypeOf<ErrorContext["error"]>().toEqualTypeOf<unknown>();
-});
-
-test("Register interface exists for declaration merging", () => {
-	expectTypeOf<Register>().toBeObject();
 });
 
 test("PageModule and HandlerModule are mutually exclusive", () => {

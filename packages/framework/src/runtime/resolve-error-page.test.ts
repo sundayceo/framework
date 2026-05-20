@@ -6,72 +6,67 @@ import {
 	resolveErrorPage,
 } from "./resolve-error-page";
 
-describe("defaultNotFoundPage", () => {
-	test("returns HTML response with status 404", async () => {
-		const response = defaultNotFoundPage();
+describe.each([
+	{ name: "defaultNotFoundPage", fn: defaultNotFoundPage, status: 404, bodySnippet: "Not Found" },
+	{
+		name: "defaultServerErrorPage",
+		fn: defaultServerErrorPage,
+		status: 500,
+		bodySnippet: "Internal Server Error",
+	},
+])("$name", ({ fn, status, bodySnippet }) => {
+	test(`returns HTML response with status ${status}`, async () => {
+		const response = fn();
 
-		expect(response.status).toBe(404);
+		expect(response.status).toBe(status);
 		expect(response.headers.get("content-type")).toBe("text/html;charset=utf-8");
 		const body = await response.text();
-		expect(body).toContain("Not Found");
-		expect(body).toContain("<!DOCTYPE html>");
-	});
-});
-
-describe("defaultServerErrorPage", () => {
-	test("returns HTML response with status 500", async () => {
-		const response = defaultServerErrorPage();
-
-		expect(response.status).toBe(500);
-		expect(response.headers.get("content-type")).toBe("text/html;charset=utf-8");
-		const body = await response.text();
-		expect(body).toContain("Internal Server Error");
+		expect(body).toContain(bodySnippet);
 		expect(body).toContain("<!DOCTYPE html>");
 	});
 });
 
 describe("resolveErrorPage", () => {
-	test("uses custom 404 page when provided in errorPages", async () => {
-		const custom404 = (): Response => new Response("Custom Not Found", { status: 404 });
-
-		const response = resolveErrorPage({
+	test.each([
+		{
+			label: "custom 404 page",
 			status: 404,
-			errorPages: { 404: custom404 },
-		});
-
-		expect(response.status).toBe(404);
-		expect(await response.text()).toBe("Custom Not Found");
-	});
-
-	test("uses custom 500 page when provided in errorPages", async () => {
-		const custom500 = (): Response => new Response("Custom Server Error", { status: 500 });
-
-		const response = resolveErrorPage({
+			factory: (): Response => new Response("Custom Not Found", { status: 404 }),
+			expectedBody: "Custom Not Found",
+		},
+		{
+			label: "custom 500 page",
 			status: 500,
-			errorPages: { 500: custom500 },
-		});
+			factory: (): Response => new Response("Custom Server Error", { status: 500 }),
+			expectedBody: "Custom Server Error",
+		},
+	])(
+		"uses $label when provided in errorPages",
+		async ({ status, factory, expectedBody }) => {
+			const response = resolveErrorPage({
+				status,
+				errorPages: { [status]: factory },
+			});
 
-		expect(response.status).toBe(500);
-		expect(await response.text()).toBe("Custom Server Error");
-	});
+			expect(response.status).toBe(status);
+			expect(await response.text()).toBe(expectedBody);
+		},
+	);
 
-	test("falls back to default 404 page when no custom page is provided", async () => {
-		const response = resolveErrorPage({ status: 404 });
+	test.each([
+		{ status: 404, bodySnippet: "Not Found" },
+		{ status: 500, bodySnippet: "Internal Server Error" },
+	])(
+		"falls back to default $status page when no custom page is provided",
+		async ({ status, bodySnippet }) => {
+			const response = resolveErrorPage({ status });
 
-		expect(response.status).toBe(404);
-		const body = await response.text();
-		expect(body).toContain("Not Found");
-		expect(body).toContain("<!DOCTYPE html>");
-	});
-
-	test("falls back to default 500 page when no custom page is provided", async () => {
-		const response = resolveErrorPage({ status: 500 });
-
-		expect(response.status).toBe(500);
-		const body = await response.text();
-		expect(body).toContain("Internal Server Error");
-		expect(body).toContain("<!DOCTYPE html>");
-	});
+			expect(response.status).toBe(status);
+			const body = await response.text();
+			expect(body).toContain(bodySnippet);
+			expect(body).toContain("<!DOCTYPE html>");
+		},
+	);
 
 	test("preserves original status code for unknown error codes", async () => {
 		const response = resolveErrorPage({ status: 503 });

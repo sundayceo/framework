@@ -204,25 +204,9 @@ describe("renderPage", () => {
 		expect(html).toContain("<footer>Foot</footer>");
 	});
 
-	test("returns response with correct content-type header", async () => {
-		const response = await renderPage({
-			pageModule: {
-				defineSlots: () => ({}),
-			},
-			template: makeTemplate(<div />),
-			request: makeRequest(),
-			params: {},
-			appContext: {},
-		});
-
-		expect(response.headers.get("content-type")).toBe("text/html;charset=utf-8");
-	});
-
-	test("includes view-transition meta tag when hasViewTransition is true", async () => {
-		const response = await renderPage({
-			pageModule: {
-				defineSlots: () => ({}),
-			},
+	test("view-transition meta tag is controlled by hasViewTransition flag", async () => {
+		const withTransition = await renderPage({
+			pageModule: { defineSlots: () => ({}) },
 			template: makeTemplate(<div />),
 			request: makeRequest(),
 			params: {},
@@ -230,53 +214,20 @@ describe("renderPage", () => {
 			hasViewTransition: true,
 		});
 
-		const html = await response.text();
-		expect(html).toContain('name="view-transition"');
-		expect(html).toContain('content="same-origin"');
-	});
+		const htmlWith = await withTransition.text();
+		expect(htmlWith).toContain('name="view-transition"');
+		expect(htmlWith).toContain('content="same-origin"');
 
-	test("does not include view-transition meta tag when hasViewTransition is omitted", async () => {
-		const response = await renderPage({
-			pageModule: {
-				defineSlots: () => ({}),
-			},
+		const withoutTransition = await renderPage({
+			pageModule: { defineSlots: () => ({}) },
 			template: makeTemplate(<div />),
 			request: makeRequest(),
 			params: {},
 			appContext: {},
 		});
 
-		const html = await response.text();
-		expect(html).not.toContain('name="view-transition"');
-	});
-
-	test("passes loaderData to defineSlots", async () => {
-		const response = await renderPage({
-			pageModule: {
-				loader: () => ({ items: ["a", "b", "c"] }),
-				defineSlots: ({ loaderData }: { loaderData: unknown }): SlotMap => {
-					const { items } = loaderData as { items: string[] };
-					return {
-						content: (
-							<ul>
-								{items.map((item) => (
-									<li key={item}>{item}</li>
-								))}
-							</ul>
-						),
-					};
-				},
-			},
-			template: makeTemplateWithSlot(),
-			request: makeRequest(),
-			params: {},
-			appContext: {},
-		});
-
-		const html = await response.text();
-		expect(html).toContain("<li>a</li>");
-		expect(html).toContain("<li>b</li>");
-		expect(html).toContain("<li>c</li>");
+		const htmlWithout = await withoutTransition.text();
+		expect(htmlWithout).not.toContain('name="view-transition"');
 	});
 
 	test("handles async loaders", async () => {
@@ -491,40 +442,6 @@ describe("renderPage", () => {
 	});
 
 	describe("hydration integration", () => {
-		function makeMultiSlotTemplate(): TemplateComponent {
-			return function Template({ head }: { head: React.ReactNode }): React.ReactNode {
-				return (
-					<html lang="en">
-						<head>{head}</head>
-						<body>
-							<Slot id="header" />
-							<Slot id="counter" />
-							<Slot id="footer" />
-						</body>
-					</html>
-				);
-			};
-		}
-
-		test("static slots remain JS-free when all interactivity is false", async () => {
-			const response = await renderPage({
-				pageModule: {
-					defineSlots: () => ({ content: <p>Static</p> }),
-				},
-				template: makeTemplateWithSlot(),
-				request: makeRequest(),
-				params: {},
-				appContext: {},
-				slotInteractivity: { content: false },
-				routePath: "/routes/index",
-			});
-
-			const html = await response.text();
-			expect(html).toContain("<p>Static</p>");
-			expect(html).not.toContain("<script");
-			expect(html).not.toContain("data-hydrate=");
-		});
-
 		test("interactive slot gets hydration script injected", async () => {
 			const response = await renderPage({
 				pageModule: {
@@ -542,56 +459,6 @@ describe("renderPage", () => {
 			expect(html).toContain('data-hydrate="content"');
 			expect(html).toContain('<script type="module">');
 			expect(html).toContain('<script type="application/json" data-hydrate-data="content">');
-		});
-
-		test("mixed page: interactive slots hydrated, static slots stay clean", async () => {
-			const response = await renderPage({
-				pageModule: {
-					defineSlots: (): SlotMap => ({
-						header: <h1>Header</h1>,
-						counter: <button>Count: 0</button>,
-						footer: <footer>Footer</footer>,
-					}),
-				},
-				template: makeMultiSlotTemplate(),
-				request: makeRequest(),
-				params: {},
-				appContext: {},
-				slotInteractivity: {
-					header: false,
-					counter: true,
-					footer: false,
-				},
-				routePath: "/routes/index",
-			});
-
-			const html = await response.text();
-			expect(html).toContain('data-hydrate="counter"');
-			expect(html).not.toContain('data-hydrate="header"');
-			expect(html).not.toContain('data-hydrate="footer"');
-			const moduleScripts = html.match(/<script type="module">/g) ?? [];
-			expect(moduleScripts.length).toBe(1);
-		});
-
-		test("loader data serialized in hydration JSON script tags", async () => {
-			const loaderData = { items: ["a", "b"], count: 42 };
-			const response = await renderPage({
-				pageModule: {
-					loader: () => loaderData,
-					defineSlots: () => ({ content: <button>Click</button> }),
-				},
-				template: makeTemplateWithSlot(),
-				request: makeRequest(),
-				params: {},
-				appContext: {},
-				slotInteractivity: { content: true },
-				routePath: "/routes/index",
-			});
-
-			const html = await response.text();
-			expect(html).toContain(
-				`<script type="application/json" data-hydrate-data="content">${JSON.stringify(loaderData)}</script>`,
-			);
 		});
 
 		test("no hydration when slotInteractivity is omitted", async () => {

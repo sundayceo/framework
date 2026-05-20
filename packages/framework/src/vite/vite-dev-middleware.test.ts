@@ -421,6 +421,116 @@ describe("createDevMiddleware", () => {
 		expect(capturedRequest!.headers.get("accept")).toBe("text/html");
 	});
 
+	test("calls next() when body stream emits error on POST", async () => {
+		const server = createMockServer({
+			frameworkModule: {
+				createHandler: () => ({
+					fetch: () => Promise.resolve(new Response("OK")),
+				}),
+			},
+		});
+
+		installMiddleware(server);
+		const middleware = getMiddlewareFn(server);
+
+		const socket = new Socket();
+		const req = new IncomingMessage(socket) as ConnectIncomingMessage;
+		req.method = "POST";
+		req.url = "/api/error";
+		req.headers = { host: "localhost:3000" };
+
+		const { res } = createMockResponse();
+		const next = vi.fn();
+
+		await new Promise<void>((resolve) => {
+			next.mockImplementation(() => {
+				resolve();
+			});
+			middleware(req, res, next);
+			// Emit an error on the request stream after the middleware has set up listeners
+			process.nextTick(() => {
+				req.destroy(new Error("stream error"));
+			});
+		});
+
+		expect(next).toHaveBeenCalledOnce();
+	});
+
+	test("handles request with no method by defaulting to GET", async () => {
+		let capturedRequest: Request | null = null;
+		const server = createMockServer({
+			frameworkModule: {
+				createHandler: () => ({
+					fetch: (request: Request) => {
+						capturedRequest = request;
+						return Promise.resolve(new Response("OK"));
+					},
+				}),
+			},
+		});
+
+		const socket = new Socket();
+		const req = new IncomingMessage(socket) as ConnectIncomingMessage;
+		req.method = undefined;
+		req.url = "/test";
+		req.headers = { host: "localhost:3000" };
+
+		const output = await dispatch(server, req);
+
+		expect(capturedRequest).not.toBeNull();
+		expect(output.statusCode).toBe(200);
+	});
+
+	test("handles array header values", async () => {
+		let capturedRequest: Request | null = null;
+		const server = createMockServer({
+			frameworkModule: {
+				createHandler: () => ({
+					fetch: (request: Request) => {
+						capturedRequest = request;
+						return Promise.resolve(new Response("OK"));
+					},
+				}),
+			},
+		});
+
+		const socket = new Socket();
+		const req = new IncomingMessage(socket) as ConnectIncomingMessage;
+		req.method = "GET";
+		req.url = "/test";
+		req.headers = { host: "localhost:3000", "set-cookie": ["a=1", "b=2"] };
+
+		const output = await dispatch(server, req);
+
+		expect(capturedRequest).not.toBeNull();
+		expect(output.statusCode).toBe(200);
+	});
+
+	test("handles undefined header values", async () => {
+		let capturedRequest: Request | null = null;
+		const server = createMockServer({
+			frameworkModule: {
+				createHandler: () => ({
+					fetch: (request: Request) => {
+						capturedRequest = request;
+						return Promise.resolve(new Response("OK"));
+					},
+				}),
+			},
+		});
+
+		const socket = new Socket();
+		const req = new IncomingMessage(socket) as ConnectIncomingMessage;
+		req.method = "GET";
+		req.url = "/test";
+		req.headers = { host: "localhost:3000", "x-custom": undefined };
+
+		const output = await dispatch(server, req);
+
+		expect(capturedRequest).not.toBeNull();
+		expect(output.statusCode).toBe(200);
+	});
+
 	test("uses default export from app module when named export not available", async () => {
 		const mockApp = { context: () => ({}) };
 		const createHandler = vi.fn().mockReturnValue({

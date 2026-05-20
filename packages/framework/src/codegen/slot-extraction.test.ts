@@ -175,6 +175,134 @@ export default definePage("/frag")({
 		expect(main).toContain("HydrateSlot()");
 	});
 
+	test("defineSlots as non-function value: returns empty map", () => {
+		const source = `
+import React from "react";
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/test")({
+  template: "default",
+  defineSlots: "not-a-function",
+});
+`;
+
+		const result = extractSlotModules(source, "/test");
+		expect(result.size).toBe(0);
+	});
+
+	test("numeric property key in slots is skipped", () => {
+		const source = `
+import React from "react";
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/num")({
+  template: "default",
+  defineSlots: () => ({
+    0: <p>numeric key</p>,
+    header: <h1>Static</h1>,
+  }),
+});
+`;
+
+		const result = extractSlotModules(source, "/num");
+		// Numeric key produces a NumericLiteral, which is skipped
+		expect(result.has("virtual:hydrate/num/header")).toBe(true);
+		expect(result.size).toBe(1);
+	});
+
+	test("string literal key in slots is extracted", () => {
+		const source = `
+import React from "react";
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/str")({
+  template: "default",
+  defineSlots: () => ({
+    "my-slot": <p>String key</p>,
+  }),
+});
+`;
+
+		const result = extractSlotModules(source, "/str");
+		expect(result.has("virtual:hydrate/str/my-slot")).toBe(true);
+	});
+
+	test("spread element in slots object is skipped", () => {
+		const source = `
+import React from "react";
+import { definePage } from "@sundayceo/framework";
+
+const extra = { sidebar: <p>Extra</p> };
+export default definePage("/spread")({
+  template: "default",
+  defineSlots: () => ({
+    ...extra,
+    header: <h1>Main</h1>,
+  }),
+});
+`;
+
+		const result = extractSlotModules(source, "/spread");
+		expect(result.has("virtual:hydrate/spread/header")).toBe(true);
+		// spread is not an ObjectProperty, so it's skipped
+	});
+
+	test("arrow body returning non-object expression returns empty map", () => {
+		const source = `
+import React from "react";
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/expr")({
+  template: "default",
+  defineSlots: () => null,
+});
+`;
+
+		const result = extractSlotModules(source, "/expr");
+		expect(result.size).toBe(0);
+	});
+
+	test("block body without return statement returns empty map", () => {
+		const source = `
+import React from "react";
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/noop")({
+  template: "default",
+  defineSlots: () => {
+    const x = 1;
+  },
+});
+`;
+
+		const result = extractSlotModules(source, "/noop");
+		expect(result.size).toBe(0);
+	});
+
+	test("block body with local not referencing loaderData", () => {
+		const source = `
+import React from "react";
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/local")({
+  template: "default",
+  loader: () => ({ title: "hi" }),
+  defineSlots: ({ loaderData }) => {
+    const prefix = "Hello";
+    return {
+      main: <p>{prefix}</p>,
+    };
+  },
+});
+`;
+
+		const result = extractSlotModules(source, "/local");
+		const main = result.get("virtual:hydrate/local/main");
+		expect(main).toBeDefined();
+		// The local "prefix" does not use loaderData, so the slot has no loaderData param
+		expect(main).toContain("HydrateSlot()");
+	});
+
 	test("slot without loaderData: virtual module has no param", () => {
 		const source = `
 import React from "react";
