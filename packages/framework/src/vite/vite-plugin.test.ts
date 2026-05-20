@@ -14,7 +14,7 @@ const RESOLVED_HYDRATION_MANIFEST_ID = "\0virtual:hydration-manifest";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function createPlugin() {
 	const plugin = frameworkPlugin();
-	(plugin as any).configResolved({ root: "/test" });
+	(plugin as any).configResolved({ root: "/test", build: { outDir: "dist" } });
 	return plugin;
 }
 
@@ -29,7 +29,7 @@ function createTempProject(): string {
 
 function createPluginWithRoot(root: string): ReturnType<typeof frameworkPlugin> {
 	const plugin = frameworkPlugin();
-	(plugin as any).configResolved({ root });
+	(plugin as any).configResolved({ root, build: { outDir: "dist" } });
 	return plugin;
 }
 
