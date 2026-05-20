@@ -33,5 +33,4 @@ describe("generateTemplateRegistry", () => {
 		expect(dIdx).toBeLessThan(nIdx);
 		expect(nIdx).toBeLessThan(wIdx);
 	});
-
 });

@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { parseImportSpecifiers } from "../codegen/parse-imports";
+
 const RESOLVE_EXTENSIONS = [".tsx", ".ts", ".jsx", ".js"];
 
 type QueueItem = { specifier: string; fromDir: string };
@@ -8,21 +10,20 @@ type QueueItem = { specifier: string; fromDir: string };
 function resolveQueueItem(
 	item: QueueItem,
 	visited: Set<string>,
-): { depSource: string; specifier: string; childDir: string } | undefined {
-	const key = `${item.fromDir}:${item.specifier}`;
-	if (visited.has(key)) {
-		return undefined;
-	}
-	visited.add(key);
-
+): { depSource: string; resolvedPath: string; childDir: string } | undefined {
 	const resolved = resolveFile(item.specifier, item.fromDir);
 	if (resolved === undefined) {
 		return undefined;
 	}
 
+	if (visited.has(resolved)) {
+		return undefined;
+	}
+	visited.add(resolved);
+
 	return {
 		depSource: fs.readFileSync(resolved, "utf-8"),
-		specifier: item.specifier,
+		resolvedPath: resolved,
 		childDir: path.dirname(resolved),
 	};
 }
@@ -39,8 +40,10 @@ function seedQueue(
 		const routeFile = filePath ?? `${routePath.replace(/^\//, "")}.tsx`;
 		const routeDir = path.dirname(path.join(routesDir, routeFile));
 
-		for (const specifier of extractImportSpecifiers(source)) {
-			queue.push({ specifier, fromDir: routeDir });
+		for (const specifier of parseImportSpecifiers(source)) {
+			if (specifier.startsWith(".")) {
+				queue.push({ specifier, fromDir: routeDir });
+			}
 		}
 	}
 
@@ -64,25 +67,7 @@ export function resolveFile(specifier: string, fromDir: string): string | undefi
 	return undefined;
 }
 
-/** Extracts relative import specifiers from a source string, skipping type-only imports. */
-export function extractImportSpecifiers(source: string): string[] {
-	const specifiers: string[] = [];
-	const importRegex = /\bimport\s+(type\s+)?.*?\s+from\s+["']([^"']+)["']/g;
-	let match;
-
-	while ((match = importRegex.exec(source)) !== null) {
-		if (match.at(1) === undefined) {
-			const specifier = match.at(2);
-			if (specifier?.startsWith(".")) {
-				specifiers.push(specifier);
-			}
-		}
-	}
-
-	return specifiers;
-}
-
-/** Walks the import graph starting from route sources and returns all reachable dependency sources. */
+/** Walks the import graph starting from route sources and returns all reachable dependency sources keyed by absolute resolved path. */
 export function buildImportGraph(
 	routeSources: Record<string, string>,
 	routesDir: string,
@@ -98,9 +83,12 @@ export function buildImportGraph(
 
 		const result = resolveQueueItem(item, visited);
 		if (result !== undefined) {
-			graph[result.specifier] = result.depSource;
+			graph[result.resolvedPath] = result.depSource;
 
-			for (const childSpec of extractImportSpecifiers(result.depSource)) {
+			const childSpecs = parseImportSpecifiers(result.depSource).filter((s) =>
+				s.startsWith("."),
+			);
+			for (const childSpec of childSpecs) {
 				queue.push({ specifier: childSpec, fromDir: result.childDir });
 			}
 		}

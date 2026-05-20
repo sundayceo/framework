@@ -1,5 +1,8 @@
 import type { MatchableRoute } from "../runtime/types";
 
+import { ERROR_PAGE_PATTERN, isRouteFile } from "./file-filters";
+import { extractParamNames, GROUP_PATTERN, PARAM_PATTERN, stripExtension } from "./route-paths";
+
 /** A scanned route with its file path, route pattern, and parameters. */
 export type RouteEntry = MatchableRoute & {
 	filePath: string;
@@ -17,18 +20,7 @@ export type ScanResult = {
 	errorPages: ErrorPageEntry[];
 };
 
-/** A route entry with a lazy module loader for use in the runtime manifest. */
-export type ManifestRouteEntry = MatchableRoute & {
-	load: () => Promise<Record<string, unknown>>;
-};
-
-const PARAM_PATTERN = /\[([^\]]+)\]/g;
 const CATCH_ALL_PATTERN = /\[\.\.\.([^\]]+)\]/;
-const CATCH_ALL_PREFIX = "...";
-const GROUP_PATTERN = /^\(.*\)$/;
-const ROUTE_EXTENSIONS = [".tsx", ".ts"];
-const TEST_PATTERN = /\.test\.[^.]+$/;
-const ERROR_PAGE_PATTERN = /^(?:.*\/)?([45]\d{2})\.[^.]+$/;
 
 const convertSegment = (segment: string): string => {
 	const catchAll = CATCH_ALL_PATTERN.exec(segment);
@@ -39,23 +31,9 @@ const convertSegment = (segment: string): string => {
 	return segment.replace(PARAM_PATTERN, ":$1");
 };
 
-const extractParams = (filePath: string): string[] => {
-	const params: string[] = [];
-	let match: RegExpExecArray | null = PARAM_PATTERN.exec(filePath);
-	while (match !== null) {
-		/* v8 ignore next */
-		const raw = match.at(1) ?? "";
-		params.push(raw.startsWith(CATCH_ALL_PREFIX) ? raw.slice(CATCH_ALL_PREFIX.length) : raw);
-		match = PARAM_PATTERN.exec(filePath);
-	}
-	return params;
-};
-
 const hasDynamicSegment = (pattern: string): boolean => pattern.includes(":");
 
 const hasCatchAll = (pattern: string): boolean => pattern.includes("*");
-
-const stripExtension = (filePath: string): string => filePath.replace(/\.(tsx|ts)$/, "");
 
 const isGroupSegment = (segment: string): boolean => GROUP_PATTERN.test(segment);
 
@@ -74,10 +52,6 @@ const buildPattern = (filePath: string): string => {
 	const joined = segments.join("/");
 	return `/${joined}`;
 };
-
-const hasRouteExtension = (fp: string): boolean => ROUTE_EXTENSIONS.some((ext) => fp.endsWith(ext));
-
-const isRouteFile = (fp: string): boolean => hasRouteExtension(fp) && !TEST_PATTERN.test(fp);
 
 const getErrorStatus = (filePath: string): number | null => {
 	const match = ERROR_PAGE_PATTERN.exec(filePath);
@@ -102,7 +76,7 @@ export const scanRoutes = (filePaths: string[]): ScanResult => {
 		} else {
 			routes.push({
 				routePath: buildPattern(filePath),
-				params: extractParams(filePath),
+				params: extractParamNames(filePath),
 				filePath,
 			});
 		}

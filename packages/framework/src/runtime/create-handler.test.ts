@@ -90,9 +90,7 @@ describe("createHandler", () => {
 			templates: makeTemplates(),
 		});
 
-		const response = await handler.fetch(
-			new Request("https://example.com/api/data", { method }),
-		);
+		const response = await handler.fetch(new Request("https://example.com/api/data", { method }));
 
 		expect(methodHandler).toHaveBeenCalled();
 		expect(await response.text()).toBe(`${method} result`);
@@ -649,31 +647,30 @@ describe("createHandler", () => {
 		});
 	});
 
-	test.each([
-		{ method: "POST", label: "POST" },
-	])("$label to a page route returns 405", async ({ method }) => {
-		const pageModule = makePageModule();
-		const route = makeRoute({
-			routePath: "/home",
-			loadModule: vi.fn().mockResolvedValue({ default: pageModule }),
-		});
+	test.each([{ method: "POST", label: "POST" }])(
+		"$label to a page route returns 405",
+		async ({ method }) => {
+			const pageModule = makePageModule();
+			const route = makeRoute({
+				routePath: "/home",
+				loadModule: vi.fn().mockResolvedValue({ default: pageModule }),
+			});
 
-		const handler = createHandler({
-			app: makeApp(),
-			routes: [route],
-			templates: makeTemplates(),
-		});
+			const handler = createHandler({
+				app: makeApp(),
+				routes: [route],
+				templates: makeTemplates(),
+			});
 
-		const response = await handler.fetch(
-			new Request("https://example.com/home", { method }),
-		);
+			const response = await handler.fetch(new Request("https://example.com/home", { method }));
 
-		expect(response.status).toBe(405);
-		const allow = response.headers.get("allow") ?? "";
-		expect(allow).toContain("GET");
-		expect(allow).toContain("HEAD");
-		expect(pageModule.loader).not.toHaveBeenCalled();
-	});
+			expect(response.status).toBe(405);
+			const allow = response.headers.get("allow") ?? "";
+			expect(allow).toContain("GET");
+			expect(allow).toContain("HEAD");
+			expect(pageModule.loader).not.toHaveBeenCalled();
+		},
+	);
 
 	test("HEAD to a page route returns headers without body", async () => {
 		const pageModule = makePageModule();

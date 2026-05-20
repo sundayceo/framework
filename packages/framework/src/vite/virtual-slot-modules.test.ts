@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 
-import { isHydrateModuleId, loadVirtualSlotModule, resolveHydrateId } from "./virtual-slot-modules";
+import { isHydrateModuleId, resolveHydrateId } from "./hydrate-ids";
+import { loadVirtualSlotModule } from "./virtual-slot-modules";
 
 describe("isHydrateModuleId", () => {
 	test("returns true for virtual:hydrate module IDs", () => {
@@ -65,8 +66,9 @@ export default definePage("/demo")({
 		const result = loadVirtualSlotModule({ id: "virtual:hydrate/demo/main", routeSources });
 
 		expect(result).not.toBeNull();
-		expect(result).toContain("Counter");
-		expect(result).toContain("{ loaderData }");
+		expect(result!.moduleSource).toContain("Counter");
+		expect(result!.moduleSource).toContain("{ loaderData }");
+		expect(result!.parts.hasLoaderData).toBe(true);
 	});
 
 	test("returns null for unknown virtual module id", () => {
@@ -112,9 +114,9 @@ export default definePage("/demo")({
 		});
 
 		expect(result).not.toBeNull();
-		expect(result).toContain("Counter");
-		expect(result).not.toContain('"../components/Counter"');
-		expect(result).toContain("/app/src/components/Counter");
+		expect(result!.moduleSource).toContain("Counter");
+		expect(result!.moduleSource).not.toContain('"../components/Counter"');
+		expect(result!.moduleSource).toContain("/app/src/components/Counter");
 	});
 
 	test("uses filePathMap when rewriting imports for route groups", () => {
@@ -144,8 +146,8 @@ export default definePage("/pricing")({
 		});
 
 		expect(result).not.toBeNull();
-		expect(result).toContain("Badge");
-		expect(result).toContain("/app/src/components/Badge");
+		expect(result!.moduleSource).toContain("Badge");
+		expect(result!.moduleSource).toContain("/app/src/components/Badge");
 	});
 
 	test("returns null when hydrate ID has no slot name segment", () => {
@@ -177,7 +179,8 @@ export default definePage("/about")({
 		const result = loadVirtualSlotModule({ id: "virtual:hydrate/about/content", routeSources });
 
 		expect(result).not.toBeNull();
-		expect(result).toContain("HydrateSlot()");
-		expect(result).not.toContain("loaderData");
+		expect(result!.moduleSource).toContain("HydrateSlot()");
+		expect(result!.moduleSource).not.toContain("loaderData");
+		expect(result!.parts.hasLoaderData).toBe(false);
 	});
 });

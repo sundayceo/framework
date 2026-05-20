@@ -2,10 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { codegen, type CodegenOutput } from "../codegen/build";
+import { ROUTE_EXTENSIONS } from "../codegen/file-filters";
 import { filePathToRoutePath } from "../codegen/transform-route-module";
-import { buildImportGraph } from "./import-graph";
+import { buildImportGraph, resolveFile } from "./import-graph";
 
-const ROUTE_EXTENSIONS = [".tsx", ".ts"];
 const TEMPLATE_EXTENSIONS = [".tsx"];
 
 function scanDir(dir: string, extensions: string[]): string[] {
@@ -44,5 +44,18 @@ export function codegenFromDisk(srcDir: string): CodegenOutput {
 	const { sources: routeSources, filePathMap } = readRouteSources(routesDir, routePaths);
 	const importGraph = buildImportGraph(routeSources, routesDir, filePathMap);
 
-	return codegen({ routePaths, templatePaths, routeSources, importGraph });
+	const absoluteFilePathMap: Record<string, string> = {};
+	for (const [routePath, relFile] of Object.entries(filePathMap)) {
+		absoluteFilePathMap[routePath] = path.join(routesDir, relFile);
+	}
+
+	const resolveSpecifier = (specifier: string, fromFile?: string): string | undefined => {
+		if (!specifier.startsWith(".")) {
+			return undefined;
+		}
+		const fromDir = fromFile !== undefined ? path.dirname(fromFile) : routesDir;
+		return resolveFile(specifier, fromDir);
+	};
+
+	return codegen({ routePaths, templatePaths, routeSources, importGraph, resolveSpecifier, filePathMap: absoluteFilePathMap });
 }

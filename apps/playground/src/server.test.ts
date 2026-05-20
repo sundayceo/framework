@@ -30,5 +30,4 @@ describe("SSR build", () => {
 		expect(typeof mod.default).toBe("object");
 		expect(typeof mod.default.fetch).toBe("function");
 	});
-
 });

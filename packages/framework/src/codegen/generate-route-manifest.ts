@@ -1,4 +1,5 @@
 import type { HydrationManifest } from "./hydration-manifest";
+import { stripExtension } from "./route-paths";
 import { scanRoutes, type RouteEntry } from "./route-scanner";
 import { filePathToRoutePath } from "./transform-route-module";
 
@@ -7,8 +8,6 @@ type GenerateRouteManifestInput = {
 	templatePaths: string[];
 	hydrationManifest?: HydrationManifest;
 };
-
-const stripExtension = (filePath: string): string => filePath.replace(/\.(tsx|ts)$/, "");
 
 function rekeyManifest(manifest: HydrationManifest, entries: RouteEntry[]): HydrationManifest {
 	const filePathToScanner = new Map<string, string>();

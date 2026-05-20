@@ -1,57 +1,16 @@
 import path from "node:path";
 
-import { extractSlotModules } from "../codegen/slot-extraction";
+import { buildSlotKey, extractSlotModules, type SlotModuleParts } from "../codegen/slot-extraction";
+import { parseHydrateId } from "./hydrate-ids";
 
-const HYDRATE_PREFIX = "virtual:hydrate";
-
-function parseHydrateId(id: string): { routePath: string; slotName: string } | null {
-	const stripped = id.replace(/^\0/, "").replace(/\.jsx$/, "");
-
-	if (!stripped.startsWith(HYDRATE_PREFIX)) {
-		return null;
-	}
-
-	const rest = stripped.slice(HYDRATE_PREFIX.length);
-	const lastSlash = rest.lastIndexOf("/");
-
-	if (lastSlash <= 0) {
-		return null;
-	}
-
-	return {
-		routePath: rest.slice(0, lastSlash),
-		slotName: rest.slice(lastSlash + 1),
-	};
+function resolveRouteDir(routePath: string, routesDir: string, filePathMap?: Record<string, string>): string {
+	const filePath = filePathMap?.[routePath];
+	const routeFile = filePath ?? `${routePath.replace(/^\//, "")}.tsx`;
+	return path.dirname(path.join(routesDir, routeFile));
 }
 
-/** Returns true if the given module ID is a virtual hydrate slot module. */
-export function isHydrateModuleId(id: string): boolean {
-	const stripped = id.replace(/\.jsx$/, "");
-	return stripped.startsWith(HYDRATE_PREFIX);
-}
-
-/** Resolves a hydrate module ID by prepending the null-byte prefix for Vite virtual modules. */
-export function resolveHydrateId(id: string): string | undefined {
-	const stripped = id.replace(/\.jsx$/, "");
-	if (stripped.startsWith(HYDRATE_PREFIX)) {
-		return `\0${stripped}.jsx`;
-	}
-	return undefined;
-}
-
-type RewriteInput = {
-	moduleSource: string;
-	routePath: string;
-	routesDir: string;
-	filePathMap?: Record<string, string>;
-};
-
-function rewriteRelativeImports(input: RewriteInput): string {
-	const filePath = input.filePathMap?.[input.routePath];
-	const routeFile = filePath ?? `${input.routePath.replace(/^\//, "")}.tsx`;
-	const routeDir = path.dirname(path.join(input.routesDir, routeFile));
-
-	return input.moduleSource.replace(/from\s+["'](\.[^"']+)["']/g, (_match, specifier: string) => {
+function rewriteImportSource(source: string, routeDir: string): string {
+	return source.replace(/from\s+["'](\.[^"']+)["']/g, (_match, specifier: string) => {
 		const absolute = path.resolve(routeDir, specifier);
 		return `from "${absolute}"`;
 	});
@@ -64,8 +23,10 @@ type LoadSlotInput = {
 	filePathMap?: Record<string, string>;
 };
 
+export type SlotLoadResult = { moduleSource: string; parts: SlotModuleParts };
+
 /** Loads the virtual module source for a hydrate slot by extracting it from the route source. */
-export function loadVirtualSlotModule(input: LoadSlotInput): string | null {
+export function loadVirtualSlotModule(input: LoadSlotInput): SlotLoadResult | null {
 	const parsed = parseHydrateId(input.id);
 
 	if (parsed === null) {
@@ -79,17 +40,20 @@ export function loadVirtualSlotModule(input: LoadSlotInput): string | null {
 	}
 
 	const slotModules = extractSlotModules(source, parsed.routePath);
-	const key = `${HYDRATE_PREFIX}${parsed.routePath}/${parsed.slotName}`;
-	const moduleSource = slotModules.get(key) ?? null;
+	const key = buildSlotKey(parsed.routePath, parsed.slotName);
+	const slot = slotModules.get(key) ?? null;
 
-	if (moduleSource === null || input.routesDir === undefined) {
-		return moduleSource;
+	if (slot === null || input.routesDir === undefined) {
+		return slot;
 	}
 
-	return rewriteRelativeImports({
-		moduleSource,
-		routePath: parsed.routePath,
-		routesDir: input.routesDir,
-		filePathMap: input.filePathMap,
-	});
+	const routeDir = resolveRouteDir(parsed.routePath, input.routesDir, input.filePathMap);
+
+	return {
+		moduleSource: rewriteImportSource(slot.moduleSource, routeDir),
+		parts: {
+			...slot.parts,
+			imports: slot.parts.imports.map((imp) => rewriteImportSource(imp, routeDir)),
+		},
+	};
 }

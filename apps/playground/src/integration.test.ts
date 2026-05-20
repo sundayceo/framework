@@ -368,7 +368,6 @@ describe("response headers", () => {
 		const res = await request("/api/health");
 		expect(res.headers.get("content-type")).toContain("application/json");
 	});
-
 });
 
 describe("HTTP method support", () => {
