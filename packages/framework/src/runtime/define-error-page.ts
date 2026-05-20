@@ -27,13 +27,13 @@ type ErrorPageConfigWithoutLoader<TTemplate extends keyof TemplateRegistry> = {
 export function defineErrorPage(_status: number): {
 	<TTemplate extends keyof TemplateRegistry, TLoaderData>(
 		config: ErrorPageConfigWithLoader<TTemplate, TLoaderData>,
-	): ErrorPageConfigWithLoader<TTemplate, TLoaderData> & { [RouteKind]: "page" };
+	): ErrorPageConfigWithLoader<TTemplate, TLoaderData> & { [RouteKind]: "error-page" };
 	<TTemplate extends keyof TemplateRegistry>(
 		config: ErrorPageConfigWithoutLoader<TTemplate>,
-	): ErrorPageConfigWithoutLoader<TTemplate> & { [RouteKind]: "page" };
+	): ErrorPageConfigWithoutLoader<TTemplate> & { [RouteKind]: "error-page" };
 } {
-	return <T>(config: T): T & { [RouteKind]: "page" } => ({
+	return <T>(config: T): T & { [RouteKind]: "error-page" } => ({
 		...config,
-		[RouteKind]: "page" as const,
+		[RouteKind]: "error-page" as const,
 	});
 }
