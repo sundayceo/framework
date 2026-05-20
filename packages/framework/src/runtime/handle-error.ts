@@ -128,7 +128,9 @@ export async function renderErrorPage(input: {
 		});
 
 		return new Response(response.body, { status, headers: response.headers });
-	} catch {
+	} catch (renderError) {
+		// eslint-disable-next-line no-console
+		console.error(`Failed to render error page for status ${String(status)}:`, renderError);
 		return bareErrorPage(status);
 	}
 }

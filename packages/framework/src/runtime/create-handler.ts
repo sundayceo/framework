@@ -243,7 +243,11 @@ export function createHandler<TPlatform = unknown>(
 			const match = matchRoute(url.pathname, routes);
 			if (match === null) {
 				const appContext = await Promise.resolve(app.context(request, platform)).catch(
-					(): Record<string, unknown> => ({}),
+					(contextError: unknown): Record<string, unknown> => {
+						// eslint-disable-next-line no-console
+						console.error("app.context() threw during 404 handling:", contextError);
+						return {};
+					},
 				);
 				return renderErrorPage({ status: NOT_FOUND, errorPages, templates, request, appContext });
 			}
@@ -261,7 +265,11 @@ export function createHandler<TPlatform = unknown>(
 				});
 			} catch (error) {
 				const appContext = await Promise.resolve(app.context(request, platform)).catch(
-					(): Record<string, unknown> => ({}),
+					(contextError: unknown): Record<string, unknown> => {
+						// eslint-disable-next-line no-console
+						console.error("app.context() threw during error handling:", contextError);
+						return {};
+					},
 				);
 				return handleError({
 					error,
