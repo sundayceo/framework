@@ -73,10 +73,10 @@ describe("resolveErrorPage", () => {
 		expect(body).toContain("<!DOCTYPE html>");
 	});
 
-	test("falls back to default 500 page for unknown error status codes", async () => {
+	test("preserves original status code for unknown error codes", async () => {
 		const response = resolveErrorPage({ status: 503 });
 
-		expect(response.status).toBe(500);
+		expect(response.status).toBe(503);
 		const body = await response.text();
 		expect(body).toContain("Internal Server Error");
 	});
