@@ -4,6 +4,6 @@ const NOT_FOUND = 404;
 
 export default defineHandler("/error-test")({
 	GET: () => {
-		httpError(NOT_FOUND, "Not Found");
+		throw httpError(NOT_FOUND, "Not Found");
 	},
 });
