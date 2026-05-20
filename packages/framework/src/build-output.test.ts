@@ -114,11 +114,9 @@ describe("package.json publish config", () => {
 		]);
 	});
 
-	test("bin field declares sundayceo CLI", async () => {
+	test("no bin field when CLI is not yet implemented", async () => {
 		const pkg = await readPackageJson();
-		expect((pkg as Record<string, unknown>).bin).toStrictEqual({
-			sundayceo: "./dist/cli.js",
-		});
+		expect((pkg as Record<string, unknown>).bin).toBeUndefined();
 	});
 
 	test("publishConfig sets public access", async () => {
