@@ -18,6 +18,7 @@ import {
 	type RouteScanResult,
 } from "./hydrate-ids";
 import { createDevMiddleware } from "./vite-dev-middleware";
+
 const PLUGIN_NAME = "sundayceo-framework";
 const OUTPUT_FILE = "framework.gen.d.ts";
 const MANIFEST_FILE = "routes.gen.ts";

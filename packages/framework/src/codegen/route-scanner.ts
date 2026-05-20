@@ -1,5 +1,4 @@
 import type { MatchableRoute } from "../runtime/types";
-
 import { ERROR_PAGE_PATTERN, isRouteFile } from "./file-filters";
 import { extractParamNames, GROUP_PATTERN, PARAM_PATTERN, stripExtension } from "./route-paths";
 

@@ -57,5 +57,12 @@ export function codegenFromDisk(srcDir: string): CodegenOutput {
 		return resolveFile(specifier, fromDir);
 	};
 
-	return codegen({ routePaths, templatePaths, routeSources, importGraph, resolveSpecifier, filePathMap: absoluteFilePathMap });
+	return codegen({
+		routePaths,
+		templatePaths,
+		routeSources,
+		importGraph,
+		resolveSpecifier,
+		filePathMap: absoluteFilePathMap,
+	});
 }

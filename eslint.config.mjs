@@ -47,8 +47,7 @@ const noBracketAccessRule = {
 		type: "suggestion",
 		docs: { description: "Prefer .at() over bracket notation for negative array indices" },
 		messages: {
-			preferAt:
-				"Use .at({{index}}) instead of bracket notation for negative indices.",
+			preferAt: "Use .at({{index}}) instead of bracket notation for negative indices.",
 		},
 		schema: [],
 	},
