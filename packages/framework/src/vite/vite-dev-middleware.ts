@@ -113,14 +113,46 @@ function isHtmlResponse(response: Response): boolean {
 	return (response.headers.get("content-type") ?? "").includes("text/html");
 }
 
+function assertFunction(mod: Record<string, unknown>, key: string, label: string): void {
+	if (typeof mod[key] !== "function") {
+		throw new Error(`${label} must export "${key}" as a function`);
+	}
+}
+
+function assertArray(mod: Record<string, unknown>, key: string, label: string): void {
+	if (!Array.isArray(mod[key])) {
+		throw new Error(`${label} must export "${key}" as an array`);
+	}
+}
+
+function assertObject(mod: Record<string, unknown>, key: string, label: string): void {
+	if (typeof mod[key] !== "object" || mod[key] === null) {
+		throw new Error(`${label} must export "${key}" as an object`);
+	}
+}
+
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- ssrLoadModule returns Record<string, unknown>; narrowing to LoadedModules fields */
 async function loadModules(server: ViteDevServer, srcDir: string): Promise<LoadedModules> {
-	const appModule: Record<string, unknown> = await server.ssrLoadModule(path.join(srcDir, "app.ts"));
-	const routesModule: Record<string, unknown> = await server.ssrLoadModule(path.join(srcDir, "routes.gen.ts"));
-	const frameworkModule: Record<string, unknown> = await server.ssrLoadModule("@sundayceo/framework");
+	const appModule: Record<string, unknown> = await server.ssrLoadModule(
+		path.join(srcDir, "app.ts"),
+	);
+	const routesModule: Record<string, unknown> = await server.ssrLoadModule(
+		path.join(srcDir, "routes.gen.ts"),
+	);
+	const frameworkModule: Record<string, unknown> =
+		await server.ssrLoadModule("@sundayceo/framework");
+
+	const app = appModule.app ?? appModule.default;
+	if (typeof app !== "object" || app === null) {
+		throw new Error('app.ts must export "app" or a default export as an object');
+	}
+
+	assertArray(routesModule, "routes", "routes.gen.ts");
+	assertObject(routesModule, "templates", "routes.gen.ts");
+	assertFunction(frameworkModule, "createHandler", "@sundayceo/framework");
 
 	return {
-		app: (appModule.app ?? appModule.default) as AppConfig,
+		app: app as AppConfig,
 		routes: routesModule.routes as RouteEntry[],
 		templates: routesModule.templates as GeneratedTemplates,
 		errorPages: routesModule.errorPages as LoadedModules["errorPages"],
