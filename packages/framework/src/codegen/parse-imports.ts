@@ -1,5 +1,4 @@
 import { parse } from "@babel/parser";
-import * as t from "@babel/types";
 
 /** Extracts non-type import source specifiers using Babel AST parsing. */
 export function parseImportSpecifiers(source: string): string[] {
@@ -10,7 +9,7 @@ export function parseImportSpecifiers(source: string): string[] {
 
 	const specifiers: string[] = [];
 	for (const node of ast.program.body) {
-		if (t.isImportDeclaration(node) && node.importKind !== "type") {
+		if (node.type === "ImportDeclaration" && node.importKind !== "type") {
 			specifiers.push(node.source.value);
 		}
 	}
