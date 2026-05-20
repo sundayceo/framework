@@ -1,3 +1,5 @@
+import { parseImportSpecifiers } from "./parse-imports";
+
 const REACT_HOOKS = [
 	"useState",
 	"useEffect",
@@ -30,38 +32,38 @@ function hasInteractivitySignals(source: string): boolean {
 	);
 }
 
-function extractImportSpecifiers(source: string): string[] {
-	const specifiers: string[] = [];
-	const importRegex = /\bimport\s+(type\s+)?.*?\s+from\s+["']([^"']+)["']/g;
-	let match;
-
-	while ((match = importRegex.exec(source)) !== null) {
-		if (match.at(1) === undefined) {
-			/* v8 ignore next */
-			specifiers.push(match.at(2) ?? "");
-		}
-	}
-
-	return specifiers;
-}
+/**
+ * Resolves an import specifier to its graph key.
+ * When `fromFile` is provided, the specifier is relative to that file's directory.
+ */
+export type SpecifierResolver = (specifier: string, fromFile?: string) => string | undefined;
 
 /** Returns true if the source or its transitive imports contain React hooks, event handlers, or browser APIs. */
-export function isInteractive(source: string, importGraph: Record<string, string> = {}): boolean {
+export function isInteractive(
+	source: string,
+	importGraph: Record<string, string> = {},
+	resolveSpecifier: SpecifierResolver = (s) => s,
+): boolean {
 	if (hasInteractivitySignals(source)) {
 		return true;
 	}
 
 	const visited = new Set<string>();
-	const specifiers = extractImportSpecifiers(source);
+	const specifiers = parseImportSpecifiers(source);
 
-	function checkTransitive(specifier: string): boolean {
-		if (visited.has(specifier)) {
+	function checkTransitive(specifier: string, fromFile?: string): boolean {
+		const key = resolveSpecifier(specifier, fromFile);
+		if (key === undefined) {
 			return false;
 		}
 
-		visited.add(specifier);
+		if (visited.has(key)) {
+			return false;
+		}
 
-		const depSource = importGraph[specifier];
+		visited.add(key);
+
+		const depSource = importGraph[key];
 
 		if (depSource === undefined) {
 			return false;
@@ -71,10 +73,10 @@ export function isInteractive(source: string, importGraph: Record<string, string
 			return true;
 		}
 
-		const childSpecifiers = extractImportSpecifiers(depSource);
+		const childSpecifiers = parseImportSpecifiers(depSource);
 
-		return childSpecifiers.some(checkTransitive);
+		return childSpecifiers.some((child) => checkTransitive(child, key));
 	}
 
-	return specifiers.some(checkTransitive);
+	return specifiers.some((s) => checkTransitive(s));
 }

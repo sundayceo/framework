@@ -5,6 +5,8 @@ import type { NodePath } from "@babel/traverse";
 import * as traverseModule from "@babel/traverse";
 import * as t from "@babel/types";
 
+import { assembleSlotModule, type SlotModuleParts } from "./slot-module-assembly";
+
 type DoubleWrapped<T> = { default: { default: T } };
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- CJS/ESM interop: @babel/* default export is double-wrapped */
 /* v8 ignore start -- CJS/ESM interop: only one branch is reachable per environment */
@@ -29,13 +31,16 @@ function sliceNode(node: { start?: number | null; end?: number | null }, source:
 	return source.slice(node.start ?? 0, node.end ?? source.length);
 }
 
-function collectImports(ast: t.File, source: string): Map<string, string> {
-	const importMap = new Map<string, string>();
+type ImportEntry = { statement: string; source: string };
+
+function collectImports(ast: t.File, source: string): Map<string, ImportEntry> {
+	const importMap = new Map<string, ImportEntry>();
 	for (const node of ast.program.body) {
 		if (t.isImportDeclaration(node)) {
 			const stmt = sliceNode(node, source);
+			const importSource = node.source.value;
 			for (const specifier of node.specifiers) {
-				importMap.set(specifier.local.name, stmt);
+				importMap.set(specifier.local.name, { statement: stmt, source: importSource });
 			}
 		}
 	}
@@ -112,10 +117,28 @@ function collectReferencedIdentifiers(node: t.Node): Set<string> {
 	return identifiers;
 }
 
+function collectObjectPatternNames(node: t.ObjectPattern, out: string[]): void {
+	for (const prop of node.properties) {
+		if (t.isObjectProperty(prop)) { collectPatternNames(prop.value as t.LVal, out); } // eslint-disable-line @typescript-eslint/consistent-type-assertions -- Babel ObjectProperty.value in pattern position is always LVal
+		else if (t.isRestElement(prop)) { collectPatternNames(prop.argument, out); }
+	}
+}
+
+function collectPatternNames(node: t.LVal, out: string[]): void {
+	if (t.isIdentifier(node)) { out.push(node.name); return; }
+	if (t.isAssignmentPattern(node)) { collectPatternNames(node.left, out); return; }
+	if (t.isObjectPattern(node)) { collectObjectPatternNames(node, out); return; }
+	if (t.isArrayPattern(node)) {
+		for (const el of node.elements) { if (el !== null && t.isLVal(el)) { collectPatternNames(el, out); } }
+	}
+}
+
 function extractDeclNames(stmt: t.VariableDeclaration): string[] {
-	return stmt.declarations
-		.filter((decl): decl is t.VariableDeclarator & { id: t.Identifier } => t.isIdentifier(decl.id))
-		.map((decl) => decl.id.name);
+	const names: string[] = [];
+	for (const decl of stmt.declarations) {
+		if (t.isLVal(decl.id)) { collectPatternNames(decl.id, names); }
+	}
+	return names;
 }
 
 function collectLocalBindings(fnBody: t.Node, source: string): Map<string, string> {
@@ -136,22 +159,22 @@ function collectLocalBindings(fnBody: t.Node, source: string): Map<string, strin
 
 function resolveImportsForRefs(
 	refs: Set<string>,
-	imports: Map<string, string>,
+	imports: Map<string, ImportEntry>,
 	seenImportStmts: Set<string>,
 ): string[] {
 	const result: string[] = [];
 	for (const ref of refs) {
-		const importStmt = imports.get(ref);
-		if (importStmt !== undefined && !seenImportStmts.has(importStmt)) {
-			seenImportStmts.add(importStmt);
-			result.push(importStmt);
+		const entry = imports.get(ref);
+		if (entry !== undefined && entry.source !== "@sundayceo/framework" && !seenImportStmts.has(entry.statement)) {
+			seenImportStmts.add(entry.statement);
+			result.push(entry.statement);
 		}
 	}
 	return result;
 }
 
 type ImportContext = {
-	imports: Map<string, string>;
+	imports: Map<string, ImportEntry>;
 	seenImportStmts: Set<string>;
 	requiredImports: string[];
 };
@@ -187,46 +210,21 @@ function hasLoaderDataUsage(refs: Set<string>, requiredLocals: Map<string, strin
 		return true;
 	}
 	for (const [, localSrc] of requiredLocals) {
-		if (localSrc.includes("loaderData")) {
+		const localAst = parse(localSrc, { sourceType: "module", plugins: ["typescript", "jsx"] });
+		const firstStmt = localAst.program.body.at(0);
+		if (firstStmt !== undefined && collectReferencedIdentifiers(firstStmt).has("loaderData")) {
 			return true;
 		}
 	}
 	return false;
 }
 
-function isFrameworkImport(stmt: string): boolean {
-	return stmt.includes("definePage") || stmt.includes("defineHandler");
-}
-
-function buildVirtualModule(input: {
-	requiredImports: string[];
-	requiredLocals: Map<string, string>;
-	hasLoaderData: boolean;
-	jsxSource: string;
-}): string {
-	const lines: string[] = [
-		'import React from "react";',
-		...input.requiredImports.filter((s) => !isFrameworkImport(s)),
-		"",
-		`export default function HydrateSlot(${input.hasLoaderData ? "{ loaderData }" : ""}) {`,
-	];
-
-	for (const [, localSource] of input.requiredLocals) {
-		lines.push(`  ${localSource}`);
-	}
-
-	lines.push(`  return (${input.jsxSource});`);
-	lines.push("}");
-
-	return lines.join("\n");
-}
-
 function extractSingleSlot(input: {
 	prop: t.ObjectProperty;
-	imports: Map<string, string>;
+	imports: Map<string, ImportEntry>;
 	localBindings: Map<string, string>;
 	routePath: string;
-}): { key: string; moduleSource: string } | null {
+}): { key: string; moduleSource: string; parts: SlotModuleParts } | null {
 	const { prop, imports, localBindings, routePath } = input;
 
 	if (!t.isIdentifier(prop.key) && !t.isStringLiteral(prop.key)) {
@@ -244,16 +242,30 @@ function extractSingleSlot(input: {
 		seenImportStmts,
 		requiredImports,
 	});
-	const hasLoaderData = hasLoaderDataUsage(refs, requiredLocals);
 
+	const parts: SlotModuleParts = {
+		imports: requiredImports,
+		hasLoaderData: hasLoaderDataUsage(refs, requiredLocals),
+		locals: [...requiredLocals.values()],
+		jsxSource,
+	};
 	return {
-		key: `virtual:hydrate${routePath}/${slotName}`,
-		moduleSource: buildVirtualModule({ requiredImports, requiredLocals, hasLoaderData, jsxSource }),
+		key: buildSlotKey(routePath, slotName),
+		moduleSource: assembleSlotModule(parts),
+		parts,
 	};
 }
 
+/** Builds the canonical key for a route/slot pair (without any virtual-module prefix). */
+export function buildSlotKey(routePath: string, slotName: string): string {
+	return `${routePath}/${slotName}`;
+}
+
+export type { SlotModuleParts } from "./slot-module-assembly";
+export type SlotModule = { moduleSource: string; parts: SlotModuleParts };
+
 /** Extracts virtual hydration slot modules from a route's defineSlots call. */
-export function extractSlotModules(source: string, routePath: string): Map<string, string> {
+export function extractSlotModules(source: string, routePath: string): Map<string, SlotModule> {
 	const ast = parse(source, {
 		sourceType: "module",
 		plugins: ["typescript", "jsx"],
@@ -267,16 +279,16 @@ export function extractSlotModules(source: string, routePath: string): Map<strin
 	}
 
 	const localBindings = collectLocalBindings(defineSlots.fnBody, source);
-	const virtualModules = new Map<string, string>();
+	const result = new Map<string, SlotModule>();
 
 	for (const prop of defineSlots.slotsObject.properties) {
 		if (t.isObjectProperty(prop)) {
 			const slot = extractSingleSlot({ prop, imports, localBindings, routePath });
 			if (slot !== null) {
-				virtualModules.set(slot.key, slot.moduleSource);
+				result.set(slot.key, { moduleSource: slot.moduleSource, parts: slot.parts });
 			}
 		}
 	}
 
-	return virtualModules;
+	return result;
 }

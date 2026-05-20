@@ -40,18 +40,15 @@ describe("resolveErrorPage", () => {
 			factory: (): Response => new Response("Custom Server Error", { status: 500 }),
 			expectedBody: "Custom Server Error",
 		},
-	])(
-		"uses $label when provided in errorPages",
-		async ({ status, factory, expectedBody }) => {
-			const response = resolveErrorPage({
-				status,
-				errorPages: { [status]: factory },
-			});
+	])("uses $label when provided in errorPages", async ({ status, factory, expectedBody }) => {
+		const response = resolveErrorPage({
+			status,
+			errorPages: { [status]: factory },
+		});
 
-			expect(response.status).toBe(status);
-			expect(await response.text()).toBe(expectedBody);
-		},
-	);
+		expect(response.status).toBe(status);
+		expect(await response.text()).toBe(expectedBody);
+	});
 
 	test.each([
 		{ status: 404, bodySnippet: "Not Found" },

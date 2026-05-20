@@ -4,36 +4,37 @@ import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
-import { buildImportGraph, extractImportSpecifiers, resolveFile } from "./import-graph";
+import { parseImportSpecifiers } from "../codegen/parse-imports";
+import { buildImportGraph, resolveFile } from "./import-graph";
 
-describe("extractImportSpecifiers", () => {
+describe("parseImportSpecifiers", () => {
 	test("extracts relative imports", () => {
 		const source = `import { Foo } from "./foo";\nimport { Bar } from "./bar";`;
-		expect(extractImportSpecifiers(source)).toEqual(["./foo", "./bar"]);
+		expect(parseImportSpecifiers(source)).toEqual(["./foo", "./bar"]);
 	});
 
-	test("ignores non-relative imports", () => {
+	test("includes non-relative imports", () => {
 		const source = `import React from "react";\nimport { Foo } from "./foo";`;
-		expect(extractImportSpecifiers(source)).toEqual(["./foo"]);
+		expect(parseImportSpecifiers(source)).toEqual(["react", "./foo"]);
 	});
 
 	test("returns empty array for no imports", () => {
-		expect(extractImportSpecifiers("const x = 1;")).toEqual([]);
+		expect(parseImportSpecifiers("const x = 1;")).toEqual([]);
 	});
 
 	test("handles parent directory imports", () => {
 		const source = `import { Shared } from "../shared/utils";`;
-		expect(extractImportSpecifiers(source)).toEqual(["../shared/utils"]);
+		expect(parseImportSpecifiers(source)).toEqual(["../shared/utils"]);
 	});
 
 	test("skips type-only imports", () => {
 		const source = `import type { Props } from "./types";\nimport { Button } from "./button";`;
-		expect(extractImportSpecifiers(source)).toEqual(["./button"]);
+		expect(parseImportSpecifiers(source)).toEqual(["./button"]);
 	});
 
 	test("includes inline type imports (import { type X })", () => {
 		const source = `import { type Props, Button } from "./button";`;
-		expect(extractImportSpecifiers(source)).toEqual(["./button"]);
+		expect(parseImportSpecifiers(source)).toEqual(["./button"]);
 	});
 });
 
@@ -93,7 +94,8 @@ describe("buildImportGraph", () => {
 	test("builds graph for route with local import", () => {
 		const componentDir = path.join(tmpDir, "components");
 		fs.mkdirSync(componentDir);
-		fs.writeFileSync(path.join(componentDir, "button.tsx"), "export function Button() {}");
+		const buttonPath = path.join(componentDir, "button.tsx");
+		fs.writeFileSync(buttonPath, "export function Button() {}");
 
 		fs.writeFileSync(
 			path.join(routesDir, "index.tsx"),
@@ -103,22 +105,24 @@ describe("buildImportGraph", () => {
 		const routeSources = { "/": 'import { Button } from "../components/button";' };
 		const graph = buildImportGraph(routeSources, routesDir);
 
-		expect(graph["../components/button"]).toContain("Button");
+		expect(graph[buttonPath]).toContain("Button");
 	});
 
 	test("follows transitive imports", () => {
 		const libDir = path.join(tmpDir, "lib");
 		fs.mkdirSync(libDir);
-		fs.writeFileSync(path.join(libDir, "a.ts"), 'import { b } from "./b";\nexport const a = b;');
-		fs.writeFileSync(path.join(libDir, "b.ts"), "export const b = 42;");
+		const aPath = path.join(libDir, "a.ts");
+		const bPath = path.join(libDir, "b.ts");
+		fs.writeFileSync(aPath, 'import { b } from "./b";\nexport const a = b;');
+		fs.writeFileSync(bPath, "export const b = 42;");
 
 		fs.writeFileSync(path.join(routesDir, "index.tsx"), 'import { a } from "../lib/a";');
 
 		const routeSources = { "/": 'import { a } from "../lib/a";' };
 		const graph = buildImportGraph(routeSources, routesDir);
 
-		expect(graph["../lib/a"]).toContain("a");
-		expect(graph["./b"]).toContain("b = 42");
+		expect(graph[aPath]).toContain("a");
+		expect(graph[bPath]).toContain("b = 42");
 	});
 
 	test("handles missing imports gracefully", () => {
@@ -133,16 +137,18 @@ describe("buildImportGraph", () => {
 	test("avoids circular imports", () => {
 		const libDir = path.join(tmpDir, "lib");
 		fs.mkdirSync(libDir);
-		fs.writeFileSync(path.join(libDir, "a.ts"), 'import { b } from "./b";\nexport const a = 1;');
-		fs.writeFileSync(path.join(libDir, "b.ts"), 'import { a } from "./a";\nexport const b = 2;');
+		const aPath = path.join(libDir, "a.ts");
+		const bPath = path.join(libDir, "b.ts");
+		fs.writeFileSync(aPath, 'import { b } from "./b";\nexport const a = 1;');
+		fs.writeFileSync(bPath, 'import { a } from "./a";\nexport const b = 2;');
 
 		fs.writeFileSync(path.join(routesDir, "index.tsx"), 'import { a } from "../lib/a";');
 
 		const routeSources = { "/": 'import { a } from "../lib/a";' };
 		const graph = buildImportGraph(routeSources, routesDir);
 
-		expect(graph["../lib/a"]).toBeDefined();
-		expect(graph["./b"]).toBeDefined();
+		expect(graph[aPath]).toBeDefined();
+		expect(graph[bPath]).toBeDefined();
 	});
 
 	test("returns empty graph for no imports", () => {

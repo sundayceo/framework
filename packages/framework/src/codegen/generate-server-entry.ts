@@ -21,7 +21,7 @@ export function generateServerEntry(paths: ServerEntryPaths): string {
 			"export default createHandler({ app, routes, templates, errorPages, hydrationManifest, hydrationAssets });",
 		);
 	} else if (paths.shouldUsePlaceholder === true) {
-		lines.push("const hydrationAssets = \"__SUNDAYCEO_HYDRATION_ASSETS__\";");
+		lines.push('const hydrationAssets = "__SUNDAYCEO_HYDRATION_ASSETS__";');
 		lines.push("");
 		lines.push(
 			"export default createHandler({ app, routes, templates, errorPages, hydrationManifest, hydrationAssets });",

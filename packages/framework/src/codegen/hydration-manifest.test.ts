@@ -28,7 +28,7 @@ export default definePage("/demo")({
 			"../components/Counter": `import { useState } from "react";\nexport default function Counter() { const [c, setC] = useState(0); return <button onClick={() => setC(c+1)}>{c}</button>; }`,
 		};
 
-		const manifest = buildHydrationManifest({ routes, importGraph });
+		const { manifest } = buildHydrationManifest({ routes, importGraph });
 
 		expect(manifest).toEqual({
 			"/demo": { header: false, main: true },
@@ -49,7 +49,7 @@ export default defineHandler({
 			},
 		];
 
-		const manifest = buildHydrationManifest({ routes, importGraph: {} });
+		const { manifest } = buildHydrationManifest({ routes, importGraph: {} });
 
 		expect(manifest).toEqual({});
 	});
@@ -73,7 +73,7 @@ export default definePage("/about")({
 			},
 		];
 
-		const manifest = buildHydrationManifest({ routes, importGraph: {} });
+		const { manifest } = buildHydrationManifest({ routes, importGraph: {} });
 
 		expect(manifest).toEqual({
 			"/about": { header: false, content: false },
@@ -132,7 +132,7 @@ export default definePage("/app")({
 			"../components/Widget": `import { useEffect } from "react";\nexport default function Widget() { useEffect(() => {}, []); return <div />; }`,
 		};
 
-		const manifest = buildHydrationManifest({ routes, importGraph });
+		const { manifest } = buildHydrationManifest({ routes, importGraph });
 
 		expect(manifest).toEqual({
 			"/": { hero: false },
