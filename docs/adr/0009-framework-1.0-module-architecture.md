@@ -16,45 +16,40 @@ src/
 │   ├── define-handler.ts
 │   ├── define-error-page.ts
 │   ├── render-page.tsx
-│   ├── render-error-page.ts
 │   ├── handle-error.ts
+│   ├── resolve-error-page.ts                     (default 404/500 HTML pages)
 │   ├── route-matcher.ts
-│   ├── slot.tsx
+│   ├── slot.tsx                                  (SlotProvider + Slot with inline hydration)
 │   ├── extract-slots.ts
 │   ├── validate-slots.ts
-│   ├── inject-hydration.ts
-│   ├── generate-hydration-script.ts
-│   ├── redirect-response.ts
-│   ├── http-error-response.ts
-│   ├── default-error-pages.ts
+│   ├── throwable-response.ts                     (redirect + httpError helpers)
 │   └── view-transition.ts
 ├── codegen/        → @sundayceo/framework/codegen (public codegen API)
+│   ├── index.ts                                   (barrel)
 │   ├── build.ts                                   (orchestrator)
-│   ├── babel-helpers.ts
+│   ├── ast-walker.ts                              (lightweight AST traversal for @babel/parser)
+│   ├── parse-imports.ts                           (import specifier extraction)
 │   ├── slot-extraction.ts
+│   ├── slot-module-assembly.ts                    (assembles extracted slot code into modules)
 │   ├── interactivity-inference.ts
 │   ├── hydration-manifest.ts
 │   ├── codegen-routes.ts
 │   ├── codegen-templates.ts
 │   ├── generate-route-manifest.ts
 │   ├── generate-server-entry.ts
-│   ├── build-client-entries.ts
-│   ├── resolve-modules.ts
 │   ├── route-scanner.ts
 │   ├── transform-route-module.ts
 │   ├── file-filters.ts                            (from dissolved conventions/)
 │   └── route-paths.ts                             (from dissolved conventions/)
 ├── codegen-disk/   → internal (CLI + Vite plugin consume directly)
-│   ├── scan.ts                                    (read routes/templates from disk)
-│   └── write.ts                                   (write framework.gen.d.ts + routes.gen.ts)
+│   ├── codegen.ts                                 (orchestrates codegen + writes to disk)
+│   └── import-graph.ts                            (builds transitive import graph from filesystem)
 ├── vite/           → @sundayceo/framework/vite    (Vite plugin entry point)
 │   ├── vite-plugin.ts
-│   ├── vite-dev-middleware.ts
+│   ├── vite-dev-middleware.ts                     (Connect middleware + Node↔Web request bridge)
 │   ├── virtual-slot-modules.ts
-│   ├── web-request.ts                             (Node ↔ Web Request/Response bridge)
 │   ├── hydrate-ids.ts                             (from dissolved conventions/)
-│   ├── client-build-config.ts                     (Vite build config factories)
-│   ├── server-build-config.ts
+│   ├── client-build.ts                            (two-pass client hydration build)
 │   ├── server-entry-stub.js
 │   └── server-entry.d.ts
 ├── cli.ts          → bin: sundayceo
@@ -86,13 +81,15 @@ The `codegen-disk/` directory is not a public entry point. The CLI and Vite plug
 
 Functions: `createApp`, `definePage`, `defineHandler`, `defineErrorPage`, `createHandler`, `Slot`, `SlotProvider`, `redirect`, `httpError`, `isRedirectResponse`, `isHttpErrorResponse`, `viewTransitionName`.
 
-Types: `AppConfig`, `ErrorContext`, `Context`, `PageModule`, `HandlerModule`, `SlotMap`, `TemplateComponent`, `TemplateRegistry`, `RouteMap`, `RouteKind`, `Register`, `HandlerConfig`, `RouteEntry`, `GeneratedTemplates`, `GeneratedErrorPages`.
+Values: `RouteKind` (symbol used to brand module types: `"page"`, `"handler"`, `"error-page"`).
 
-Internal pipeline functions (`matchRoute`, `renderPage`, `defaultNotFoundPage`, `defaultServerErrorPage`) are not exported.
+Types: `AppConfig`, `ErrorContext`, `Context`, `PageModule`, `HandlerModule`, `SlotMap`, `TemplateComponent`, `TemplateRegistry`, `RouteMap`, `Register`, `HandlerConfig`, `RouteEntry`, `GeneratedTemplates`, `GeneratedErrorPages`.
+
+Internal pipeline functions (`matchRoute`, `renderPage`, `handleError`, `renderErrorPage`, `defaultNotFoundPage`, `defaultServerErrorPage`) are not exported.
 
 ### Codegen barrel (`@sundayceo/framework/codegen`)
 
-Five exports: `codegen`, `generateServerEntry`, `CodegenInput`, `CodegenOutput`, `HydrationManifest`.
+Six exports: `codegen`, `generateServerEntry`, `ClientEntry`, `CodegenInput`, `CodegenOutput`, `HydrationManifest`.
 
 No runtime re-exports. No Vite re-exports.
 
@@ -110,19 +107,31 @@ The prototype split `core/` (types + define functions) from `runtime/` (request-
 
 ### Shared runtime types in `runtime/types.ts`
 
-`GeneratedTemplates`, `GeneratedErrorPages`, `RouteEntry`, `HandlerConfig` live in a dedicated types file. This eliminates circular dependencies between `create-handler`, `handle-error`, and `render-error-page`.
+`GeneratedTemplates`, `GeneratedErrorPages`, `RouteEntry`, `HandlerConfig` live in a dedicated types file. This eliminates circular dependencies between `create-handler` and `handle-error`.
 
 ### `virtual:hydration-manifest` dropped
 
 The hydration manifest lives in `routes.gen.ts` as a static export. No separate virtual module. The Vite plugin rewrites `routes.gen.ts` on route file changes (add, unlink, and content changes), and Vite's native file watching handles HMR.
 
+### Hydration lives in the React render tree
+
+`SlotProvider` carries hydration metadata (interactivity map, serialized loader data, asset paths) through React context. Each interactive `Slot` emits its own `<script type="application/json">` data tag and `<script type="module">` import inline during `renderToString`. This eliminates the need for regex-based post-processing of rendered HTML. XSS is prevented by `escapeScriptContent`, which unicode-escapes `<` and `>` in the serialized JSON payload.
+
 ### Runtime doesn't know about Vite virtual module IDs
 
-The Vite dev middleware populates `slotAssets` with virtual module paths before calling `renderPage`. The runtime never constructs `virtual:hydrate/*` strings. `formatHydrateId` lives exclusively in `vite/`.
+The Vite dev middleware populates `assetPaths` with virtual module paths before calling `renderPage`. The runtime never constructs `virtual:hydrate/*` strings. `formatHydrateId` lives exclusively in `vite/`.
 
-### Build configs live in `vite/`
+### Babel dependency is parser-only
 
-`client-build-config.ts` and `server-build-config.ts` import Vite's `UserConfig` type. They belong in the Vite layer, not codegen.
+The codegen layer depends only on `@babel/parser`. AST traversal uses a lightweight manual walker (`ast-walker.ts`) with source slicing instead of `@babel/generator`. This eliminates `@babel/traverse`, `@babel/generator`, and `@babel/types` (~2MB), keeping the dependency footprint viable for the tenant Cloudflare Workers platform.
+
+### Error pages are branded with `RouteKind`
+
+`defineErrorPage` stamps modules with `[RouteKind]: "error-page"`, distinct from `"page"` and `"handler"`. `isErrorPageModule` in `handle-error.ts` validates via the symbol rather than duck-typing on `template`/`defineSlots` properties.
+
+### Build config lives in `vite/`
+
+`client-build.ts` implements the two-pass production build (server SSR + client hydration). It imports Vite's build API and belongs in the Vite layer, not codegen.
 
 ## Code style rules
 
@@ -137,4 +146,6 @@ The Vite dev middleware populates `slotAssets` with virtual module paths before 
 - **Keep `core/` separate from `runtime/`**: Rejected — the split was invisible to consumers (both exported from the same barrel) and created an artificial boundary between types and the functions that use them.
 - **Export all codegen internals from the barrel**: Rejected — 20+ exports would commit the public API to implementation details. The multi-tenant platform only needs `codegen()`, `generateServerEntry()`, and types.
 - **Virtual module for hydration manifest**: Rejected — `routes.gen.ts` already contains the manifest. A separate virtual module adds a parallel invalidation path with no benefit. Vite's file watcher handles HMR when `routes.gen.ts` is rewritten.
-- **Runtime constructs virtual module IDs**: Rejected — couples the platform-agnostic runtime to Vite conventions. The Vite dev middleware is responsible for translating virtual module IDs into `slotAssets` before the runtime sees them.
+- **Runtime constructs virtual module IDs**: Rejected — couples the platform-agnostic runtime to Vite conventions. The Vite dev middleware is responsible for translating virtual module IDs into `assetPaths` before the runtime sees them.
+- **Regex-based hydration injection**: Rejected — post-render HTML manipulation with `inject-hydration.ts` was fragile (relied on matching `data-slot` divs with regex) and created an XSS surface. Moving hydration into the React render tree via `SlotProvider` context is more robust and composable.
+- **Full Babel toolchain (traverse/generator/types)**: Rejected — adds ~2MB of dependencies for AST operations that can be done with `@babel/parser` plus source slicing. The manual walker in `ast-walker.ts` covers the needed use cases (slot extraction, import analysis) without code generation.
