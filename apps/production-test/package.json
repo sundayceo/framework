@@ -1,0 +1,25 @@
+{
+	"name": "@sundayceo/production-test",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "vite build --ssr entry.cloudflare.ts",
+		"dev": "vite",
+		"preview": "npx wrangler dev"
+	},
+	"dependencies": {
+		"@sundayceo/framework": "workspace:*",
+		"react": "catalog:",
+		"react-dom": "catalog:"
+	},
+	"devDependencies": {
+		"@sundayceo/typescript-config": "workspace:*",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"typescript": "catalog:",
+		"vite": "^8.0.13",
+		"wrangler": "^4.20.0"
+	}
+}
