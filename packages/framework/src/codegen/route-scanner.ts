@@ -1,7 +1,5 @@
 import type { MatchableRoute } from "../runtime/types";
 
-export type { MatchableRoute } from "../runtime/types";
-
 /** A scanned route with its file path, route pattern, and parameters. */
 export type RouteEntry = MatchableRoute & {
 	filePath: string;
@@ -25,17 +23,27 @@ export type ManifestRouteEntry = MatchableRoute & {
 };
 
 const PARAM_PATTERN = /\[([^\]]+)\]/g;
+const CATCH_ALL_PATTERN = /\[\.\.\.([^\]]+)\]/;
+const CATCH_ALL_PREFIX = "...";
+const GROUP_PATTERN = /^\(.*\)$/;
 const ROUTE_EXTENSIONS = [".tsx", ".ts"];
 const TEST_PATTERN = /\.test\.[^.]+$/;
 const ERROR_PAGE_PATTERN = /^(?:.*\/)?([45]\d{2})\.[^.]+$/;
 
-const convertSegment = (segment: string): string => segment.replace(PARAM_PATTERN, ":$1");
+const convertSegment = (segment: string): string => {
+	const catchAll = CATCH_ALL_PATTERN.exec(segment);
+	if (catchAll !== null) {
+		return `*${catchAll.at(1) ?? ""}`;
+	}
+	return segment.replace(PARAM_PATTERN, ":$1");
+};
 
 const extractParams = (filePath: string): string[] => {
 	const params: string[] = [];
 	let match: RegExpExecArray | null = PARAM_PATTERN.exec(filePath);
 	while (match !== null) {
-		params.push(match.at(1) ?? "");
+		const raw = match.at(1) ?? "";
+		params.push(raw.startsWith(CATCH_ALL_PREFIX) ? raw.slice(CATCH_ALL_PREFIX.length) : raw);
 		match = PARAM_PATTERN.exec(filePath);
 	}
 	return params;
@@ -43,11 +51,18 @@ const extractParams = (filePath: string): string[] => {
 
 const hasDynamicSegment = (pattern: string): boolean => pattern.includes(":");
 
+const hasCatchAll = (pattern: string): boolean => pattern.includes("*");
+
 const stripExtension = (filePath: string): string => filePath.replace(/\.(tsx|ts)$/, "");
+
+const isGroupSegment = (segment: string): boolean => GROUP_PATTERN.test(segment);
 
 const buildPattern = (filePath: string): string => {
 	const withoutExtension = stripExtension(filePath);
-	const segments = withoutExtension.split("/").map(convertSegment);
+	const segments = withoutExtension
+		.split("/")
+		.filter((seg) => !isGroupSegment(seg))
+		.map(convertSegment);
 	const lastSegment = segments.at(-1);
 
 	if (lastSegment === "index") {
@@ -92,6 +107,13 @@ export const scanRoutes = (filePaths: string[]): ScanResult => {
 	}
 
 	routes.sort((a, b) => {
+		const isCatchAllA = hasCatchAll(a.routePath);
+		const isCatchAllB = hasCatchAll(b.routePath);
+
+		if (isCatchAllA !== isCatchAllB) {
+			return isCatchAllA ? 1 : -1;
+		}
+
 		const isDynamicA = hasDynamicSegment(a.routePath);
 		const isDynamicB = hasDynamicSegment(b.routePath);
 

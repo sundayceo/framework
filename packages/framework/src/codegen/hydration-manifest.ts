@@ -22,6 +22,7 @@ export function serializeManifest(manifest: HydrationManifest): string {
 /** Builds a hydration manifest by extracting slots and checking interactivity for each route. */
 export function buildHydrationManifest(input: ManifestInput): HydrationManifest {
 	const { routes, importGraph } = input;
+
 	const manifest: HydrationManifest = {};
 
 	for (const route of routes) {

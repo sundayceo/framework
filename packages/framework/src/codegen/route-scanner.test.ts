@@ -126,4 +126,69 @@ describe("scanRoutes", () => {
 		]);
 		expect(result.errorPages).toEqual([]);
 	});
+
+	test("separates all 4xx and 5xx error pages", () => {
+		const result = scanRoutes(["403.tsx", "404.tsx", "500.tsx", "index.tsx"]);
+
+		expect(result.routes).toEqual([{ routePath: "/", params: [], filePath: "index.tsx" }]);
+		expect(result.errorPages).toEqual([
+			{ status: 403, filePath: "403.tsx" },
+			{ status: 404, filePath: "404.tsx" },
+			{ status: 500, filePath: "500.tsx" },
+		]);
+	});
+
+	test("excludes error page test files", () => {
+		const result = scanRoutes(["404.tsx", "404.test.tsx"]);
+
+		expect(result.errorPages).toEqual([{ status: 404, filePath: "404.tsx" }]);
+	});
+
+	test("converts catch-all route [...slug]", () => {
+		const result = scanRoutes(["docs/[...slug].tsx"]);
+
+		expect(result.routes).toEqual([
+			{ routePath: "/docs/*slug", params: ["slug"], filePath: "docs/[...slug].tsx" },
+		]);
+	});
+
+	test("sorts catch-all routes after dynamic routes", () => {
+		const result = scanRoutes(["docs/[...slug].tsx", "blog/[slug].tsx", "about.tsx", "index.tsx"]);
+
+		const patterns = result.routes.map((r) => r.routePath);
+
+		expect(patterns).toEqual(["/", "/about", "/blog/:slug", "/docs/*slug"]);
+	});
+
+	test("converts top-level catch-all route", () => {
+		const result = scanRoutes(["[...path].tsx"]);
+
+		expect(result.routes).toEqual([
+			{ routePath: "/*path", params: ["path"], filePath: "[...path].tsx" },
+		]);
+	});
+
+	test("strips route group folders from URL pattern", () => {
+		const result = scanRoutes(["(marketing)/about.tsx", "(marketing)/pricing.tsx"]);
+
+		expect(result.routes).toEqual([
+			{ routePath: "/about", params: [], filePath: "(marketing)/about.tsx" },
+			{ routePath: "/pricing", params: [], filePath: "(marketing)/pricing.tsx" },
+		]);
+	});
+
+	test("route groups with nested paths", () => {
+		const result = scanRoutes(["(auth)/login.tsx", "(auth)/register.tsx", "(app)/dashboard.tsx"]);
+
+		const patterns = result.routes.map((r) => r.routePath);
+		expect(patterns).toEqual(["/dashboard", "/login", "/register"]);
+	});
+
+	test("route groups with dynamic params", () => {
+		const result = scanRoutes(["(app)/users/[id].tsx"]);
+
+		expect(result.routes).toEqual([
+			{ routePath: "/users/:id", params: ["id"], filePath: "(app)/users/[id].tsx" },
+		]);
+	});
 });

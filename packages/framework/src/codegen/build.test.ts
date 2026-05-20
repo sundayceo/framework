@@ -59,6 +59,74 @@ describe("codegen", () => {
 		expect(manifest).toContain("export const hydrationManifest = {};");
 	});
 
+	test("returns empty clientEntries when no route sources provided", () => {
+		const { clientEntries } = codegen({
+			routePaths: ["index.tsx"],
+			templatePaths: [],
+		});
+
+		expect(clientEntries).toEqual([]);
+	});
+
+	test("returns structured clientEntries for interactive slots", () => {
+		const { clientEntries } = codegen({
+			routePaths: ["demo.tsx"],
+			templatePaths: [],
+			routeSources: {
+				"/demo": [
+					'import React from "react";',
+					'import { Counter } from "./components/counter";',
+					'import { definePage } from "@sundayceo/framework";',
+					'export default definePage("/demo")({',
+					'  template: "default",',
+					"  loader: () => ({}),",
+					"  defineSlots: () => ({",
+					"    main: <Counter />,",
+					"  }),",
+					"});",
+				].join("\n"),
+			},
+			importGraph: {
+				"./components/counter":
+					'import { useState } from "react";\nexport function Counter() { const [c, setC] = useState(0); return <button>{c}</button>; }',
+			},
+		});
+
+		expect(clientEntries).toHaveLength(1);
+		const entry = clientEntries.at(0);
+		expect(entry?.routePath).toBe("/demo");
+		expect(entry?.slotName).toBe("main");
+		expect(entry?.moduleSource).toContain("HydrateSlot");
+	});
+
+	test("detects transitive interactivity through importGraph", () => {
+		const { manifest } = codegen({
+			routePaths: ["page.tsx"],
+			templatePaths: [],
+			routeSources: {
+				"/page": [
+					'import React from "react";',
+					'import { Wrapper } from "./wrapper";',
+					'import { definePage } from "@sundayceo/framework";',
+					'export default definePage("/page")({',
+					'  template: "default",',
+					"  defineSlots: () => ({",
+					"    main: <Wrapper />,",
+					"  }),",
+					"});",
+				].join("\n"),
+			},
+			importGraph: {
+				"./wrapper":
+					'import { Counter } from "./counter";\nexport function Wrapper() { return <Counter />; }',
+				"./counter":
+					'import { useState } from "react";\nexport function Counter() { const [c, setC] = useState(0); return <button>{c}</button>; }',
+			},
+		});
+
+		expect(manifest).toContain('"main": true');
+	});
+
 	test("handles empty input", () => {
 		const result = codegen({ routePaths: [], templatePaths: [] });
 
@@ -66,6 +134,7 @@ describe("codegen", () => {
 		expect(result.declarations).toContain("interface TemplateRegistry {");
 		expect(result.manifest).toContain("export const routes = [");
 		expect(result.manifest).toContain("export const templates = {");
+		expect(result.clientEntries).toEqual([]);
 	});
 
 	test("excludes error pages from route map and routes array", () => {
