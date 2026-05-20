@@ -53,8 +53,6 @@ describe("renderPage", () => {
 		const html = await response.text();
 		expect(html).toContain("<!DOCTYPE html>");
 		expect(html).toContain("<p>hello</p>");
-		expect(html).toContain('<meta charSet="utf-8"/>');
-		expect(html).toContain("width=device-width");
 	});
 
 	test("renders with undefined loaderData when page has no loader", async () => {
@@ -139,7 +137,7 @@ describe("renderPage", () => {
 		expect((capturedCtx as Record<string, unknown>).db).toBe("test-db");
 	});
 
-	test("renders head with charset and viewport when no meta provided", async () => {
+	test("renders empty head content when no meta provided", async () => {
 		const response = await renderPage({
 			pageModule: {
 				defineSlots: () => ({}),
@@ -151,9 +149,8 @@ describe("renderPage", () => {
 		});
 
 		const html = await response.text();
-		expect(html).toContain('<meta charSet="utf-8"/>');
-		expect(html).toContain("width=device-width");
 		expect(html).not.toContain("<title>");
+		expect(html).not.toContain('name="description"');
 	});
 
 	test("includes CSS link tag when cssHref is provided", async () => {

@@ -33,14 +33,15 @@ describe("generateHydrationScript", () => {
 		expect(script).toContain("JSON.parse");
 	});
 
-	test("passes loaderData to HydrateSlot", () => {
+	test("passes loaderData to HydrateSlot via createElement", () => {
 		const script = generateHydrationScript({
 			slotId: "counter",
 			assetPath: "virtual:hydrate/demo/counter",
 		});
 
-		expect(script).toContain("HydrateSlot({ loaderData");
+		expect(script).toContain("createElement(HydrateSlot, { loaderData }");
 		expect(script).toContain("hydrateRoot");
+		expect(script).toContain('import { createElement } from "react"');
 	});
 
 	test("uses production asset path when provided", () => {
