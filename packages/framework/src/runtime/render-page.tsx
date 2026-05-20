@@ -2,7 +2,6 @@ import React, { type ReactNode } from "react";
 import { renderToString } from "react-dom/server";
 
 import { extractSlots } from "./extract-slots";
-import { injectHydration } from "./inject-hydration";
 import { SlotProvider } from "./slot";
 import type { Context, MetaInfo, SlotMap, TemplateComponent } from "./types";
 import { validateSlots } from "./validate-slots";
@@ -79,6 +78,10 @@ function runLoader(input: {
 	return input.pageModule.loader(ctx);
 }
 
+function escapeScriptContent(json: string): string {
+	return json.replaceAll("<", "\\u003c").replaceAll(">", "\\u003e");
+}
+
 /** Server-renders a page module into a full HTML response with slots, meta, and hydration. */
 export async function renderPage(input: RenderPageInput): Promise<Response> {
 	const {
@@ -112,21 +115,21 @@ export async function renderPage(input: RenderPageInput): Promise<Response> {
 	const meta = resolveMeta(pageModule.meta, loaderData);
 	const headContent = buildHeadContent({ meta, cssHref, hasViewTransition });
 
-	let html = renderToString(
-		<SlotProvider slots={slotMap}>
+	const hydration =
+		slotInteractivity !== undefined
+			? {
+					interactivity: slotInteractivity,
+					serializedData: escapeScriptContent(JSON.stringify(loaderData ?? {})),
+					assetPaths,
+					routePath,
+				}
+			: undefined;
+
+	const html = renderToString(
+		<SlotProvider slots={slotMap} hydration={hydration}>
 			<Template head={headContent} />
 		</SlotProvider>,
 	);
-
-	if (slotInteractivity !== undefined) {
-		html = injectHydration({
-			html,
-			slotInteractivity,
-			routePath,
-			loaderData,
-			assetPaths,
-		});
-	}
 
 	return new Response(`<!DOCTYPE html>${html}`, {
 		headers: { "content-type": "text/html;charset=utf-8" },
