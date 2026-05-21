@@ -16,23 +16,32 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 ## Install
 
+{/* prettier-ignore */}
 <Tabs items={["pnpm", "npm", "yarn", "bun"]}>
-	<Tab value="pnpm">
-		```bash pnpm add @sundayceo/framework react react-dom pnpm add -D vite @types/react
-		@types/react-dom typescript ```
-	</Tab>
-	<Tab value="npm">
-		```bash npm install @sundayceo/framework react react-dom npm install -D vite @types/react
-		@types/react-dom typescript ```
-	</Tab>
-	<Tab value="yarn">
-		```bash yarn add @sundayceo/framework react react-dom yarn add -D vite @types/react
-		@types/react-dom typescript ```
-	</Tab>
-	<Tab value="bun">
-		```bash bun add @sundayceo/framework react react-dom bun add -D vite @types/react
-		@types/react-dom typescript ```
-	</Tab>
+<Tab value="pnpm">
+```bash
+pnpm add @sundayceo/framework react react-dom
+pnpm add -D vite @types/react @types/react-dom typescript
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @sundayceo/framework react react-dom
+npm install -D vite @types/react @types/react-dom typescript
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @sundayceo/framework react react-dom
+yarn add -D vite @types/react @types/react-dom typescript
+```
+</Tab>
+<Tab value="bun">
+```bash
+bun add @sundayceo/framework react react-dom
+bun add -D vite @types/react @types/react-dom typescript
+```
+</Tab>
 </Tabs>
 
 ## Project structure

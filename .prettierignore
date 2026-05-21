@@ -4,3 +4,4 @@ templates/
 .claude/
 **/.source/
 **/.next/
+**/*.mdx
