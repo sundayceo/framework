@@ -1,0 +1,54 @@
+---
+title: Custom Error Pages
+description: Custom 404 and 500 error pages with templates and loaders.
+---
+
+Error pages use the same template-and-slot system as regular pages.
+
+### Simple 404
+
+```tsx title="src/routes/404.tsx"
+import React from "react";
+
+import { defineErrorPage } from "@sundayceo/framework";
+
+export default defineErrorPage(404)({
+	template: "default",
+	defineSlots: () => ({
+		main: (
+			<div>
+				<h1>404</h1>
+				<p>Page not found.</p>
+				<a href="/">Go home</a>
+			</div>
+		),
+	}),
+});
+```
+
+### 500 with error details
+
+```tsx title="src/routes/500.tsx"
+import React from "react";
+
+import { defineErrorPage } from "@sundayceo/framework";
+
+export default defineErrorPage(500)({
+	template: "default",
+	loader: ({ error }) => ({
+		message: error.message,
+		stack: error.stack,
+	}),
+	defineSlots: ({ loaderData }) => ({
+		main: (
+			<div>
+				<h1>500 — Internal Server Error</h1>
+				<p>{loaderData.message}</p>
+				{loaderData.stack && <pre>{loaderData.stack}</pre>}
+			</div>
+		),
+	}),
+});
+```
+
+The `stack` and `error` properties on `ErrorContext` are only populated in development mode, so they won't leak to production.

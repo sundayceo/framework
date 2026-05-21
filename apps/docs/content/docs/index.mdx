@@ -1,0 +1,59 @@
+---
+title: Introduction
+description: A server-first React framework with selective hydration.
+icon: rocket
+---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+
+# sundayceo framework
+
+A server-first React framework where every page ships **zero JavaScript** by default. Interactive components hydrate only where needed — determined automatically at build time.
+
+## Why?
+
+Most React frameworks ship the entire component tree to the browser, even for pages that are entirely static. This framework takes the opposite approach: everything renders on the server, and only the slots that contain interactive code (hooks, event handlers, browser APIs) get hydrated on the client.
+
+You don't mark components with `"use client"` — the build system figures it out.
+
+## Key ideas
+
+- **Templates and slots** — pages declare which template to use and provide content for named slots. No nested layouts, no implicit composition.
+- **Automatic interactivity inference** — the compiler analyzes your slot code for `useState`, `onClick`, `window.*`, and similar patterns. Static slots ship no JS. Interactive slots hydrate individually.
+- **File-based routing** — `src/routes/about.tsx` becomes `/about`. Dynamic params via `[slug]`, catch-all via `[...slug]`, route groups via `(group)`.
+- **Loaders** — every page can define a `loader` that runs on the server and passes typed data to `defineSlots`.
+- **Platform-agnostic** — the runtime is a pure `fetch` handler. Deploy to Cloudflare Workers, Hono, Node.js, Bun, Deno, or anything that speaks `Request`/`Response`.
+
+## How it works
+
+```
+Request
+  → Route matching
+  → Loader execution
+  → Slot rendering (server)
+  → Template assembly
+  → HTML response
+
+Interactive slots additionally:
+  → Client entry generation (build time)
+  → hydrateRoot on the client
+```
+
+Every page goes through the same pipeline. The only difference is whether a slot's content includes interactive code — and the build system decides that for you.
+
+## Next steps
+
+<Cards>
+	<Card title="Installation" href="/docs/installation">
+		Install the framework and set up your project.
+	</Card>
+	<Card title="Quickstart" href="/docs/quickstart">
+		Build your first page in under 5 minutes.
+	</Card>
+	<Card title="Guides" href="/docs/guides/routing">
+		Deep dives into routing, templates, hydration, and more.
+	</Card>
+	<Card title="API Reference" href="/docs/api-reference/create-app">
+		Every exported function and type.
+	</Card>
+</Cards>

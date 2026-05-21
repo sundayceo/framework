@@ -1,0 +1,56 @@
+---
+title: defineHandler
+description: Define a type-safe API handler with HTTP method handlers.
+---
+
+## Signature
+
+```ts
+function defineHandler<TPath extends string>(
+	path: TPath,
+): (config: {
+	GET?: (ctx: Context<InferParams<TPath>>) => Response | Promise<Response>;
+	POST?: (ctx: Context<InferParams<TPath>>) => Response | Promise<Response>;
+	PUT?: (ctx: Context<InferParams<TPath>>) => Response | Promise<Response>;
+	PATCH?: (ctx: Context<InferParams<TPath>>) => Response | Promise<Response>;
+	DELETE?: (ctx: Context<InferParams<TPath>>) => Response | Promise<Response>;
+}) => HandlerModule;
+```
+
+`defineHandler` is curried — call it with the route path first, then with the handler config.
+
+## Parameters
+
+### First call: `defineHandler(path)`
+
+| Parameter | Type     | Description                                        |
+| --------- | -------- | -------------------------------------------------- |
+| `path`    | `string` | The route path. Used for type inference of params. |
+
+### Second call: handler config
+
+An object with one or more HTTP method handlers. Each handler receives a `Context` and must return a `Response`.
+
+## Returns
+
+A handler module object branded with `[RouteKind]: "handler"`.
+
+## Usage
+
+```ts
+import { defineHandler } from "@sundayceo/framework";
+
+export default defineHandler("/api/posts/[id]")({
+	GET: ({ params }) => {
+		return Response.json({ id: params.id });
+	},
+	DELETE: ({ params }) => {
+		return new Response(null, { status: 204 });
+	},
+});
+```
+
+## Related
+
+- [API Handlers guide](/docs/guides/api-handlers)
+- [`definePage`](/docs/api-reference/define-page)

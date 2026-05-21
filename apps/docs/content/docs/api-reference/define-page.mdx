@@ -1,0 +1,108 @@
+---
+title: definePage
+description: Define a type-safe page with template, loader, slots, and meta.
+---
+
+## Signature
+
+```ts
+function definePage<TPath extends string>(
+	path: TPath,
+): {
+	// With loader
+	<TTemplate extends keyof TemplateRegistry, TLoaderData>(config: {
+		template: TTemplate;
+		loader: (ctx: Context<InferParams<TPath>>) => TLoaderData | Promise<TLoaderData>;
+		defineSlots: (args: { loaderData: Awaited<TLoaderData> }) => SlotMap;
+		meta?: MetaInfo | ((args: { loaderData: Awaited<TLoaderData> }) => MetaInfo);
+	}): PageModule;
+
+	// Without loader
+	<TTemplate extends keyof TemplateRegistry>(config: {
+		template: TTemplate;
+		defineSlots: () => SlotMap;
+		meta?: MetaInfo;
+	}): PageModule;
+};
+```
+
+`definePage` is curried — you call it with the route path first, then with the page config.
+
+## Parameters
+
+### First call: `definePage(path)`
+
+| Parameter | Type     | Description                                                                                                                                                          |
+| --------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `path`    | `string` | The route path. Used for type inference of params. In practice, the Vite plugin auto-injects this at build time, so you can pass an empty string during development. |
+
+### Second call: page config
+
+| Property      | Type                             | Required | Description                             |
+| ------------- | -------------------------------- | -------- | --------------------------------------- |
+| `template`    | `keyof TemplateRegistry`         | Yes      | Which template to render this page with |
+| `loader`      | `(ctx: Context) => TLoaderData`  | No       | Server-side data loading function       |
+| `defineSlots` | `(args?) => SlotMap`             | Yes      | Returns slot content for the template   |
+| `meta`        | `MetaInfo \| (args) => MetaInfo` | No       | Page title and description for `<head>` |
+
+## Returns
+
+A page module object branded with `[RouteKind]: "page"`.
+
+## Usage
+
+### Without loader
+
+```tsx
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/about")({
+	template: "default",
+	meta: { title: "About" },
+	defineSlots: () => ({
+		main: <p>About page content.</p>,
+	}),
+});
+```
+
+### With loader
+
+```tsx
+export default definePage("/blog/[slug]")({
+	template: "default",
+	loader: ({ params }) => ({ slug: params.slug }),
+	meta: ({ loaderData }) => ({ title: loaderData.slug }),
+	defineSlots: ({ loaderData }) => ({
+		main: <h1>{loaderData.slug}</h1>,
+	}),
+});
+```
+
+## Types
+
+### `Context<TParams, TCustom>`
+
+```ts
+type Context<TParams, TCustom> = {
+	request: Request;
+	params: TParams;
+} & TCustom;
+```
+
+### `SlotMap`
+
+```ts
+type SlotMap = Record<string, ReactNode>;
+```
+
+### `MetaInfo`
+
+```ts
+type MetaInfo = { title?: string; description?: string };
+```
+
+## Related
+
+- [Pages & Templates guide](/docs/guides/pages-and-templates)
+- [Loaders guide](/docs/guides/loaders)
+- [`defineHandler`](/docs/api-reference/define-handler)

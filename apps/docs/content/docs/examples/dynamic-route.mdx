@@ -1,0 +1,33 @@
+---
+title: Dynamic Route
+description: A page with a dynamic URL segment and typed params.
+---
+
+A blog post page that reads the slug from the URL.
+
+```tsx title="src/routes/blog/[slug].tsx"
+import React from "react";
+
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/blog/[slug]")({
+	template: "default",
+	loader: ({ params }) => {
+		return { slug: params.slug };
+	},
+	meta: ({ loaderData }) => ({
+		title: `Blog: ${loaderData.slug}`,
+	}),
+	defineSlots: ({ loaderData }) => ({
+		header: (
+			<div>
+				<a href="/">← Back</a>
+				<h1>Blog Post</h1>
+			</div>
+		),
+		main: <p>Slug: {loaderData.slug}</p>,
+	}),
+});
+```
+
+Visiting `/blog/hello-world` passes `{ slug: "hello-world" }` to the loader. The `params` type is inferred from the path string.

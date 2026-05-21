@@ -1,0 +1,113 @@
+---
+title: Loaders
+description: Load data on the server and pass it to your page slots.
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+Loaders run on the server before rendering. They receive the request context and return data that gets passed to `defineSlots` and `meta`.
+
+## Basic loader
+
+```tsx title="src/routes/dashboard.tsx"
+import React from "react";
+
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/dashboard")({
+	template: "default",
+	loader: () => {
+		return { greeting: "Hello from the server" };
+	},
+	defineSlots: ({ loaderData }) => ({
+		main: <p>{loaderData.greeting}</p>,
+	}),
+});
+```
+
+The return type of `loader` is inferred and available as `loaderData` — fully typed, no annotations needed.
+
+## Async loaders
+
+Loaders can be async. The framework awaits the result before rendering.
+
+```tsx
+loader: async ({ request }) => {
+  const res = await fetch("https://api.example.com/data", {
+    headers: { authorization: request.headers.get("authorization") ?? "" },
+  });
+  return res.json();
+},
+```
+
+## Loader context
+
+The loader receives a `Context` object that includes:
+
+| Property    | Type                     | Description                                |
+| ----------- | ------------------------ | ------------------------------------------ |
+| `request`   | `Request`                | The incoming web request                   |
+| `params`    | `Record<string, string>` | Route parameters from dynamic segments     |
+| `...custom` | Spread                   | Properties from your app's context factory |
+
+```tsx
+loader: ({ request, params, appName }) => {
+  const url = new URL(request.url);
+  const query = url.searchParams.get("q");
+  return { slug: params.slug, query, appName };
+},
+```
+
+The custom properties (`appName` in the example above) come from `createApp`'s context factory. See [App Context](/docs/guides/app-context).
+
+## Request data
+
+Access query parameters, headers, cookies, and any other request data through the standard `Request` object:
+
+```tsx
+loader: ({ request }) => {
+  const url = new URL(request.url);
+  return {
+    name: url.searchParams.get("name") ?? "world",
+    userAgent: request.headers.get("user-agent"),
+  };
+},
+```
+
+## Pages without loaders
+
+If your page doesn't need data, omit the `loader`. The `defineSlots` function takes no arguments:
+
+```tsx
+export default definePage("/about")({
+	template: "default",
+	defineSlots: () => ({
+		main: <p>Static content — no loader needed.</p>,
+	}),
+});
+```
+
+<Callout type="warn">
+	Loaders only run on the server. Never import browser-only APIs in a loader — they won't be
+	available.
+</Callout>
+
+## Error handling in loaders
+
+If a loader throws, the framework catches it and renders the appropriate error page. You can throw specific HTTP errors:
+
+```tsx
+import { httpError, redirect } from "@sundayceo/framework";
+
+loader: ({ params }) => {
+  if (!params.slug) {
+    throw httpError(400, "Missing slug");
+  }
+  if (params.slug === "old-post") {
+    throw redirect("/blog/new-post");
+  }
+  return { slug: params.slug };
+},
+```
+
+See [Throwable Responses](/docs/api-reference/throwable-responses) for more.

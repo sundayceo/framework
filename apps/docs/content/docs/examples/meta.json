@@ -1,0 +1,13 @@
+{
+	"title": "Examples",
+	"icon": "code",
+	"pages": [
+		"static-page",
+		"dynamic-route",
+		"interactive-counter",
+		"async-data",
+		"api-endpoint",
+		"custom-error-pages",
+		"nested-params"
+	]
+}

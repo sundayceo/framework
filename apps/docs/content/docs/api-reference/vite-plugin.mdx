@@ -1,0 +1,78 @@
+---
+title: Vite Plugin
+description: The framework's Vite plugin for development and production builds.
+---
+
+## Signature
+
+```ts
+function frameworkPlugin(options?: { clientBase?: string }): Plugin;
+```
+
+## Options
+
+| Option       | Type     | Default     | Description                                |
+| ------------ | -------- | ----------- | ------------------------------------------ |
+| `clientBase` | `string` | `undefined` | Base path for client-side hydration assets |
+
+## What it does
+
+The plugin handles the full framework lifecycle within Vite:
+
+### Development
+
+- **Code generation** — scans `src/routes/` and `src/templates/`, generates `framework.gen.d.ts` and `routes.gen.ts`
+- **Virtual modules** — resolves `@sundayceo/framework/server-entry` and `virtual:hydrate/*` imports
+- **Route transforms** — auto-injects the route path into `definePage`/`defineHandler` calls
+- **SSR middleware** — connects the framework handler to Vite's dev server for server-rendered responses
+- **HMR** — invalidates modules when templates or routes change
+
+### Production build
+
+- **Two-pass build** — first builds the server bundle (SSR), then builds individual client bundles for each interactive slot
+- **Hydration assets** — generates optimized client entries that are loaded only where needed
+
+## Usage
+
+```ts title="vite.config.ts"
+import { defineConfig } from "vite";
+
+import { frameworkPlugin } from "@sundayceo/framework/vite";
+
+export default defineConfig({
+	plugins: [frameworkPlugin()],
+});
+```
+
+With Tailwind CSS:
+
+```ts title="vite.config.ts"
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "vite";
+
+import { frameworkPlugin } from "@sundayceo/framework/vite";
+
+export default defineConfig({
+	plugins: [tailwindcss(), frameworkPlugin()],
+});
+```
+
+## Generated files
+
+| File                 | Location | Purpose                                                                          |
+| -------------------- | -------- | -------------------------------------------------------------------------------- |
+| `framework.gen.d.ts` | `src/`   | Type declarations for templates, routes, and app registration                    |
+| `routes.gen.ts`      | `src/`   | Route manifest with lazy imports, templates, error pages, and hydration manifest |
+
+## Virtual modules
+
+| Module ID                                | Purpose                                        |
+| ---------------------------------------- | ---------------------------------------------- |
+| `@sundayceo/framework/server-entry`      | The generated server handler                   |
+| `virtual:hydrate/{routePath}/{slotName}` | Client hydration entry for an interactive slot |
+| `virtual:hydration-manifest`             | Serialized hydration manifest                  |
+
+## Related
+
+- [Deployment guide](/docs/guides/deployment)
+- [Hydration guide](/docs/guides/hydration)

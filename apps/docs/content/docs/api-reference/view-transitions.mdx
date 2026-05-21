@@ -1,0 +1,47 @@
+---
+title: viewTransitionName
+description: Helper for CSS View Transitions.
+---
+
+## Signature
+
+```ts
+function viewTransitionName(name: string): { style: { viewTransitionName: string } };
+```
+
+Returns a style prop object that assigns a `view-transition-name` for the [CSS View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API).
+
+## Parameters
+
+| Parameter | Type     | Description                        |
+| --------- | -------- | ---------------------------------- |
+| `name`    | `string` | The view transition name to assign |
+
+## Returns
+
+```ts
+{
+	style: {
+		viewTransitionName: "your-name";
+	}
+}
+```
+
+Spread this onto any JSX element to assign the transition name.
+
+## Usage
+
+```tsx
+import { viewTransitionName } from "@sundayceo/framework";
+
+defineSlots: ({ loaderData }) => ({
+  main: (
+    <article {...viewTransitionName("post-content")}>
+      <h1 {...viewTransitionName("post-title")}>{loaderData.title}</h1>
+      <p>{loaderData.body}</p>
+    </article>
+  ),
+}),
+```
+
+This enables smooth transitions between pages when the browser supports the View Transitions API.

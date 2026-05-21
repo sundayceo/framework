@@ -1,0 +1,63 @@
+---
+title: createApp
+description: Create a type-safe app configuration with context and error hooks.
+---
+
+## Signature
+
+```ts
+function createApp<
+	TPlatform = unknown,
+	TCustom extends Record<string, unknown> = Record<string, unknown>,
+>(config: AppConfig<TCustom, TPlatform>): AppConfig<TCustom, TPlatform>;
+```
+
+## Parameters
+
+### `config`
+
+| Property  | Type                                                                      | Required | Description                                                                                        |
+| --------- | ------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `context` | `(request: Request, platform?: TPlatform) => TCustom \| Promise<TCustom>` | Yes      | Factory function called on every request. Returns custom context spread into loaders and handlers. |
+| `onError` | `(error: unknown, request: Request) => void \| Promise<void>`             | No       | Side-effect hook called when an error occurs. Cannot modify the response.                          |
+
+## Type parameters
+
+| Parameter   | Description                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------- |
+| `TPlatform` | The shape of platform-specific data (e.g., Cloudflare env bindings). Defaults to `unknown`. |
+| `TCustom`   | The shape of the custom context returned by the factory. Inferred from the return type.     |
+
+## Returns
+
+The same config object, typed as `AppConfig<TCustom, TPlatform>`.
+
+## Usage
+
+```ts title="src/app.ts"
+import { createApp } from "@sundayceo/framework";
+
+type Platform = { env: Record<string, unknown>; ctx: unknown };
+
+export const app = createApp<Platform>({
+	context: (request, platform) => ({
+		appName: "my-app",
+		db: platform?.env?.DB,
+	}),
+	onError: (error, request) => {
+		console.error(`[${request.url}]`, error);
+	},
+});
+
+// Register for type inference across the app
+declare module "@sundayceo/framework" {
+	interface Register {
+		app: typeof app;
+	}
+}
+```
+
+## Related
+
+- [App Context guide](/docs/guides/app-context)
+- [`createHandler`](/docs/api-reference/create-handler)

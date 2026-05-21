@@ -1,0 +1,134 @@
+---
+title: Routing
+description: File-based routing with dynamic params, catch-all routes, and route groups.
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+The framework uses file-based routing. Files in `src/routes/` map directly to URL paths.
+
+## Static routes
+
+| File                           | URL              |
+| ------------------------------ | ---------------- |
+| `src/routes/index.tsx`         | `/`              |
+| `src/routes/about.tsx`         | `/about`         |
+| `src/routes/blog/featured.tsx` | `/blog/featured` |
+
+`index.tsx` files map to the parent directory's path.
+
+## Dynamic routes
+
+Wrap a segment in square brackets to create a dynamic parameter:
+
+| File                         | URL                 | Params                    |
+| ---------------------------- | ------------------- | ------------------------- |
+| `src/routes/blog/[slug].tsx` | `/blog/hello-world` | `{ slug: "hello-world" }` |
+| `src/routes/users/[id].tsx`  | `/users/42`         | `{ id: "42" }`            |
+
+Access params in your loader:
+
+```tsx title="src/routes/blog/[slug].tsx"
+export default definePage("/blog/[slug]")({
+	template: "default",
+	loader: ({ params }) => {
+		return { slug: params.slug };
+	},
+	defineSlots: ({ loaderData }) => ({
+		main: <h1>Post: {loaderData.slug}</h1>,
+	}),
+});
+```
+
+## Nested dynamic segments
+
+You can nest dynamic segments at any depth:
+
+```tsx title="src/routes/users/[id]/posts/[postId].tsx"
+export default definePage("/users/[id]/posts/[postId]")({
+	template: "default",
+	loader: ({ params }) => ({
+		userId: params.id,
+		postId: params.postId,
+	}),
+	defineSlots: ({ loaderData }) => ({
+		main: (
+			<p>
+				User {loaderData.userId}, Post {loaderData.postId}
+			</p>
+		),
+	}),
+});
+```
+
+This matches `/users/42/posts/7` with `{ id: "42", postId: "7" }`.
+
+## Catch-all routes
+
+Use `[...param]` to match any number of segments:
+
+```tsx title="src/routes/docs/[...slug].tsx"
+export default definePage("/docs/[...slug]")({
+	template: "default",
+	loader: ({ params }) => ({
+		segments: params.slug,
+	}),
+	defineSlots: ({ loaderData }) => ({
+		main: <p>Path: {loaderData.segments}</p>,
+	}),
+});
+```
+
+`/docs/getting-started/install` matches with `slug: "getting-started/install"`.
+
+## Route groups
+
+Wrap a directory name in parentheses to exclude it from the URL:
+
+```
+src/routes/
+├── (marketing)/
+│   ├── pricing.tsx      → /pricing
+│   └── about.tsx        → /about
+├── (features)/
+│   └── counter.tsx      → /counter
+```
+
+Route groups are useful for organizing related routes without affecting URLs.
+
+## Route priority
+
+When multiple routes could match a URL, the framework applies this priority:
+
+1. **Static routes** — exact matches first (`/blog/featured` before `/blog/:slug`)
+2. **Dynamic routes** — single-param segments (`:slug`)
+3. **Catch-all routes** — wildcard segments (`*slug`)
+4. Within the same category, routes are sorted alphabetically
+
+## API routes
+
+Files that export a `defineHandler` instead of `definePage` become API endpoints:
+
+```ts title="src/routes/api/health.tsx"
+import { defineHandler } from "@sundayceo/framework";
+
+export default defineHandler("/api/health")({
+	GET: () => {
+		return Response.json({ status: "ok" });
+	},
+});
+```
+
+See the [API Handlers guide](/docs/guides/api-handlers) for details.
+
+## Error pages
+
+Files named by HTTP status code (`404.tsx`, `500.tsx`) are treated as error pages and excluded from the route table:
+
+```
+src/routes/
+├── 404.tsx    → rendered when no route matches
+├── 500.tsx    → rendered on internal server errors
+```
+
+See the [Error Pages guide](/docs/guides/error-pages) for details.

@@ -1,0 +1,28 @@
+{
+	"name": "@sundayceo/docs",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev --turbopack",
+		"build": "next build",
+		"start": "next start",
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@phosphor-icons/react": "^2.1.7",
+		"fumadocs-core": "15.8.5",
+		"fumadocs-mdx": "11.10.1",
+		"fumadocs-ui": "15.8.5",
+		"next": "^15.3.3",
+		"react": "catalog:",
+		"react-dom": "catalog:"
+	},
+	"devDependencies": {
+		"@tailwindcss/postcss": "^4.1.14",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"tailwindcss": "^4.1.14",
+		"typescript": "catalog:"
+	}
+}

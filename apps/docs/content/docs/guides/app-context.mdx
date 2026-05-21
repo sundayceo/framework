@@ -1,0 +1,114 @@
+---
+title: App Context
+description: Inject shared context into every loader and handler.
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+The app context lets you define shared data that's available in every loader and handler — database connections, authentication state, feature flags, or anything that depends on the incoming request.
+
+## Creating the app
+
+Use `createApp` to define a context factory:
+
+```ts title="src/app.ts"
+import { createApp } from "@sundayceo/framework";
+
+export const app = createApp({
+	context: (request) => ({
+		appName: "my-app",
+		userAgent: request.headers.get("user-agent"),
+	}),
+});
+
+declare module "@sundayceo/framework" {
+	interface Register {
+		app: typeof app;
+	}
+}
+```
+
+The context factory receives the `Request` and returns an object. Every property you return is spread into the loader/handler context.
+
+## Using context in loaders
+
+Context properties are available directly on the loader's argument:
+
+```tsx
+export default definePage("/dashboard")({
+	template: "default",
+	loader: ({ request, params, appName, userAgent }) => {
+		//                        ^ these come from createApp
+		return { appName, userAgent };
+	},
+	defineSlots: ({ loaderData }) => ({
+		main: <p>App: {loaderData.appName}</p>,
+	}),
+});
+```
+
+## Type inference
+
+The `Register` interface uses TypeScript's declaration merging to propagate your context type everywhere:
+
+```ts
+declare module "@sundayceo/framework" {
+	interface Register {
+		app: typeof app;
+	}
+}
+```
+
+After this declaration, every `loader` and handler method automatically knows about `appName` and `userAgent` — no manual type annotations needed.
+
+## Async context
+
+The context factory can be async:
+
+```ts
+export const app = createApp({
+	context: async (request) => {
+		const session = await getSession(request);
+		return {
+			userId: session?.userId,
+			isAdmin: session?.role === "admin",
+		};
+	},
+});
+```
+
+## Platform context
+
+When deploying to a specific platform, you can type the platform-specific data:
+
+```ts title="src/app.ts"
+type Platform = { env: Record<string, unknown>; ctx: unknown };
+
+export const app = createApp<Platform>({
+	context: (request, platform) => ({
+		appName: "my-app",
+		db: platform?.env?.DB,
+	}),
+});
+```
+
+The platform argument is passed from your [entry shim](/docs/guides/deployment) when calling `handler.fetch(request, platform)`.
+
+## Error hook
+
+`createApp` accepts an optional `onError` callback for logging or error tracking:
+
+```ts
+export const app = createApp({
+	context: (request) => ({ appName: "my-app" }),
+	onError: (error, request) => {
+		console.error(`[${request.url}]`, error);
+		// Send to Sentry, Datadog, etc.
+	},
+});
+```
+
+<Callout type="info">
+	`onError` is a side-effect hook — it cannot modify the response. It runs after the error response
+	has been determined but before it's sent. Use it for logging and monitoring.
+</Callout>

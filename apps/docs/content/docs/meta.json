@@ -1,0 +1,16 @@
+{
+	"title": "Documentation",
+	"root": true,
+	"pages": [
+		"index",
+		"installation",
+		"quickstart",
+		"---Guides---",
+		"...guides",
+		"---Reference---",
+		"...api-reference",
+		"---More---",
+		"...examples",
+		"faq"
+	]
+}

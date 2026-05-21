@@ -1,0 +1,16 @@
+{
+	"title": "API Reference",
+	"icon": "brackets",
+	"pages": [
+		"create-app",
+		"create-handler",
+		"define-page",
+		"define-handler",
+		"define-error-page",
+		"slot",
+		"throwable-responses",
+		"view-transitions",
+		"codegen",
+		"vite-plugin"
+	]
+}

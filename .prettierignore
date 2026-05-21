@@ -2,3 +2,5 @@ pnpm-lock.yaml
 renovate.json
 templates/
 .claude/
+**/.source/
+**/.next/

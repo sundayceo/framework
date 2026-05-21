@@ -1,0 +1,102 @@
+---
+title: FAQ
+description: Frequently asked questions and troubleshooting.
+icon: question
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+## General
+
+### How is this different from Next.js or Remix?
+
+The main difference is the rendering model. In Next.js and Remix, components are either fully server or fully client — you decide with `"use client"`. Here, the compiler decides automatically: it analyzes your slot code for hooks, event handlers, and browser APIs, and only hydrates the slots that need it.
+
+The template-and-slot architecture also differs from nested layouts. Each page uses exactly one template and fills its named slots. There's no implicit layout nesting or composition.
+
+### Does this work with React Server Components?
+
+No. The framework uses its own server rendering model based on templates and slots. RSC is a different paradigm — this framework predates the RSC approach and takes a different path to the same goal (less JavaScript on the client).
+
+### Can I use CSS-in-JS libraries?
+
+Yes, as long as the library supports server-side rendering. The framework renders React to HTML on the server using `renderToString` / `renderToReadableStream`, so any SSR-compatible styling solution works.
+
+### What's the minimum React version?
+
+React 19. The framework uses `react-dom/client`'s `hydrateRoot` for client-side hydration.
+
+---
+
+## Development
+
+### My types aren't updating after adding a new route
+
+The Vite plugin generates `framework.gen.d.ts` on startup and when files change. If types are stale:
+
+1. Make sure the dev server is running
+2. Check that `framework.gen.d.ts` exists in `src/`
+3. Restart the dev server to trigger a fresh codegen
+
+### Hot module replacement isn't working
+
+The framework supports HMR for route and template changes. If HMR stops working:
+
+- Check the Vite terminal for errors
+- Template changes invalidate all routes that use that template
+- Route file changes invalidate only the changed route
+
+### `Cannot find module '@sundayceo/framework/server-entry'`
+
+This is a virtual module resolved by the Vite plugin. It only exists at runtime. Make sure:
+
+- `frameworkPlugin()` is in your `vite.config.ts`
+- You're importing it in the entry shim, not in application code
+
+---
+
+## Deployment
+
+### Can I deploy to Vercel?
+
+Not directly (yet). The framework produces a `fetch` handler, not a Next.js app. You can deploy to Vercel using a custom serverless function that calls `handler.fetch()`, but there's no first-class adapter.
+
+### My production build is missing hydration scripts
+
+Check that:
+
+1. The `hydrationManifest` in `routes.gen.ts` correctly marks interactive slots as `true`
+2. The two-pass build completed successfully (check for errors in `vite build` output)
+3. Client assets are being served from the correct base path (check `clientBase` option)
+
+### Static assets aren't loading in production
+
+Make sure your deployment serves the `dist/client/` directory as static files. The framework doesn't bundle a static file server — your platform (Cloudflare, Hono, Express) needs to handle static asset serving.
+
+---
+
+## Troubleshooting
+
+### `Error: app.ts must export "app" or a default export as an object`
+
+Your `src/app.ts` must export the `createApp` result as either a named `app` export or a default export:
+
+```ts
+// Named export (preferred)
+export const app = createApp({ ... });
+
+// Default export (also works)
+export default createApp({ ... });
+```
+
+### `Error: routes.gen.ts must export "routes" as an array`
+
+This means the generated `routes.gen.ts` is missing or malformed. Delete it and restart the dev server to regenerate.
+
+### A slot that should be interactive isn't hydrating
+
+The interactivity inference checks the slot's code and its transitive imports. If a slot uses interactive patterns through an indirect import chain that isn't tracked, it might be missed. Check that:
+
+1. The import chain from the slot to the interactive component is direct (not dynamic)
+2. The component actually uses hooks, event handlers, or browser APIs
+3. The `hydrationManifest` in `routes.gen.ts` shows the slot as `true`

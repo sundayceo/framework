@@ -32,6 +32,9 @@ minimumReleaseAgeExclude:
   - "@rolldown/binding-linux-x64-gnu"
   - rolldown-plugin-dts
   - tsx
+  - fumadocs-core
+  - fumadocs-mdx
+  - fumadocs-ui
 
 onlyBuiltDependencies:
   - esbuild
