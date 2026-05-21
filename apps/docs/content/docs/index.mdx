@@ -8,8 +8,6 @@ import { Card, Cards } from "fumadocs-ui/components/card";
 
 # sundayceo framework
 
-A lightweight, React-based TypeScript framework for Cloudflare Workers. Designed to be minimal, token-efficient, and built around a template-and-slots model where pages declare which components fill which template regions.
-
 ## Why?
 
 We built this framework for the sundayceo platform, where tenant apps are bundled on the fly inside Cloudflare Workers. That constraint shaped every design decision: the runtime has zero Node.js dependencies, the codegen pipeline is pure string transforms, and the architecture is flat and statically analyzable so an automated bundler can process it efficiently.
