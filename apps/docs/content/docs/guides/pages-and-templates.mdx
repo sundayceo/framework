@@ -1,0 +1,166 @@
+---
+title: Pages & Templates
+icon: layout
+description: Define page layouts with templates and fill them with slot content.
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { File, Folder, Files } from "fumadocs-ui/components/files";
+
+The framework uses a **template-and-slot** model instead of nested layouts. Each page declares which template to use and provides content for that template's named slots.
+
+## Templates
+
+A template is a React component that renders the full HTML document. It receives a `head` prop for meta tags and uses `<Slot>` components to define where page content renders.
+
+```tsx title="src/templates/default.tsx"
+import React from "react";
+
+import { Slot, type TemplateComponent } from "@sundayceo/framework";
+
+const DefaultTemplate: TemplateComponent = ({ head }) => (
+	<html lang="en">
+		<head>
+			<meta charSet="utf-8" />
+			<meta name="viewport" content="width=device-width, initial-scale=1" />
+			{head}
+		</head>
+		<body>
+			<header>
+				<Slot id="header" />
+			</header>
+			<main>
+				<Slot id="main" fallback={<p>No content.</p>} />
+			</main>
+			<footer>
+				<Slot id="footer" fallback={<p>Footer</p>} />
+			</footer>
+		</body>
+	</html>
+);
+
+export default DefaultTemplate;
+```
+
+### Slot component
+
+`<Slot>` takes two props:
+
+| Prop       | Type        | Description                                                        |
+| ---------- | ----------- | ------------------------------------------------------------------ |
+| `id`       | `string`    | The slot name. Must match a key returned by `defineSlots`.         |
+| `fallback` | `ReactNode` | Optional content rendered when the page doesn't provide this slot. |
+
+### Multiple templates
+
+You can define as many templates as you need. Each file in `src/templates/` becomes a registered template:
+
+<Files>
+  <Folder name="src/templates" defaultOpen>
+    <File name="default.tsx" />
+    <File name="minimal.tsx" />
+    <File name="dashboard.tsx" />
+  </Folder>
+</Files>
+
+The framework generates type declarations so `template: "..."` is autocompleted.
+
+## Pages
+
+Pages use `definePage` to declare their template and slot content.
+
+### Basic page (no loader)
+
+```tsx title="src/routes/about.tsx"
+import React from "react";
+
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/about")({
+	template: "default",
+	defineSlots: () => ({
+		header: <h1>About</h1>,
+		main: <p>This is the about page.</p>,
+	}),
+});
+```
+
+### Page with loader
+
+When your page needs data, add a `loader`. The loader runs on the server, and its return value is passed to `defineSlots`:
+
+```tsx title="src/routes/blog/[slug].tsx"
+import React from "react";
+
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/blog/[slug]")({
+	template: "default",
+	loader: ({ params }) => {
+		return { slug: params.slug };
+	},
+	defineSlots: ({ loaderData }) => ({
+		header: <h1>Blog: {loaderData.slug}</h1>,
+		main: <article>Content for {loaderData.slug}</article>,
+	}),
+});
+```
+
+### Meta tags
+
+Pages can declare static or dynamic `<title>` and `<meta name="description">`:
+
+```tsx
+// Static meta
+export default definePage("/about")({
+	template: "default",
+	meta: {
+		title: "About Us",
+		description: "Learn more about us.",
+	},
+	defineSlots: () => ({
+		/* ... */
+	}),
+});
+
+// Dynamic meta (requires a loader)
+export default definePage("/blog/[slug]")({
+	template: "default",
+	loader: ({ params }) => ({ title: params.slug }),
+	meta: ({ loaderData }) => ({
+		title: loaderData.title,
+		description: `Post: ${loaderData.title}`,
+	}),
+	defineSlots: ({ loaderData }) => ({
+		/* ... */
+	}),
+});
+```
+
+## How it fits together
+
+```
+Page (definePage)
+  ├── template: "default"        which template to use
+  ├── loader: (ctx) => data      server-side data loading
+  ├── meta: { title, desc }      <head> content
+  └── defineSlots: (args) =>     content for each slot
+        header: <JSX>
+        main: <JSX>
+        footer: <JSX>
+
+Template (default.tsx)
+  └── <html>
+        <head>{head}</head>
+        <body>
+          <Slot id="header" />      filled by page
+          <Slot id="main" />        filled by page
+          <Slot id="footer" />      filled by page (or fallback)
+        </body>
+      </html>
+```
+
+<Callout type="info">
+	Templates are not nested. Each page uses exactly one template. If you need shared content across
+	pages, put it in the template itself.
+</Callout>

@@ -1,0 +1,122 @@
+---
+title: Hydration
+icon: drop
+description: How selective hydration works and how the framework decides what ships to the client.
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+The framework uses **selective hydration**: only slots that contain interactive code ship JavaScript to the browser. Everything else renders as static HTML with zero client-side JS.
+
+## How it works
+
+At build time, the Vite plugin analyzes each slot's code. It looks for signals that the code needs to run in the browser:
+
+- **React hooks**: `useState`, `useEffect`, `useCallback`, `useReducer`, `useContext`, etc.
+- **Event handlers**: `onClick`, `onChange`, `onSubmit`, and other `on*` props
+- **Browser APIs**: `window.*`, `document.*`, `navigator.*`, `addEventListener`
+
+If any of these are found (including in transitively imported modules), the slot is marked as **interactive** and gets hydrated. Otherwise, it's **static** and renders as plain HTML.
+
+### Static slot output
+
+```html
+<div data-slot="footer">
+	<p>Static content. No JavaScript.</p>
+</div>
+```
+
+### Interactive slot output
+
+```html
+<div data-hydrate="main">
+	<!-- Server-rendered content -->
+</div>
+<script type="application/json" data-hydrate-data="main">
+	{ "count": 0 }
+</script>
+<script type="module">
+	import "virtual:hydrate/counter/main";
+</script>
+```
+
+The client entry calls `hydrateRoot` on the `data-hydrate` container, reusing the server-rendered HTML.
+
+## Making a slot interactive
+
+You don't need any special annotation. Import a component with hooks or event handlers, and the slot automatically becomes interactive:
+
+```tsx title="src/components/counter.tsx"
+import React, { useState } from "react";
+
+export function Counter({ label }: { label: string }) {
+	const [count, setCount] = useState(0);
+
+	return (
+		<button onClick={() => setCount((c) => c + 1)}>
+			{label}: {count}
+		</button>
+	);
+}
+```
+
+```tsx title="src/routes/counter.tsx"
+import React from "react";
+
+import { definePage } from "@sundayceo/framework";
+
+import { Counter } from "../components/counter";
+
+export default definePage("/counter")({
+	template: "default",
+	loader: () => ({ title: "Counter Demo" }),
+	defineSlots: ({ loaderData }) => ({
+		header: <h1>{loaderData.title}</h1>,
+		// Counter uses useState, so this slot is interactive
+		main: <Counter label="Clicks" />,
+		// Plain JSX, so this slot stays static
+		footer: <p>No JavaScript here.</p>,
+	}),
+});
+```
+
+In this example:
+
+- `header`: **static** (plain JSX, no hooks)
+- `main`: **interactive** (imports `Counter` which uses `useState`)
+- `footer`: **static** (plain JSX)
+
+## Full hydration
+
+If every slot imports interactive components, every slot hydrates, but you still get per-slot code splitting:
+
+```tsx
+defineSlots: ({ loaderData }) => ({
+  header: <NavBar />,      // uses useState, interactive
+  main: <Counter />,       // uses useState, interactive
+  footer: <ChatWidget />,  // uses useEffect, interactive
+}),
+```
+
+Each slot gets its own client entry point. They load and hydrate independently.
+
+## The hydration manifest
+
+The build produces a hydration manifest that maps each route to its slot interactivity:
+
+```ts
+// Generated in routes.gen.ts
+export const hydrationManifest = {
+	"/counter": { header: false, main: true, footer: false },
+	"/": { header: false, main: false, footer: false },
+	"/full-hydration": { header: true, main: true, footer: true },
+};
+```
+
+The handler uses this manifest at runtime to inject the correct hydration scripts into the HTML.
+
+<Callout type="info">
+	You never need to write `"use client"`. The build system determines interactivity automatically by
+	analyzing your code's dependency graph.
+</Callout>
+

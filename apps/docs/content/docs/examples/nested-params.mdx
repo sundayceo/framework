@@ -1,0 +1,49 @@
+---
+title: Nested Params
+icon: tree
+description: Deeply nested dynamic segments with multiple typed parameters.
+---
+
+import { File, Folder, Files } from "fumadocs-ui/components/files";
+
+Dynamic segments can be nested at any depth. All params are available in the loader, fully typed.
+
+```tsx title="src/routes/users/[id]/posts/[postId].tsx"
+import React from "react";
+
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/users/[id]/posts/[postId]")({
+	template: "default",
+	loader: ({ params }) => ({
+		userId: params.id,
+		postId: params.postId,
+	}),
+	defineSlots: ({ loaderData }) => ({
+		header: <h1>User Post</h1>,
+		main: (
+			<p>
+				User {loaderData.userId}, Post {loaderData.postId}
+			</p>
+		),
+	}),
+});
+```
+
+Visiting `/users/42/posts/7` produces `{ id: "42", postId: "7" }`.
+
+The file path structure mirrors the URL structure. Each `[param]` directory creates a dynamic segment:
+
+<Files>
+  <Folder name="src/routes" defaultOpen>
+    <Folder name="users" defaultOpen>
+      <Folder name="[id]" defaultOpen>
+        <Folder name="posts" defaultOpen>
+          <File name="[postId].tsx" />
+        </Folder>
+      </Folder>
+    </Folder>
+  </Folder>
+</Files>
+
+Learn more in the [Routing guide](/docs/guides/routing).

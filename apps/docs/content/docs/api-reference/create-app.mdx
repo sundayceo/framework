@@ -1,0 +1,91 @@
+---
+title: createApp
+icon: appwindow
+description: Create a type-safe app configuration with context and error hooks.
+---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { TypeTable } from "fumadocs-ui/components/type-table";
+
+## Signature
+
+```ts
+function createApp<
+	TPlatform = unknown,
+	TCustom extends Record<string, unknown> = Record<string, unknown>,
+>(config: AppConfig<TCustom, TPlatform>): AppConfig<TCustom, TPlatform>;
+```
+
+## Parameters
+
+### `config`
+
+<TypeTable
+  type={{
+    context: {
+      type: "(request: Request, platform?: TPlatform) => TCustom | Promise<TCustom>",
+      description: "Factory function called on every request. Returns custom context spread into loaders and handlers.",
+      required: true,
+    },
+    onError: {
+      type: "(error: unknown, request: Request) => void | Promise<void>",
+      description: "Side-effect hook called when an error occurs. Cannot modify the response.",
+    },
+  }}
+/>
+
+## Type parameters
+
+<TypeTable
+  type={{
+    TPlatform: {
+      type: "unknown",
+      description: "The shape of platform-specific data (e.g., Cloudflare env bindings).",
+      default: "unknown",
+    },
+    TCustom: {
+      type: "Record<string, unknown>",
+      description: "The shape of the custom context returned by the factory. Inferred from the return type.",
+    },
+  }}
+/>
+
+## Returns
+
+The same config object, typed as `AppConfig<TCustom, TPlatform>`.
+
+## Usage
+
+```ts title="src/app.ts"
+import { createApp } from "@sundayceo/framework";
+
+type Platform = { env: Record<string, unknown>; ctx: unknown };
+
+export const app = createApp<Platform>({
+	context: (request, platform) => ({
+		appName: "my-app",
+		db: platform.env.DB,
+	}),
+	onError: (error, request) => {
+		console.error(`[${request.url}]`, error);
+	},
+});
+
+// Register for type inference across the app
+declare module "@sundayceo/framework" {
+	interface Register {
+		app: typeof app;
+	}
+}
+```
+
+## Related
+
+<Cards>
+  <Card title="App Context" href="/docs/guides/app-context">
+    Inject shared context into every loader and handler.
+  </Card>
+  <Card title="createHandler" href="/docs/api-reference/create-handler">
+    Create a fetch-compatible request handler.
+  </Card>
+</Cards>

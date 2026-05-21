@@ -1,0 +1,35 @@
+---
+title: Static Page
+icon: filehtml
+description: A simple page with no loader and no client-side JavaScript.
+---
+
+A page that renders entirely on the server with zero JavaScript shipped to the browser.
+
+```tsx title="src/routes/about.tsx"
+import React from "react";
+
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/about")({
+	template: "default",
+	meta: {
+		title: "About",
+		description: "Learn more about us.",
+	},
+	defineSlots: () => ({
+		header: <h1>About</h1>,
+		main: (
+			<div>
+				<p>This page ships zero JavaScript.</p>
+				<p>Everything you see is server-rendered HTML.</p>
+			</div>
+		),
+		footer: <p>Footer content</p>,
+	}),
+});
+```
+
+No `loader` is defined, so `defineSlots` takes no arguments. The page is entirely static. No hydration scripts are injected.
+
+Learn more in the [Pages & Templates guide](/docs/guides/pages-and-templates).

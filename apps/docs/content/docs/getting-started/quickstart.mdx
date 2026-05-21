@@ -1,0 +1,188 @@
+---
+title: Quickstart
+description: Build your first page in under 5 minutes.
+icon: lightning
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Step, Steps } from "fumadocs-ui/components/steps";
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+
+This guide walks you through creating a working app from scratch.
+
+<Steps>
+<Step>
+## Create the app config
+
+Every app starts with `createApp`. This defines a context factory that runs on every request.
+
+```tsx title="src/app.ts"
+import { createApp } from "@sundayceo/framework";
+
+export const app = createApp({
+	context: (request) => ({
+		url: new URL(request.url),
+	}),
+});
+
+declare module "@sundayceo/framework" {
+	interface Register {
+		app: typeof app;
+	}
+}
+```
+
+The `Register` interface lets TypeScript infer your custom context in every loader and handler. No manual type annotations needed.
+
+</Step>
+
+<Step>
+## Create a template
+
+Templates define the HTML shell. They use `<Slot>` components to mark where page content goes.
+
+```tsx title="src/templates/default.tsx"
+import React from "react";
+
+import { Slot, type TemplateComponent } from "@sundayceo/framework";
+
+const DefaultTemplate: TemplateComponent = ({ head }) => (
+	<html lang="en">
+		<head>
+			<meta charSet="utf-8" />
+			<meta name="viewport" content="width=device-width, initial-scale=1" />
+			{head}
+		</head>
+		<body>
+			<header>
+				<Slot id="header" />
+			</header>
+			<main>
+				<Slot id="main" fallback={<p>No content.</p>} />
+			</main>
+			<footer>
+				<Slot id="footer" fallback={<p>Built with @sundayceo/framework</p>} />
+			</footer>
+		</body>
+	</html>
+);
+
+export default DefaultTemplate;
+```
+
+</Step>
+
+<Step>
+## Create a page
+
+Pages use `definePage` to declare which template to use and what content to render in each slot.
+
+```tsx title="src/routes/index.tsx"
+import React from "react";
+
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/")({
+	template: "default",
+	meta: {
+		title: "Home",
+		description: "Welcome to my app.",
+	},
+	defineSlots: () => ({
+		header: <h1>My App</h1>,
+		main: <p>Hello, world!</p>,
+	}),
+});
+```
+
+This page ships **zero JavaScript** to the browser. It's entirely server-rendered.
+
+</Step>
+
+<Step>
+## Configure Vite
+
+```ts title="vite.config.ts"
+import { defineConfig } from "vite";
+
+import { frameworkPlugin } from "@sundayceo/framework/vite";
+
+export default defineConfig({
+	plugins: [frameworkPlugin()],
+});
+```
+
+</Step>
+
+<Step>
+## Create an entry point
+
+The entry point wires the framework handler to your runtime. Here are two common options:
+
+<Tabs items={["Hono (Node.js)", "Cloudflare Workers"]}>
+  <Tab value="Hono (Node.js)">
+    ```ts title="entry.hono.ts"
+    import { serve } from "@hono/node-server";
+    import { Hono } from "hono";
+    import handler from "@sundayceo/framework/server-entry";
+
+    const app = new Hono();
+    app.all("*", (c) => handler.fetch(c.req.raw));
+
+    serve({ fetch: app.fetch, port: 3000 }, (info) => {
+      console.log(`Listening on http://localhost:${info.port}`);
+    });
+    ```
+
+  </Tab>
+  <Tab value="Cloudflare Workers">
+    ```ts title="entry.cloudflare.ts"
+    import handler from "@sundayceo/framework/server-entry";
+
+    export default {
+      fetch: (request: Request, env: unknown, ctx: unknown) =>
+        handler.fetch(request, { env, ctx }),
+    };
+    ```
+
+  </Tab>
+</Tabs>
+</Step>
+
+<Step>
+## Run the dev server
+
+{/* prettier-ignore */}
+<Tabs items={["pnpm", "npm", "yarn", "bun"]}>
+<Tab value="pnpm">
+```bash
+pnpm vite dev
+```
+</Tab>
+<Tab value="npm">
+```bash
+npx vite dev
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn vite dev
+```
+</Tab>
+<Tab value="bun">
+```bash
+bunx vite dev
+```
+</Tab>
+</Tabs>
+
+Open `http://localhost:5173` and you'll see your page, fully server-rendered, zero client JavaScript.
+
+</Step>
+</Steps>
+
+## What's next?
+
+- Add a [dynamic route](/docs/guides/routing#dynamic-routes) like `src/routes/blog/[slug].tsx`
+- Make a slot [interactive](/docs/guides/hydration) by importing a component with `useState`
+- Set up a [loader](/docs/guides/loaders) to fetch data on the server

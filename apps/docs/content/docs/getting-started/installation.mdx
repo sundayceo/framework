@@ -1,0 +1,118 @@
+---
+title: Installation
+description: Install the framework and configure your project.
+icon: download
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Step, Steps } from "fumadocs-ui/components/steps";
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+import { File, Folder, Files } from "fumadocs-ui/components/files";
+
+## Prerequisites
+
+- **Node.js** 18 or later
+- **React** 19
+- **Vite** 6, 7, or 8
+
+## Install
+
+{/* prettier-ignore */}
+<Tabs items={["pnpm", "npm", "yarn", "bun"]}>
+<Tab value="pnpm">
+```bash
+pnpm add @sundayceo/framework react react-dom
+pnpm add -D vite @types/react @types/react-dom typescript
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @sundayceo/framework react react-dom
+npm install -D vite @types/react @types/react-dom typescript
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @sundayceo/framework react react-dom
+yarn add -D vite @types/react @types/react-dom typescript
+```
+</Tab>
+<Tab value="bun">
+```bash
+bun add @sundayceo/framework react react-dom
+bun add -D vite @types/react @types/react-dom typescript
+```
+</Tab>
+</Tabs>
+
+## Project structure
+
+<Steps>
+<Step>
+### Create your source directory
+
+<Files>
+  <Folder name="src" defaultOpen>
+    <File name="app.ts" />
+    <Folder name="templates" defaultOpen>
+      <File name="default.tsx" />
+    </Folder>
+    <Folder name="routes" defaultOpen>
+      <File name="index.tsx" />
+    </Folder>
+    <File name="styles.css" />
+  </Folder>
+</Files>
+
+</Step>
+
+<Step>
+### Configure Vite
+
+```ts title="vite.config.ts"
+import { defineConfig } from "vite";
+
+import { frameworkPlugin } from "@sundayceo/framework/vite";
+
+export default defineConfig({
+	plugins: [frameworkPlugin()],
+});
+```
+
+</Step>
+
+<Step>
+### Configure TypeScript
+
+```json title="tsconfig.json"
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"jsx": "react-jsx",
+		"strict": true,
+		"noEmit": true,
+		"types": ["node"]
+	},
+	"include": ["src"]
+}
+```
+
+</Step>
+</Steps>
+
+## Generated files
+
+When you run the dev server or build, the Vite plugin generates two files in `src/`:
+
+| File                 | Purpose                                                                                  |
+| -------------------- | ---------------------------------------------------------------------------------------- |
+| `framework.gen.d.ts` | Type declarations for `TemplateRegistry`, `RouteMap`, and `Register`                     |
+| `routes.gen.ts`      | Route manifest with lazy imports, template registry, error pages, and hydration manifest |
+
+<Callout type="info">
+	These files are auto-generated. Add them to `.gitignore` or commit them. Either approach works.
+	They're regenerated on every build and dev server start.
+</Callout>
+

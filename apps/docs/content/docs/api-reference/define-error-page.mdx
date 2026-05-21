@@ -1,0 +1,93 @@
+---
+title: defineErrorPage
+icon: filex
+description: Define a custom error page for a specific HTTP status code.
+---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { TypeTable } from "fumadocs-ui/components/type-table";
+
+## Signature
+
+```ts
+function defineErrorPage(status: number): {
+	// With loader
+	<TTemplate extends keyof TemplateRegistry, TLoaderData>(config: {
+		template: TTemplate;
+		loader: (ctx: { error: ErrorContext }) => TLoaderData | Promise<TLoaderData>;
+		defineSlots: (args: { loaderData: Awaited<TLoaderData> }) => SlotMap;
+		meta?: MetaInfo | ((args: { loaderData: Awaited<TLoaderData> }) => MetaInfo);
+	}): ErrorPageModule;
+
+	// Without loader
+	<TTemplate extends keyof TemplateRegistry>(config: {
+		template: TTemplate;
+		defineSlots: () => SlotMap;
+		meta?: MetaInfo;
+	}): ErrorPageModule;
+};
+```
+
+## Parameters
+
+### First call: `defineErrorPage(status)`
+
+<TypeTable
+  type={{
+    status: {
+      type: "number",
+      description: "HTTP status code (e.g., 404, 500).",
+      required: true,
+    },
+  }}
+/>
+
+### Second call: error page config
+
+Same shape as `definePage` config, except the loader receives `{ error: ErrorContext }` instead of a request context.
+
+## Types
+
+### `ErrorContext`
+
+```ts
+type ErrorContext = {
+	status: number;
+	message: string;
+	stack?: string; // Development only
+	error?: unknown; // Development only
+};
+```
+
+## Usage
+
+```tsx
+import { defineErrorPage } from "@sundayceo/framework";
+
+export default defineErrorPage(404)({
+	template: "default",
+	loader: ({ error }) => ({
+		status: error.status,
+		message: error.message,
+	}),
+	defineSlots: ({ loaderData }) => ({
+		main: (
+			<div>
+				<h1>{loaderData.status}</h1>
+				<p>{loaderData.message}</p>
+			</div>
+		),
+	}),
+});
+```
+
+## Related
+
+<Cards>
+  <Card title="Error Pages" href="/docs/guides/error-pages">
+    Custom error pages for 404, 500, and other HTTP status codes.
+  </Card>
+  <Card title="Throwable Responses" href="/docs/api-reference/throwable-responses">
+    Interrupt request handling with redirects and HTTP errors.
+  </Card>
+</Cards>

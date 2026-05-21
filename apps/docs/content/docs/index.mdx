@@ -1,0 +1,60 @@
+---
+title: Introduction
+description: A lightweight, React-based TypeScript framework for Cloudflare Workers. Designed to be minimal, token-efficient, and built around a template-and-slots model where pages declare which components fill which template regions.
+icon: house
+---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+
+## Why?
+
+We built this framework for the sundayceo platform, where tenant apps are bundled on the fly inside Cloudflare Workers. That constraint shaped every design decision: the runtime has zero Node.js dependencies, the codegen pipeline is pure string transforms, and the architecture is flat and statically analyzable so an automated bundler can process it efficiently.
+
+The result is a framework where pages ship zero JavaScript by default. When a slot uses hooks, event handlers, or browser APIs, only that slot hydrates. Everything else stays as plain HTML. No bundle bloat. No hydration waterfalls.
+
+You never decide what's server vs client. The compiler analyzes each slot's code and its imports, then generates client entries only where needed. No `"use client"` directives. No manual optimization.
+
+## Key ideas
+
+- **Templates and slots**: pages declare which template to use and provide content for named slots. No nested layouts, no implicit composition. The flat structure is easy to statically analyze for per-slot hydration and code splitting.
+- **Automatic interactivity inference**: the compiler analyzes your slot code for `useState`, `onClick`, `window.*`, and similar patterns. Static slots ship no JS. Interactive slots hydrate individually.
+- **File-based routing**: `src/routes/about.tsx` becomes `/about`. Dynamic params via `[slug]`, catch-all via `[...slug]`, route groups via `(group)`.
+- **Loaders**: every page can define a `loader` that runs on the server and passes typed data to `defineSlots`.
+- **Layered architecture**: the runtime is a pure `fetch` handler with zero Node.js dependencies. The codegen layer is pure string transforms with no Vite dependency. This means the framework works both as a Vite dev tool and as a programmatic codegen API for multi-tenant platforms like Cloudflare Workers.
+- **Platform-agnostic**: deploy to Cloudflare Workers, Hono, Node.js, Bun, Deno, or anything that speaks `Request`/`Response`.
+
+## How it works
+
+```
+Request
+  1. Route matching
+  2. Loader execution
+  3. Slot rendering (server)
+  4. Template assembly
+  5. HTML response
+
+Interactive slots additionally:
+  6. Client entry generation (build time)
+  7. hydrateRoot on the client
+```
+
+Every page goes through the same pipeline. The only difference is whether a slot's content includes interactive code, and the compiler decides that for you.
+
+The codegen pipeline can run inside Vite during development, or standalone inside a Cloudflare Worker for on-the-fly tenant app bundling.
+
+## Next steps
+
+<Cards>
+	<Card title="Installation" href="/docs/getting-started/installation">
+		Install the framework and set up your project.
+	</Card>
+	<Card title="Quickstart" href="/docs/getting-started/quickstart">
+		Build your first page in under 5 minutes.
+	</Card>
+	<Card title="Guides" href="/docs/guides/routing">
+		Deep dives into routing, templates, hydration, and more.
+	</Card>
+	<Card title="API Reference" href="/docs/api-reference/create-app">
+		Every exported function and type.
+	</Card>
+</Cards>

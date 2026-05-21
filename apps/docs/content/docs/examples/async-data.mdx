@@ -1,0 +1,30 @@
+---
+title: Async Data Loading
+icon: database
+description: A page with an async loader that fetches data before rendering.
+---
+
+Loaders can be async. The framework awaits the result before rendering.
+
+```tsx title="src/routes/async-data.tsx"
+import React from "react";
+
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/async-data")({
+	template: "default",
+	loader: async () => {
+		const res = await fetch("https://api.example.com/data");
+		const data = await res.json();
+		return { message: data.message };
+	},
+	defineSlots: ({ loaderData }) => ({
+		header: <h1>Async Data</h1>,
+		main: <p>{loaderData.message}</p>,
+	}),
+});
+```
+
+The page won't render until the loader's promise resolves. All data fetching happens on the server. No loading spinners needed.
+
+Learn more in the [Loaders guide](/docs/guides/loaders).
