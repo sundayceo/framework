@@ -1,0 +1,114 @@
+---
+title: Throwable Responses
+icon: throw
+description: Interrupt request handling with redirects and HTTP errors.
+---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { TypeTable } from "fumadocs-ui/components/type-table";
+
+## redirect
+
+Creates a `RedirectResponse` that can be thrown to redirect the client.
+
+```ts
+function redirect(url: string, status?: number): RedirectResponse;
+```
+
+<TypeTable
+  type={{
+    url: {
+      type: "string",
+      description: "The URL to redirect to.",
+      required: true,
+    },
+    status: {
+      type: "number",
+      description: "HTTP redirect status code.",
+      default: "302",
+    },
+  }}
+/>
+
+### Usage
+
+```ts
+import { redirect } from "@sundayceo/framework";
+
+loader: ({ params }) => {
+  if (params.slug === "old-post") {
+    throw redirect("/blog/new-post");
+  }
+  // Permanent redirect
+  throw redirect("/new-url", 301);
+},
+```
+
+---
+
+## httpError
+
+Creates an `HttpErrorResponse` that can be thrown to return an HTTP error.
+
+```ts
+function httpError(status: number, message?: string): HttpErrorResponse;
+```
+
+<TypeTable
+  type={{
+    status: {
+      type: "number",
+      description: "HTTP error status code.",
+      required: true,
+    },
+    message: {
+      type: "string",
+      description: "Error message.",
+      default: '"HTTP Error {status}"',
+    },
+  }}
+/>
+
+### Usage
+
+```ts
+import { httpError } from "@sundayceo/framework";
+
+loader: ({ params }) => {
+  if (!params.slug) {
+    throw httpError(400, "Missing slug parameter");
+  }
+  throw httpError(404, "Post not found");
+},
+```
+
+When thrown, the framework catches the error and renders the corresponding [error page](/docs/guides/error-pages) (if one exists) or falls back to a minimal HTML response.
+
+---
+
+## Type guards
+
+### isRedirectResponse
+
+```ts
+function isRedirectResponse(error: unknown): error is RedirectResponse;
+```
+
+### isHttpErrorResponse
+
+```ts
+function isHttpErrorResponse(error: unknown): error is HttpErrorResponse;
+```
+
+These are useful when implementing custom error handling logic.
+
+## Related
+
+<Cards>
+  <Card title="Error Pages" href="/docs/guides/error-pages">
+    Custom error pages for 404, 500, and other HTTP status codes.
+  </Card>
+  <Card title="Loaders" href="/docs/guides/loaders">
+    Load data on the server and pass it to your page slots.
+  </Card>
+</Cards>

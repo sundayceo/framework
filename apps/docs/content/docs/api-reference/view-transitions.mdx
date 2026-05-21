@@ -1,0 +1,56 @@
+---
+title: viewTransitionName
+icon: swap
+description: Helper for CSS View Transitions.
+---
+
+import { TypeTable } from "fumadocs-ui/components/type-table";
+
+## Signature
+
+```ts
+function viewTransitionName(name: string): { style: { viewTransitionName: string } };
+```
+
+Returns a style prop object that assigns a `view-transition-name` for the [CSS View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API).
+
+## Parameters
+
+<TypeTable
+  type={{
+    name: {
+      type: "string",
+      description: "The view transition name to assign.",
+      required: true,
+    },
+  }}
+/>
+
+## Returns
+
+```ts
+{
+	style: {
+		viewTransitionName: "your-name";
+	}
+}
+```
+
+Spread this onto any JSX element to assign the transition name.
+
+## Usage
+
+```tsx
+import { viewTransitionName } from "@sundayceo/framework";
+
+defineSlots: ({ loaderData }) => ({
+  main: (
+    <article {...viewTransitionName("post-content")}>
+      <h1 {...viewTransitionName("post-title")}>{loaderData.title}</h1>
+      <p>{loaderData.body}</p>
+    </article>
+  ),
+}),
+```
+
+This enables smooth transitions between pages when the browser supports the View Transitions API.

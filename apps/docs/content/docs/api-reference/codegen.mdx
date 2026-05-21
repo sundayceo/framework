@@ -1,0 +1,61 @@
+---
+title: Codegen API
+icon: terminal
+description: Generate type declarations, route manifests, and client entries.
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+The codegen API is available at `@sundayceo/framework/codegen`. It's used by the Vite plugin and CLI to generate framework artifacts. You typically don't call these functions directly.
+
+## codegen
+
+Generates type declarations, a route manifest, and client entries from route and template paths.
+
+```ts
+function codegen(input: CodegenInput): CodegenOutput;
+```
+
+### CodegenInput
+
+| Property           | Type                     | Required | Description                                           |
+| ------------------ | ------------------------ | -------- | ----------------------------------------------------- |
+| `routePaths`       | `string[]`               | Yes      | File paths of route modules                           |
+| `templatePaths`    | `string[]`               | Yes      | File paths of template modules                        |
+| `routeSources`     | `Record<string, string>` | No       | Source code of route modules (for slot extraction)    |
+| `importGraph`      | `Record<string, string>` | No       | Transitive import graph (for interactivity inference) |
+| `resolveSpecifier` | `SpecifierResolver`      | No       | Function to resolve import specifiers to file paths   |
+| `filePathMap`      | `Record<string, string>` | No       | Maps file paths to route paths                        |
+
+### CodegenOutput
+
+| Property        | Type            | Description                                                |
+| --------------- | --------------- | ---------------------------------------------------------- |
+| `declarations`  | `string`        | TypeScript declaration file content (`framework.gen.d.ts`) |
+| `manifest`      | `string`        | Route manifest source (`routes.gen.ts`)                    |
+| `clientEntries` | `ClientEntry[]` | Client-side hydration entries for interactive slots        |
+
+---
+
+## generateServerEntry
+
+Generates the virtual server entry module source code.
+
+```ts
+function generateServerEntry(input: {
+	appModule: string;
+	routesModule: string;
+	shouldUsePlaceholder?: boolean;
+}): string;
+```
+
+| Property               | Type      | Required | Description                           |
+| ---------------------- | --------- | -------- | ------------------------------------- |
+| `appModule`            | `string`  | Yes      | Import path to `app.ts`               |
+| `routesModule`         | `string`  | Yes      | Import path to `routes.gen.ts`        |
+| `shouldUsePlaceholder` | `boolean` | No       | If true, generates a placeholder stub |
+
+<Callout type="info">
+	These APIs are public for advanced use cases like custom build pipelines. Most users interact with
+	them indirectly through the Vite plugin.
+</Callout>

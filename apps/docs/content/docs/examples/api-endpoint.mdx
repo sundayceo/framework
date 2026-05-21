@@ -1,0 +1,54 @@
+---
+title: API Endpoint
+icon: globe
+description: A JSON API handler that responds to different HTTP methods.
+---
+
+API handlers return `Response` objects directly without going through the template system.
+
+```ts title="src/routes/api/health.tsx"
+import { defineHandler } from "@sundayceo/framework";
+
+export default defineHandler("/api/health")({
+	GET: () => {
+		return Response.json({ status: "ok" });
+	},
+});
+```
+
+### Multiple methods
+
+```ts title="src/routes/api/echo.tsx"
+import { defineHandler } from "@sundayceo/framework";
+
+export default defineHandler("/api/echo")({
+	GET: ({ request }) => {
+		const url = new URL(request.url);
+		return Response.json({
+			method: "GET",
+			query: Object.fromEntries(url.searchParams),
+		});
+	},
+	POST: async ({ request }) => {
+		const body = await request.json();
+		return Response.json({ method: "POST", body });
+	},
+});
+```
+
+### With dynamic params
+
+```ts title="src/routes/api/posts/[id].tsx"
+import { defineHandler, httpError } from "@sundayceo/framework";
+
+export default defineHandler("/api/posts/[id]")({
+	GET: ({ params }) => {
+		if (params.id === "missing") {
+			throw httpError(404, "Post not found");
+		}
+		return Response.json({ id: params.id });
+	},
+});
+```
+
+Learn more in the [API Handlers guide](/docs/guides/api-handlers).

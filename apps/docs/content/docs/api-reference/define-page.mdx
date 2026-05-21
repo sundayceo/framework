@@ -1,0 +1,142 @@
+---
+title: definePage
+icon: file
+description: Define a type-safe page with template, loader, slots, and meta.
+---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { TypeTable } from "fumadocs-ui/components/type-table";
+
+## Signature
+
+```ts
+function definePage<TPath extends string>(
+	path: TPath,
+): {
+	// With loader
+	<TTemplate extends keyof TemplateRegistry, TLoaderData>(config: {
+		template: TTemplate;
+		loader: (ctx: Context<InferParams<TPath>>) => TLoaderData | Promise<TLoaderData>;
+		defineSlots: (args: { loaderData: Awaited<TLoaderData> }) => SlotMap;
+		meta?: MetaInfo | ((args: { loaderData: Awaited<TLoaderData> }) => MetaInfo);
+	}): PageModule;
+
+	// Without loader
+	<TTemplate extends keyof TemplateRegistry>(config: {
+		template: TTemplate;
+		defineSlots: () => SlotMap;
+		meta?: MetaInfo;
+	}): PageModule;
+};
+```
+
+`definePage` is curried. You call it with the route path first, then with the page config.
+
+## Parameters
+
+### First call: `definePage(path)`
+
+<TypeTable
+  type={{
+    path: {
+      type: "string",
+      description: "The route path. Used for type inference of params. In practice, the Vite plugin auto-injects this at build time, so you can pass an empty string during development.",
+      required: true,
+    },
+  }}
+/>
+
+### Second call: page config
+
+<TypeTable
+  type={{
+    template: {
+      type: "keyof TemplateRegistry",
+      description: "Which template to render this page with.",
+      required: true,
+    },
+    loader: {
+      type: "(ctx: Context) => TLoaderData",
+      description: "Server-side data loading function.",
+    },
+    defineSlots: {
+      type: "(args?) => SlotMap",
+      description: "Returns slot content for the template.",
+      required: true,
+    },
+    meta: {
+      type: "MetaInfo | (args) => MetaInfo",
+      description: "Page title and description for <head>.",
+    },
+  }}
+/>
+
+## Returns
+
+A page module object branded with `[RouteKind]: "page"`.
+
+## Usage
+
+### Without loader
+
+```tsx
+import { definePage } from "@sundayceo/framework";
+
+export default definePage("/about")({
+	template: "default",
+	meta: { title: "About" },
+	defineSlots: () => ({
+		main: <p>About page content.</p>,
+	}),
+});
+```
+
+### With loader
+
+```tsx
+export default definePage("/blog/[slug]")({
+	template: "default",
+	loader: ({ params }) => ({ slug: params.slug }),
+	meta: ({ loaderData }) => ({ title: loaderData.slug }),
+	defineSlots: ({ loaderData }) => ({
+		main: <h1>{loaderData.slug}</h1>,
+	}),
+});
+```
+
+## Types
+
+### `Context<TParams, TCustom>`
+
+```ts
+type Context<TParams, TCustom> = {
+	request: Request;
+	params: TParams;
+} & TCustom;
+```
+
+### `SlotMap`
+
+```ts
+type SlotMap = Record<string, ReactNode>;
+```
+
+### `MetaInfo`
+
+```ts
+type MetaInfo = { title?: string; description?: string };
+```
+
+## Related
+
+<Cards>
+  <Card title="Pages & Templates" href="/docs/guides/pages-and-templates">
+    Define page layouts with templates and fill them with slot content.
+  </Card>
+  <Card title="Loaders" href="/docs/guides/loaders">
+    Load data on the server and pass it to your page slots.
+  </Card>
+  <Card title="defineHandler" href="/docs/api-reference/define-handler">
+    Define a type-safe API handler with HTTP method handlers.
+  </Card>
+</Cards>

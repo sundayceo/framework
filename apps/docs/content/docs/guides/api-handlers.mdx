@@ -1,0 +1,110 @@
+---
+title: API Handlers
+icon: plugs
+description: Define API endpoints that return raw Response objects.
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+API handlers let you define endpoints that return `Response` objects directly, without going through the template/slot rendering pipeline.
+
+## Defining a handler
+
+Use `defineHandler` with the route path and an object of HTTP method handlers:
+
+```ts title="src/routes/api/health.tsx"
+import { defineHandler } from "@sundayceo/framework";
+
+export default defineHandler("/api/health")({
+	GET: () => {
+		return Response.json({ status: "ok" });
+	},
+});
+```
+
+## HTTP methods
+
+You can define handlers for any standard HTTP method:
+
+```ts title="src/routes/api/users.tsx"
+import { defineHandler } from "@sundayceo/framework";
+
+export default defineHandler("/api/users")({
+	GET: ({ request }) => {
+		return Response.json({ users: [] });
+	},
+	POST: async ({ request }) => {
+		const body = await request.json();
+		return Response.json({ created: true }, { status: 201 });
+	},
+	DELETE: ({ params }) => {
+		return new Response(null, { status: 204 });
+	},
+});
+```
+
+Available methods: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`.
+
+If a request arrives for an undefined method, the framework returns a `405 Method Not Allowed` response.
+
+## Handler context
+
+Each method handler receives the same `Context` object as page loaders:
+
+| Property    | Type                     | Description                                |
+| ----------- | ------------------------ | ------------------------------------------ |
+| `request`   | `Request`                | The incoming web request                   |
+| `params`    | `Record<string, string>` | Route parameters from dynamic segments     |
+| `...custom` | Spread                   | Properties from your app's context factory |
+
+```ts title="src/routes/api/posts/[id].tsx"
+import { defineHandler } from "@sundayceo/framework";
+
+export default defineHandler("/api/posts/[id]")({
+	GET: ({ params, request }) => {
+		return Response.json({ postId: params.id });
+	},
+});
+```
+
+## Returning responses
+
+Handlers must return a `Response` (or a `Promise<Response>`). Use the standard Web API:
+
+```ts
+// JSON
+return Response.json({ data: "value" });
+
+// Plain text
+return new Response("Hello", {
+	headers: { "content-type": "text/plain" },
+});
+
+// Redirect
+return Response.redirect("https://example.com", 302);
+
+// No content
+return new Response(null, { status: 204 });
+```
+
+<Callout type="info">
+	Handlers bypass the template system entirely. They don't render HTML through slots. If you need
+	to return HTML, use `definePage` instead.
+</Callout>
+
+## Error handling
+
+You can throw `httpError` or `redirect` in handlers, just like in loaders:
+
+```ts
+import { defineHandler, httpError } from "@sundayceo/framework";
+
+export default defineHandler("/api/secret")({
+	GET: ({ request }) => {
+		if (!request.headers.get("authorization")) {
+			throw httpError(401, "Unauthorized");
+		}
+		return Response.json({ secret: "data" });
+	},
+});
+```
