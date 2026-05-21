@@ -1,7 +1,11 @@
 ---
 title: definePage
+icon: file
 description: Define a type-safe page with template, loader, slots, and meta.
 ---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { TypeTable } from "fumadocs-ui/components/type-table";
 
 ## Signature
 
@@ -26,24 +30,46 @@ function definePage<TPath extends string>(
 };
 ```
 
-`definePage` is curried — you call it with the route path first, then with the page config.
+`definePage` is curried. You call it with the route path first, then with the page config.
 
 ## Parameters
 
 ### First call: `definePage(path)`
 
-| Parameter | Type     | Description                                                                                                                                                          |
-| --------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `path`    | `string` | The route path. Used for type inference of params. In practice, the Vite plugin auto-injects this at build time, so you can pass an empty string during development. |
+<TypeTable
+  type={{
+    path: {
+      type: "string",
+      description: "The route path. Used for type inference of params. In practice, the Vite plugin auto-injects this at build time, so you can pass an empty string during development.",
+      required: true,
+    },
+  }}
+/>
 
 ### Second call: page config
 
-| Property      | Type                             | Required | Description                             |
-| ------------- | -------------------------------- | -------- | --------------------------------------- |
-| `template`    | `keyof TemplateRegistry`         | Yes      | Which template to render this page with |
-| `loader`      | `(ctx: Context) => TLoaderData`  | No       | Server-side data loading function       |
-| `defineSlots` | `(args?) => SlotMap`             | Yes      | Returns slot content for the template   |
-| `meta`        | `MetaInfo \| (args) => MetaInfo` | No       | Page title and description for `<head>` |
+<TypeTable
+  type={{
+    template: {
+      type: "keyof TemplateRegistry",
+      description: "Which template to render this page with.",
+      required: true,
+    },
+    loader: {
+      type: "(ctx: Context) => TLoaderData",
+      description: "Server-side data loading function.",
+    },
+    defineSlots: {
+      type: "(args?) => SlotMap",
+      description: "Returns slot content for the template.",
+      required: true,
+    },
+    meta: {
+      type: "MetaInfo | (args) => MetaInfo",
+      description: "Page title and description for <head>.",
+    },
+  }}
+/>
 
 ## Returns
 
@@ -103,6 +129,14 @@ type MetaInfo = { title?: string; description?: string };
 
 ## Related
 
-- [Pages & Templates guide](/docs/guides/pages-and-templates)
-- [Loaders guide](/docs/guides/loaders)
-- [`defineHandler`](/docs/api-reference/define-handler)
+<Cards>
+  <Card title="Pages & Templates" href="/docs/guides/pages-and-templates">
+    Define page layouts with templates and fill them with slot content.
+  </Card>
+  <Card title="Loaders" href="/docs/guides/loaders">
+    Load data on the server and pass it to your page slots.
+  </Card>
+  <Card title="defineHandler" href="/docs/api-reference/define-handler">
+    Define a type-safe API handler with HTTP method handlers.
+  </Card>
+</Cards>

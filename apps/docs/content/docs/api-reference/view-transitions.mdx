@@ -1,7 +1,10 @@
 ---
 title: viewTransitionName
+icon: swap
 description: Helper for CSS View Transitions.
 ---
+
+import { TypeTable } from "fumadocs-ui/components/type-table";
 
 ## Signature
 
@@ -13,9 +16,15 @@ Returns a style prop object that assigns a `view-transition-name` for the [CSS V
 
 ## Parameters
 
-| Parameter | Type     | Description                        |
-| --------- | -------- | ---------------------------------- |
-| `name`    | `string` | The view transition name to assign |
+<TypeTable
+  type={{
+    name: {
+      type: "string",
+      description: "The view transition name to assign.",
+      required: true,
+    },
+  }}
+/>
 
 ## Returns
 

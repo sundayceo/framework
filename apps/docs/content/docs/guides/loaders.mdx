@@ -1,5 +1,6 @@
 ---
 title: Loaders
+icon: arrows
 description: Load data on the server and pass it to your page slots.
 ---
 
@@ -25,7 +26,7 @@ export default definePage("/dashboard")({
 });
 ```
 
-The return type of `loader` is inferred and available as `loaderData` — fully typed, no annotations needed.
+The return type of `loader` is inferred and available as `loaderData`, fully typed, no annotations needed.
 
 ## Async loaders
 
@@ -82,13 +83,13 @@ If your page doesn't need data, omit the `loader`. The `defineSlots` function ta
 export default definePage("/about")({
 	template: "default",
 	defineSlots: () => ({
-		main: <p>Static content — no loader needed.</p>,
+		main: <p>Static content. No loader needed.</p>,
 	}),
 });
 ```
 
 <Callout type="warn">
-	Loaders only run on the server. Never import browser-only APIs in a loader — they won't be
+	Loaders only run on the server. Never import browser-only APIs in a loader. They won't be
 	available.
 </Callout>
 

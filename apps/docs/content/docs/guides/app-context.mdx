@@ -1,11 +1,12 @@
 ---
 title: App Context
+icon: gear
 description: Inject shared context into every loader and handler.
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
 
-The app context lets you define shared data that's available in every loader and handler — database connections, authentication state, feature flags, or anything that depends on the incoming request.
+The app context lets you define shared data that's available in every loader and handler: database connections, authentication state, feature flags, or anything that depends on the incoming request.
 
 ## Creating the app
 
@@ -59,7 +60,7 @@ declare module "@sundayceo/framework" {
 }
 ```
 
-After this declaration, every `loader` and handler method automatically knows about `appName` and `userAgent` — no manual type annotations needed.
+After this declaration, every `loader` and handler method automatically knows about `appName` and `userAgent`. No manual type annotations needed.
 
 ## Async context
 
@@ -87,7 +88,7 @@ type Platform = { env: Record<string, unknown>; ctx: unknown };
 export const app = createApp<Platform>({
 	context: (request, platform) => ({
 		appName: "my-app",
-		db: platform?.env?.DB,
+		db: platform.env.DB,
 	}),
 });
 ```
@@ -109,6 +110,6 @@ export const app = createApp({
 ```
 
 <Callout type="info">
-	`onError` is a side-effect hook — it cannot modify the response. It runs after the error response
+	`onError` is a side-effect hook. It cannot modify the response. It runs after the error response
 	has been determined but before it's sent. Use it for logging and monitoring.
 </Callout>

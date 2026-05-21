@@ -1,7 +1,11 @@
 ---
 title: Slot & SlotProvider
+icon: puzzle
 description: Render named slot content in templates.
 ---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { TypeTable } from "fumadocs-ui/components/type-table";
 
 ## Slot
 
@@ -15,10 +19,19 @@ function Slot(props: { id: string; fallback?: ReactNode }): ReactNode;
 
 ### Props
 
-| Prop       | Type        | Required | Description                                               |
-| ---------- | ----------- | -------- | --------------------------------------------------------- |
-| `id`       | `string`    | Yes      | The slot name. Must match a key from `defineSlots`.       |
-| `fallback` | `ReactNode` | No       | Content rendered when the page doesn't provide this slot. |
+<TypeTable
+  type={{
+    id: {
+      type: "string",
+      description: "The slot name. Must match a key from defineSlots.",
+      required: true,
+    },
+    fallback: {
+      type: "ReactNode",
+      description: "Content rendered when the page doesn't provide this slot.",
+    },
+  }}
+/>
 
 ### Usage
 
@@ -72,5 +85,11 @@ function SlotProvider(props: {
 
 ## Related
 
-- [Pages & Templates guide](/docs/guides/pages-and-templates)
-- [Hydration guide](/docs/guides/hydration)
+<Cards>
+  <Card title="Pages & Templates" href="/docs/guides/pages-and-templates">
+    Define page layouts with templates and fill them with slot content.
+  </Card>
+  <Card title="Hydration" href="/docs/guides/hydration">
+    How selective hydration works and what ships to the client.
+  </Card>
+</Cards>

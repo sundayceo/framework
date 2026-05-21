@@ -1,7 +1,10 @@
 ---
 title: createHandler
+icon: function
 description: Create a fetch-compatible request handler from app config and routes.
 ---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
 
 ## Signature
 
@@ -35,7 +38,7 @@ An object with a `fetch` method that takes a `Request` and optional platform con
 
 ## Usage
 
-You typically don't call `createHandler` directly — the virtual server entry module does it for you. But you can use it for testing or custom setups:
+You typically don't call `createHandler` directly. The virtual server entry module does it for you. But you can use it for testing or custom setups:
 
 ```ts
 import { createApp, createHandler } from "@sundayceo/framework";
@@ -87,5 +90,11 @@ type GeneratedErrorPages = Record<number, () => Promise<{ default: unknown }>>;
 
 ## Related
 
-- [`createApp`](/docs/api-reference/create-app)
-- [Deployment guide](/docs/guides/deployment)
+<Cards>
+  <Card title="createApp" href="/docs/api-reference/create-app">
+    Create a type-safe app configuration.
+  </Card>
+  <Card title="Deployment" href="/docs/guides/deployment">
+    Deploy to Cloudflare Workers, Hono, or any fetch platform.
+  </Card>
+</Cards>

@@ -1,53 +1,58 @@
 ---
 title: Introduction
-description: A server-first React framework with selective hydration.
-icon: rocket
+description: A minimal React framework built for multi-tenant Cloudflare Workers apps with automatic per-slot hydration.
+icon: house
 ---
 
 import { Card, Cards } from "fumadocs-ui/components/card";
 
 # sundayceo framework
 
-A server-first React framework where every page ships **zero JavaScript** by default. Interactive components hydrate only where needed — determined automatically at build time.
+A minimal, server-first React framework built to run inside Cloudflare Workers. Pages ship **zero JavaScript** by default. The compiler determines which slots need hydration automatically, so you never write `"use client"`.
 
 ## Why?
 
-Most React frameworks ship the entire component tree to the browser, even for pages that are entirely static. This framework takes the opposite approach: everything renders on the server, and only the slots that contain interactive code (hooks, event handlers, browser APIs) get hydrated on the client.
+We built this framework for the sundayceo platform, where tenant apps are bundled on the fly inside Cloudflare Workers. That constraint shaped every design decision: the runtime has zero Node.js dependencies, the codegen pipeline is pure string transforms, and the architecture is flat and statically analyzable so an automated bundler can process it efficiently.
 
-You don't mark components with `"use client"` — the build system figures it out.
+The result is a framework where pages ship zero JavaScript by default. When a slot uses hooks, event handlers, or browser APIs, only that slot hydrates. Everything else stays as plain HTML. No bundle bloat. No hydration waterfalls.
+
+You never decide what's server vs client. The compiler analyzes each slot's code and its imports, then generates client entries only where needed. No `"use client"` directives. No manual optimization.
 
 ## Key ideas
 
-- **Templates and slots** — pages declare which template to use and provide content for named slots. No nested layouts, no implicit composition.
-- **Automatic interactivity inference** — the compiler analyzes your slot code for `useState`, `onClick`, `window.*`, and similar patterns. Static slots ship no JS. Interactive slots hydrate individually.
-- **File-based routing** — `src/routes/about.tsx` becomes `/about`. Dynamic params via `[slug]`, catch-all via `[...slug]`, route groups via `(group)`.
-- **Loaders** — every page can define a `loader` that runs on the server and passes typed data to `defineSlots`.
-- **Platform-agnostic** — the runtime is a pure `fetch` handler. Deploy to Cloudflare Workers, Hono, Node.js, Bun, Deno, or anything that speaks `Request`/`Response`.
+- **Templates and slots**: pages declare which template to use and provide content for named slots. No nested layouts, no implicit composition. The flat structure is easy to statically analyze for per-slot hydration and code splitting.
+- **Automatic interactivity inference**: the compiler analyzes your slot code for `useState`, `onClick`, `window.*`, and similar patterns. Static slots ship no JS. Interactive slots hydrate individually.
+- **File-based routing**: `src/routes/about.tsx` becomes `/about`. Dynamic params via `[slug]`, catch-all via `[...slug]`, route groups via `(group)`.
+- **Loaders**: every page can define a `loader` that runs on the server and passes typed data to `defineSlots`.
+- **Layered architecture**: the runtime is a pure `fetch` handler with zero Node.js dependencies. The codegen layer is pure string transforms with no Vite dependency. This means the framework works both as a Vite dev tool and as a programmatic codegen API for multi-tenant platforms like Cloudflare Workers.
+- **Platform-agnostic**: deploy to Cloudflare Workers, Hono, Node.js, Bun, Deno, or anything that speaks `Request`/`Response`.
 
 ## How it works
 
 ```
 Request
-  → Route matching
-  → Loader execution
-  → Slot rendering (server)
-  → Template assembly
-  → HTML response
+  1. Route matching
+  2. Loader execution
+  3. Slot rendering (server)
+  4. Template assembly
+  5. HTML response
 
 Interactive slots additionally:
-  → Client entry generation (build time)
-  → hydrateRoot on the client
+  6. Client entry generation (build time)
+  7. hydrateRoot on the client
 ```
 
-Every page goes through the same pipeline. The only difference is whether a slot's content includes interactive code — and the build system decides that for you.
+Every page goes through the same pipeline. The only difference is whether a slot's content includes interactive code, and the compiler decides that for you.
+
+The codegen pipeline can run inside Vite during development, or standalone inside a Cloudflare Worker for on-the-fly tenant app bundling.
 
 ## Next steps
 
 <Cards>
-	<Card title="Installation" href="/docs/installation">
+	<Card title="Installation" href="/docs/getting-started/installation">
 		Install the framework and set up your project.
 	</Card>
-	<Card title="Quickstart" href="/docs/quickstart">
+	<Card title="Quickstart" href="/docs/getting-started/quickstart">
 		Build your first page in under 5 minutes.
 	</Card>
 	<Card title="Guides" href="/docs/guides/routing">

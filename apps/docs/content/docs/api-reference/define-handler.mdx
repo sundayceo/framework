@@ -1,7 +1,11 @@
 ---
 title: defineHandler
+icon: filecode
 description: Define a type-safe API handler with HTTP method handlers.
 ---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { TypeTable } from "fumadocs-ui/components/type-table";
 
 ## Signature
 
@@ -17,15 +21,21 @@ function defineHandler<TPath extends string>(
 }) => HandlerModule;
 ```
 
-`defineHandler` is curried — call it with the route path first, then with the handler config.
+`defineHandler` is curried. Call it with the route path first, then with the handler config.
 
 ## Parameters
 
 ### First call: `defineHandler(path)`
 
-| Parameter | Type     | Description                                        |
-| --------- | -------- | -------------------------------------------------- |
-| `path`    | `string` | The route path. Used for type inference of params. |
+<TypeTable
+  type={{
+    path: {
+      type: "string",
+      description: "The route path. Used for type inference of params.",
+      required: true,
+    },
+  }}
+/>
 
 ### Second call: handler config
 
@@ -52,5 +62,11 @@ export default defineHandler("/api/posts/[id]")({
 
 ## Related
 
-- [API Handlers guide](/docs/guides/api-handlers)
-- [`definePage`](/docs/api-reference/define-page)
+<Cards>
+  <Card title="API Handlers" href="/docs/guides/api-handlers">
+    Define API endpoints that return raw Response objects.
+  </Card>
+  <Card title="definePage" href="/docs/api-reference/define-page">
+    Define a type-safe page with template, loader, slots, and meta.
+  </Card>
+</Cards>

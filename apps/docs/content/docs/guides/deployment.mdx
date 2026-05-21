@@ -1,12 +1,13 @@
 ---
 title: Deployment
+icon: cloud
 description: Deploy to Cloudflare Workers, Hono, Node.js, or any platform with fetch.
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
-The framework's runtime is a pure `fetch` handler — it takes a `Request` and returns a `Response`. This makes it deployable to any platform that supports the Web Standards API.
+The framework's runtime is a pure `fetch` handler. It takes a `Request` and returns a `Response`. This makes it deployable to any platform that supports the Web Standards API.
 
 ## Entry shims
 
@@ -73,7 +74,7 @@ export default createHandler({
 });
 ```
 
-You never write this yourself — the Vite plugin handles it.
+You never write this yourself. The Vite plugin handles it.
 
 ## Platform context
 
@@ -86,7 +87,7 @@ handler.fetch(request, { env, ctx });
 // In app.ts:
 export const app = createApp<{ env: Record<string, unknown>; ctx: unknown }>({
 	context: (request, platform) => ({
-		db: platform?.env?.DB,
+		db: platform.env.DB,
 	}),
 });
 ```
@@ -97,8 +98,8 @@ This lets you access platform-specific bindings (KV, D1, R2, etc.) in your loade
 
 The Vite plugin runs a two-pass build:
 
-1. **Server build** (SSR) — produces the server bundle with all route modules
-2. **Client build** — produces individual bundles for each interactive slot
+1. **Server build** (SSR): produces the server bundle with all route modules
+2. **Client build**: produces individual bundles for each interactive slot
 
 ```bash
 vite build
@@ -126,5 +127,5 @@ frameworkPlugin({ clientBase: "/assets" });
 
 <Callout type="info">
 	The framework works with any platform that can call a `fetch` function. If your platform can
-	handle `Request → Response`, you can deploy to it.
+	handle `Request` and return a `Response`, you can deploy to it.
 </Callout>

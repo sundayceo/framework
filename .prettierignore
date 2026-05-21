@@ -5,3 +5,4 @@ templates/
 **/.source/
 **/.next/
 **/*.mdx
+**/routeTree.gen.ts

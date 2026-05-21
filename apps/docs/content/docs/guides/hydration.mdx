@@ -1,5 +1,6 @@
 ---
 title: Hydration
+icon: drop
 description: How selective hydration works and how the framework decides what ships to the client.
 ---
 
@@ -11,9 +12,9 @@ The framework uses **selective hydration**: only slots that contain interactive 
 
 At build time, the Vite plugin analyzes each slot's code. It looks for signals that the code needs to run in the browser:
 
-- **React hooks** — `useState`, `useEffect`, `useCallback`, `useReducer`, `useContext`, etc.
-- **Event handlers** — `onClick`, `onChange`, `onSubmit`, and other `on*` props
-- **Browser APIs** — `window.*`, `document.*`, `navigator.*`, `addEventListener`
+- **React hooks**: `useState`, `useEffect`, `useCallback`, `useReducer`, `useContext`, etc.
+- **Event handlers**: `onClick`, `onChange`, `onSubmit`, and other `on*` props
+- **Browser APIs**: `window.*`, `document.*`, `navigator.*`, `addEventListener`
 
 If any of these are found (including in transitively imported modules), the slot is marked as **interactive** and gets hydrated. Otherwise, it's **static** and renders as plain HTML.
 
@@ -21,7 +22,7 @@ If any of these are found (including in transitively imported modules), the slot
 
 ```html
 <div data-slot="footer">
-	<p>Static content — no JavaScript.</p>
+	<p>Static content. No JavaScript.</p>
 </div>
 ```
 
@@ -71,9 +72,9 @@ export default definePage("/counter")({
 	loader: () => ({ title: "Counter Demo" }),
 	defineSlots: ({ loaderData }) => ({
 		header: <h1>{loaderData.title}</h1>,
-		// This slot uses Counter which has useState → interactive
+		// Counter uses useState, so this slot is interactive
 		main: <Counter label="Clicks" />,
-		// This slot is plain JSX → static
+		// Plain JSX, so this slot stays static
 		footer: <p>No JavaScript here.</p>,
 	}),
 });
@@ -81,19 +82,19 @@ export default definePage("/counter")({
 
 In this example:
 
-- `header` → **static** (plain JSX, no hooks)
-- `main` → **interactive** (imports `Counter` which uses `useState`)
-- `footer` → **static** (plain JSX)
+- `header`: **static** (plain JSX, no hooks)
+- `main`: **interactive** (imports `Counter` which uses `useState`)
+- `footer`: **static** (plain JSX)
 
 ## Full hydration
 
-If every slot imports interactive components, every slot hydrates — but you still get per-slot code splitting:
+If every slot imports interactive components, every slot hydrates, but you still get per-slot code splitting:
 
 ```tsx
 defineSlots: ({ loaderData }) => ({
-  header: <NavBar />,      // uses useState → interactive
-  main: <Counter />,       // uses useState → interactive
-  footer: <ChatWidget />,  // uses useEffect → interactive
+  header: <NavBar />,      // uses useState, interactive
+  main: <Counter />,       // uses useState, interactive
+  footer: <ChatWidget />,  // uses useEffect, interactive
 }),
 ```
 
@@ -119,14 +120,3 @@ The handler uses this manifest at runtime to inject the correct hydration script
 	analyzing your code's dependency graph.
 </Callout>
 
-## What triggers interactivity
-
-The inference engine checks for these patterns in the slot's code and all its transitive imports:
-
-| Pattern             | Example                                                                                                    |
-| ------------------- | ---------------------------------------------------------------------------------------------------------- |
-| React hooks         | `useState`, `useEffect`, `useCallback`, `useReducer`, `useContext`, `useRef`, `useMemo`, `useLayoutEffect` |
-| Event handler props | `onClick={...}`, `onChange={...}`, `onSubmit={...}`                                                        |
-| Browser globals     | `window.addEventListener`, `document.getElementById`, `navigator.userAgent`                                |
-
-If none of these are found, the slot is static. The analysis is conservative — if in doubt, it errs toward marking the slot as interactive.

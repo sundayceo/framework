@@ -1,6 +1,7 @@
 ---
 title: Interactive Counter
-description: A page with selective hydration — only the counter slot ships JavaScript.
+icon: cursor
+description: A page with selective hydration where only the counter slot ships JavaScript.
 ---
 
 This example demonstrates selective hydration. The `main` slot imports a component with `useState`, so it gets hydrated. The `header` and `footer` remain static.
@@ -39,15 +40,17 @@ export default definePage("/counter")({
 	defineSlots: ({ loaderData }) => ({
 		header: <h1>{loaderData.title}</h1>,
 		main: <Counter label={loaderData.description} />,
-		footer: <p>Static footer — no JS.</p>,
+		footer: <p>Static footer. No JS.</p>,
 	}),
 });
 ```
 
 ### What ships to the browser
 
-- `header` → static HTML, no JavaScript
-- `main` → hydrated with React, because `Counter` uses `useState`
-- `footer` → static HTML, no JavaScript
+- `header`: static HTML, no JavaScript
+- `main`: hydrated with React, because `Counter` uses `useState`
+- `footer`: static HTML, no JavaScript
 
 The framework detects that `Counter` uses `useState` and automatically generates a client entry for the `main` slot only.
+
+Learn more in the [Hydration guide](/docs/guides/hydration).

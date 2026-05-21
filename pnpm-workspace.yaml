@@ -35,6 +35,16 @@ minimumReleaseAgeExclude:
   - fumadocs-core
   - fumadocs-mdx
   - fumadocs-ui
+  - "@cloudflare/*"
+  - miniflare
+  - workerd
+  - "@tanstack/react-start"
+  - "@tanstack/react-start-rsc"
+  - "@tanstack/react-router"
+  - "@tanstack/*"
+  - "@vitejs/plugin-react"
+  - wrangler
+  - postcss
 
 onlyBuiltDependencies:
   - esbuild

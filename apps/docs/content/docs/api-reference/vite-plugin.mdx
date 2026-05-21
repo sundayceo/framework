@@ -1,7 +1,11 @@
 ---
 title: Vite Plugin
+icon: package
 description: The framework's Vite plugin for development and production builds.
 ---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { TypeTable } from "fumadocs-ui/components/type-table";
 
 ## Signature
 
@@ -11,9 +15,15 @@ function frameworkPlugin(options?: { clientBase?: string }): Plugin;
 
 ## Options
 
-| Option       | Type     | Default     | Description                                |
-| ------------ | -------- | ----------- | ------------------------------------------ |
-| `clientBase` | `string` | `undefined` | Base path for client-side hydration assets |
+<TypeTable
+  type={{
+    clientBase: {
+      type: "string",
+      description: "Base path for client-side hydration assets.",
+      default: "undefined",
+    },
+  }}
+/>
 
 ## What it does
 
@@ -21,16 +31,16 @@ The plugin handles the full framework lifecycle within Vite:
 
 ### Development
 
-- **Code generation** — scans `src/routes/` and `src/templates/`, generates `framework.gen.d.ts` and `routes.gen.ts`
-- **Virtual modules** — resolves `@sundayceo/framework/server-entry` and `virtual:hydrate/*` imports
-- **Route transforms** — auto-injects the route path into `definePage`/`defineHandler` calls
-- **SSR middleware** — connects the framework handler to Vite's dev server for server-rendered responses
-- **HMR** — invalidates modules when templates or routes change
+- **Code generation**: scans `src/routes/` and `src/templates/`, generates `framework.gen.d.ts` and `routes.gen.ts`
+- **Virtual modules**: resolves `@sundayceo/framework/server-entry` and `virtual:hydrate/*` imports
+- **Route transforms**: auto-injects the route path into `definePage`/`defineHandler` calls
+- **SSR middleware**: connects the framework handler to Vite's dev server for server-rendered responses
+- **HMR**: invalidates modules when templates or routes change
 
 ### Production build
 
-- **Two-pass build** — first builds the server bundle (SSR), then builds individual client bundles for each interactive slot
-- **Hydration assets** — generates optimized client entries that are loaded only where needed
+- **Two-pass build**: first builds the server bundle (SSR), then builds individual client bundles for each interactive slot
+- **Hydration assets**: generates optimized client entries that are loaded only where needed
 
 ## Usage
 
@@ -72,7 +82,24 @@ export default defineConfig({
 | `virtual:hydrate/{routePath}/{slotName}` | Client hydration entry for an interactive slot |
 | `virtual:hydration-manifest`             | Serialized hydration manifest                  |
 
+## Package exports
+
+The framework ships four entry points:
+
+| Import                              | Purpose                                                                |
+| ----------------------------------- | ---------------------------------------------------------------------- |
+| `@sundayceo/framework`              | Runtime API: `createApp`, `definePage`, `defineHandler`, `Slot`, etc. |
+| `@sundayceo/framework/vite`         | Vite plugin: `frameworkPlugin`                                        |
+| `@sundayceo/framework/codegen`      | Codegen API: `codegen`, `generateServerEntry`                         |
+| `@sundayceo/framework/server-entry` | Virtual module: the generated server handler                          |
+
 ## Related
 
-- [Deployment guide](/docs/guides/deployment)
-- [Hydration guide](/docs/guides/hydration)
+<Cards>
+  <Card title="Deployment" href="/docs/guides/deployment">
+    Deploy to Cloudflare Workers, Hono, or any fetch platform.
+  </Card>
+  <Card title="Hydration" href="/docs/guides/hydration">
+    How selective hydration works and what ships to the client.
+  </Card>
+</Cards>

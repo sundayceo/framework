@@ -1,5 +1,6 @@
 ---
 title: Dynamic Route
+icon: path
 description: A page with a dynamic URL segment and typed params.
 ---
 
@@ -21,7 +22,7 @@ export default definePage("/blog/[slug]")({
 	defineSlots: ({ loaderData }) => ({
 		header: (
 			<div>
-				<a href="/">← Back</a>
+				<a href="/">Back</a>
 				<h1>Blog Post</h1>
 			</div>
 		),
@@ -31,3 +32,5 @@ export default definePage("/blog/[slug]")({
 ```
 
 Visiting `/blog/hello-world` passes `{ slug: "hello-world" }` to the loader. The `params` type is inferred from the path string.
+
+Learn more in the [Routing guide](/docs/guides/routing).

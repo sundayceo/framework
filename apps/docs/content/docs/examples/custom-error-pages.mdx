@@ -1,5 +1,6 @@
 ---
 title: Custom Error Pages
+icon: shield
 description: Custom 404 and 500 error pages with templates and loaders.
 ---
 
@@ -42,7 +43,7 @@ export default defineErrorPage(500)({
 	defineSlots: ({ loaderData }) => ({
 		main: (
 			<div>
-				<h1>500 — Internal Server Error</h1>
+				<h1>500: Internal Server Error</h1>
 				<p>{loaderData.message}</p>
 				{loaderData.stack && <pre>{loaderData.stack}</pre>}
 			</div>
@@ -52,3 +53,5 @@ export default defineErrorPage(500)({
 ```
 
 The `stack` and `error` properties on `ErrorContext` are only populated in development mode, so they won't leak to production.
+
+Learn more in the [Error Pages guide](/docs/guides/error-pages).

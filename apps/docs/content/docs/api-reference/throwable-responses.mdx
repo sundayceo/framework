@@ -1,7 +1,11 @@
 ---
 title: Throwable Responses
+icon: throw
 description: Interrupt request handling with redirects and HTTP errors.
 ---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { TypeTable } from "fumadocs-ui/components/type-table";
 
 ## redirect
 
@@ -11,10 +15,20 @@ Creates a `RedirectResponse` that can be thrown to redirect the client.
 function redirect(url: string, status?: number): RedirectResponse;
 ```
 
-| Parameter | Type     | Default | Description               |
-| --------- | -------- | ------- | ------------------------- |
-| `url`     | `string` | —       | The URL to redirect to    |
-| `status`  | `number` | `302`   | HTTP redirect status code |
+<TypeTable
+  type={{
+    url: {
+      type: "string",
+      description: "The URL to redirect to.",
+      required: true,
+    },
+    status: {
+      type: "number",
+      description: "HTTP redirect status code.",
+      default: "302",
+    },
+  }}
+/>
 
 ### Usage
 
@@ -40,10 +54,20 @@ Creates an `HttpErrorResponse` that can be thrown to return an HTTP error.
 function httpError(status: number, message?: string): HttpErrorResponse;
 ```
 
-| Parameter | Type     | Default                 | Description            |
-| --------- | -------- | ----------------------- | ---------------------- |
-| `status`  | `number` | —                       | HTTP error status code |
-| `message` | `string` | `"HTTP Error {status}"` | Error message          |
+<TypeTable
+  type={{
+    status: {
+      type: "number",
+      description: "HTTP error status code.",
+      required: true,
+    },
+    message: {
+      type: "string",
+      description: "Error message.",
+      default: '"HTTP Error {status}"',
+    },
+  }}
+/>
 
 ### Usage
 
@@ -80,5 +104,11 @@ These are useful when implementing custom error handling logic.
 
 ## Related
 
-- [Error Pages guide](/docs/guides/error-pages)
-- [Loaders guide](/docs/guides/loaders)
+<Cards>
+  <Card title="Error Pages" href="/docs/guides/error-pages">
+    Custom error pages for 404, 500, and other HTTP status codes.
+  </Card>
+  <Card title="Loaders" href="/docs/guides/loaders">
+    Load data on the server and pass it to your page slots.
+  </Card>
+</Cards>

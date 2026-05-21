@@ -1,7 +1,11 @@
 ---
 title: defineErrorPage
+icon: filex
 description: Define a custom error page for a specific HTTP status code.
 ---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { TypeTable } from "fumadocs-ui/components/type-table";
 
 ## Signature
 
@@ -28,9 +32,15 @@ function defineErrorPage(status: number): {
 
 ### First call: `defineErrorPage(status)`
 
-| Parameter | Type     | Description                       |
-| --------- | -------- | --------------------------------- |
-| `status`  | `number` | HTTP status code (e.g., 404, 500) |
+<TypeTable
+  type={{
+    status: {
+      type: "number",
+      description: "HTTP status code (e.g., 404, 500).",
+      required: true,
+    },
+  }}
+/>
 
 ### Second call: error page config
 
@@ -73,5 +83,11 @@ export default defineErrorPage(404)({
 
 ## Related
 
-- [Error Pages guide](/docs/guides/error-pages)
-- [`httpError`](/docs/api-reference/throwable-responses)
+<Cards>
+  <Card title="Error Pages" href="/docs/guides/error-pages">
+    Custom error pages for 404, 500, and other HTTP status codes.
+  </Card>
+  <Card title="Throwable Responses" href="/docs/api-reference/throwable-responses">
+    Interrupt request handling with redirects and HTTP errors.
+  </Card>
+</Cards>

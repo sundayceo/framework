@@ -1,11 +1,13 @@
 ---
 title: Error Pages
+icon: warning
 description: Custom error pages for 404, 500, and other HTTP status codes.
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
+import { File, Folder, Files } from "fumadocs-ui/components/files";
 
-When an error occurs — a missing route, a loader that throws, or an unhandled exception — the framework renders an error page.
+When an error occurs (a missing route, a loader that throws, or an unhandled exception), the framework renders an error page.
 
 ## Defining error pages
 
@@ -71,12 +73,13 @@ The `ErrorContext` object contains:
 
 You can create error pages for any HTTP status code:
 
-```
-src/routes/
-├── 403.tsx    → Forbidden
-├── 404.tsx    → Not Found
-├── 500.tsx    → Internal Server Error
-```
+<Files>
+  <Folder name="src/routes" defaultOpen>
+    <File name="403.tsx" />
+    <File name="404.tsx" />
+    <File name="500.tsx" />
+  </Folder>
+</Files>
 
 ## Fallback behavior
 
@@ -113,6 +116,6 @@ loader: ({ params }) => {
 ```
 
 <Callout type="info">
-	Error page files are excluded from the route table — they don't create navigable URLs. They're
+	Error page files are excluded from the route table. They don't create navigable URLs. They're
 	only rendered when an error occurs.
 </Callout>

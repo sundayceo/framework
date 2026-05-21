@@ -7,6 +7,7 @@ icon: download
 import { Callout } from "fumadocs-ui/components/callout";
 import { Step, Steps } from "fumadocs-ui/components/steps";
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+import { File, Folder, Files } from "fumadocs-ui/components/files";
 
 ## Prerequisites
 
@@ -50,15 +51,18 @@ bun add -D vite @types/react @types/react-dom typescript
 <Step>
 ### Create your source directory
 
-```
-src/
-├── app.ts              # App config + context factory
-├── templates/
-│   └── default.tsx     # Page template with slots
-├── routes/
-│   └── index.tsx       # Home page
-└── styles.css          # (optional) Global styles
-```
+<Files>
+  <Folder name="src" defaultOpen>
+    <File name="app.ts" />
+    <Folder name="templates" defaultOpen>
+      <File name="default.tsx" />
+    </Folder>
+    <Folder name="routes" defaultOpen>
+      <File name="index.tsx" />
+    </Folder>
+    <File name="styles.css" />
+  </Folder>
+</Files>
 
 </Step>
 
@@ -108,17 +112,7 @@ When you run the dev server or build, the Vite plugin generates two files in `sr
 | `routes.gen.ts`      | Route manifest with lazy imports, template registry, error pages, and hydration manifest |
 
 <Callout type="info">
-	These files are auto-generated. Add them to `.gitignore` or commit them — either approach works.
+	These files are auto-generated. Add them to `.gitignore` or commit them. Either approach works.
 	They're regenerated on every build and dev server start.
 </Callout>
 
-## Package exports
-
-The framework ships four entry points:
-
-| Import                              | Purpose                                                                |
-| ----------------------------------- | ---------------------------------------------------------------------- |
-| `@sundayceo/framework`              | Runtime API — `createApp`, `definePage`, `defineHandler`, `Slot`, etc. |
-| `@sundayceo/framework/vite`         | Vite plugin — `frameworkPlugin`                                        |
-| `@sundayceo/framework/codegen`      | Codegen API — `codegen`, `generateServerEntry`                         |
-| `@sundayceo/framework/server-entry` | Virtual module — the generated server handler                          |

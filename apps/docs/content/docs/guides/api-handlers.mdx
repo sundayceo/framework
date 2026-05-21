@@ -1,5 +1,6 @@
 ---
 title: API Handlers
+icon: plugs
 description: Define API endpoints that return raw Response objects.
 ---
 
@@ -87,7 +88,7 @@ return new Response(null, { status: 204 });
 ```
 
 <Callout type="info">
-	Handlers bypass the template system entirely — they don't render HTML through slots. If you need
+	Handlers bypass the template system entirely. They don't render HTML through slots. If you need
 	to return HTML, use `definePage` instead.
 </Callout>
 
