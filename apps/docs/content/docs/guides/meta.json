@@ -1,0 +1,14 @@
+{
+	"title": "Guides",
+	"icon": "compass",
+	"pages": [
+		"routing",
+		"pages-and-templates",
+		"loaders",
+		"hydration",
+		"api-handlers",
+		"error-pages",
+		"app-context",
+		"deployment"
+	]
+}

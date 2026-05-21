@@ -1,0 +1,100 @@
+---
+title: createHandler
+icon: function
+description: Create a fetch-compatible request handler from app config and routes.
+---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+
+## Signature
+
+```ts
+function createHandler<TPlatform>(config: {
+	app: AppConfig<Record<string, unknown>, TPlatform>;
+	routes: RouteEntry[];
+	templates: GeneratedTemplates;
+	errorPages?: GeneratedErrorPages;
+	hydrationManifest?: Record<string, Record<string, boolean>>;
+	hydrationAssets?: Record<string, Record<string, string>>;
+}): { fetch: (request: Request, platform?: TPlatform) => Promise<Response> };
+```
+
+## Parameters
+
+### `config`
+
+| Property            | Type                                      | Required | Description                                    |
+| ------------------- | ----------------------------------------- | -------- | ---------------------------------------------- |
+| `app`               | `AppConfig`                               | Yes      | App configuration from `createApp`             |
+| `routes`            | `RouteEntry[]`                            | Yes      | Route definitions from the generated manifest  |
+| `templates`         | `GeneratedTemplates`                      | Yes      | Template registry from the generated manifest  |
+| `errorPages`        | `GeneratedErrorPages`                     | No       | Error page loaders from the generated manifest |
+| `hydrationManifest` | `Record<string, Record<string, boolean>>` | No       | Map of route paths to slot interactivity       |
+| `hydrationAssets`   | `Record<string, Record<string, string>>`  | No       | Map of route paths to client asset URLs        |
+
+## Returns
+
+An object with a `fetch` method that takes a `Request` and optional platform context, returning a `Promise<Response>`.
+
+## Usage
+
+You typically don't call `createHandler` directly. The virtual server entry module does it for you. But you can use it for testing or custom setups:
+
+```ts
+import { createApp, createHandler } from "@sundayceo/framework";
+
+const app = createApp({
+	context: () => ({}),
+});
+
+const handler = createHandler({
+	app,
+	routes: [
+		{
+			routePath: "/",
+			params: [],
+			loadModule: () => import("./routes/index"),
+		},
+	],
+	templates: {
+		default: () => import("./templates/default"),
+	},
+});
+
+const response = await handler.fetch(new Request("http://localhost/"));
+```
+
+## Types
+
+### `RouteEntry`
+
+```ts
+type RouteEntry = {
+	routePath: string;
+	params: string[];
+	loadModule: () => Promise<{ default: unknown }>;
+};
+```
+
+### `GeneratedTemplates`
+
+```ts
+type GeneratedTemplates = Record<string, () => Promise<{ default: TemplateComponent }>>;
+```
+
+### `GeneratedErrorPages`
+
+```ts
+type GeneratedErrorPages = Record<number, () => Promise<{ default: unknown }>>;
+```
+
+## Related
+
+<Cards>
+  <Card title="createApp" href="/docs/api-reference/create-app">
+    Create a type-safe app configuration.
+  </Card>
+  <Card title="Deployment" href="/docs/guides/deployment">
+    Deploy to Cloudflare Workers, Hono, or any fetch platform.
+  </Card>
+</Cards>

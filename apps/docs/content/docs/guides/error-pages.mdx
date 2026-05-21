@@ -1,0 +1,121 @@
+---
+title: Error Pages
+icon: warning
+description: Custom error pages for 404, 500, and other HTTP status codes.
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { File, Folder, Files } from "fumadocs-ui/components/files";
+
+When an error occurs (a missing route, a loader that throws, or an unhandled exception), the framework renders an error page.
+
+## Defining error pages
+
+Create a file named by HTTP status code in `src/routes/`:
+
+```tsx title="src/routes/404.tsx"
+import React from "react";
+
+import { defineErrorPage } from "@sundayceo/framework";
+
+export default defineErrorPage(404)({
+	template: "default",
+	defineSlots: () => ({
+		main: (
+			<div>
+				<h1>404</h1>
+				<p>Page not found.</p>
+				<a href="/">Go home</a>
+			</div>
+		),
+	}),
+});
+```
+
+Error pages use the same template-and-slot system as regular pages.
+
+## Error context
+
+Error pages can have loaders that receive an `ErrorContext`:
+
+```tsx title="src/routes/500.tsx"
+import React from "react";
+
+import { defineErrorPage } from "@sundayceo/framework";
+
+export default defineErrorPage(500)({
+	template: "default",
+	loader: ({ error }) => ({
+		status: error.status,
+		message: error.message,
+	}),
+	defineSlots: ({ loaderData }) => ({
+		main: (
+			<div>
+				<h1>{loaderData.status}</h1>
+				<p>{loaderData.message}</p>
+			</div>
+		),
+	}),
+});
+```
+
+The `ErrorContext` object contains:
+
+| Property  | Type                   | Description                              |
+| --------- | ---------------------- | ---------------------------------------- |
+| `status`  | `number`               | HTTP status code                         |
+| `message` | `string`               | Error message or status text             |
+| `stack`   | `string \| undefined`  | Stack trace (development only)           |
+| `error`   | `unknown \| undefined` | Original error object (development only) |
+
+## Supported status codes
+
+You can create error pages for any HTTP status code:
+
+<Files>
+  <Folder name="src/routes" defaultOpen>
+    <File name="403.tsx" />
+    <File name="404.tsx" />
+    <File name="500.tsx" />
+  </Folder>
+</Files>
+
+## Fallback behavior
+
+If no custom error page exists for a given status code, the framework renders a minimal HTML response:
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Not Found</title>
+	</head>
+	<body>
+		<h1>Not Found</h1>
+	</body>
+</html>
+```
+
+If a custom error page itself throws, the framework falls back to this bare HTML response to prevent infinite error loops.
+
+## Triggering errors
+
+From loaders and handlers, use `httpError` to trigger a specific error page:
+
+```tsx
+import { httpError } from "@sundayceo/framework";
+
+loader: ({ params }) => {
+  const post = getPost(params.slug);
+  if (!post) {
+    throw httpError(404, "Post not found");
+  }
+  return post;
+},
+```
+
+<Callout type="info">
+	Error page files are excluded from the route table. They don't create navigable URLs. They're
+	only rendered when an error occurs.
+</Callout>

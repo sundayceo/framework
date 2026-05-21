@@ -1,0 +1,95 @@
+---
+title: Slot & SlotProvider
+icon: puzzle
+description: Render named slot content in templates.
+---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { TypeTable } from "fumadocs-ui/components/type-table";
+
+## Slot
+
+Renders a named slot's content from context, with an optional fallback.
+
+### Signature
+
+```ts
+function Slot(props: { id: string; fallback?: ReactNode }): ReactNode;
+```
+
+### Props
+
+<TypeTable
+  type={{
+    id: {
+      type: "string",
+      description: "The slot name. Must match a key from defineSlots.",
+      required: true,
+    },
+    fallback: {
+      type: "ReactNode",
+      description: "Content rendered when the page doesn't provide this slot.",
+    },
+  }}
+/>
+
+### Usage
+
+```tsx title="src/templates/default.tsx"
+import { Slot } from "@sundayceo/framework";
+
+<Slot id="header" />
+<Slot id="main" fallback={<p>No content.</p>} />
+```
+
+### Rendering behavior
+
+- **Static slots** render as `<div data-slot="id">content</div>` with no JavaScript
+- **Interactive slots** render as `<div data-hydrate="id">content</div>` with hydration scripts
+
+The framework determines which mode to use based on the [hydration manifest](/docs/guides/hydration).
+
+---
+
+## SlotProvider
+
+Provides a slot map and hydration metadata to descendant `Slot` components via React context.
+
+### Signature
+
+```ts
+function SlotProvider(props: {
+	slots: SlotMap;
+	hydration?: {
+		interactivity?: Record<string, boolean>;
+		serializedData?: string;
+		assetPaths?: Record<string, string>;
+		routePath?: string;
+	};
+	children: ReactNode;
+}): ReactNode;
+```
+
+### Usage
+
+`SlotProvider` is used internally by the framework's render pipeline. You typically don't need to use it directly unless you're building custom integrations:
+
+```tsx
+<SlotProvider
+	slots={{ header: <h1>Title</h1>, main: <p>Content</p> }}
+	hydration={{ interactivity: { main: true } }}
+>
+	<Template />
+</SlotProvider>
+```
+
+## Related
+
+<Cards>
+  <Card title="Pages & Templates" href="/docs/guides/pages-and-templates">
+    Define page layouts with templates and fill them with slot content.
+  </Card>
+  <Card title="Hydration" href="/docs/guides/hydration">
+    How selective hydration works and what ships to the client.
+  </Card>
+</Cards>
