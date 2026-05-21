@@ -4,3 +4,4 @@
 .output
 .vinxi
 src/routeTree.gen.ts
+tsconfig.tsbuildinfo
