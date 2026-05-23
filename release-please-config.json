@@ -2,16 +2,32 @@
 	"$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
 	"bump-minor-pre-major": true,
 	"bump-patch-for-minor-pre-major": true,
+	"versioning": "prerelease",
+	"prerelease": true,
 	"include-component-in-tag": true,
 	"separate-pull-requests": false,
+	"plugins": [
+		{
+			"type": "node-workspace",
+			"updateAllPackages": true,
+			"always-link-local": true
+		}
+	],
 	"packages": {
 		"packages/framework": {
 			"component": "framework",
-			"release-type": "node"
+			"release-type": "node",
+			"prerelease-type": "beta"
 		},
 		"packages/cli": {
 			"component": "cli",
-			"release-type": "node"
+			"release-type": "node",
+			"prerelease-type": "beta"
+		},
+		"apps/docs": {
+			"component": "docs",
+			"release-type": "node",
+			"prerelease-type": "beta"
 		}
 	}
 }

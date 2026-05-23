@@ -1,6 +1,12 @@
 name: Prepare
 description: Install pnpm, Node, and dependencies
 
+inputs:
+  registry-url:
+    description: npm registry URL (set when publishing)
+    required: false
+    default: ""
+
 runs:
   using: composite
   steps:
@@ -12,7 +18,16 @@ runs:
       with:
         node-version-file: package.json
         cache: pnpm
+        registry-url: ${{ inputs.registry-url }}
 
     - name: Install dependencies
       shell: bash
       run: pnpm install --frozen-lockfile
+
+    - name: Restore turbo cache
+      uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      with:
+        path: .turbo/cache
+        key: turbo-${{ runner.os }}-${{ github.sha }}
+        restore-keys: |
+          turbo-${{ runner.os }}-
