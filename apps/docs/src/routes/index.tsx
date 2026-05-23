@@ -17,7 +17,7 @@ function HomePage() {
 			</p>
 			<div className="flex gap-4">
 				<a
-					href="/docs"
+					href="/docs/v0"
 					className="rounded-lg bg-fd-primary px-6 py-3 text-sm font-medium text-fd-primary-foreground transition-colors hover:bg-fd-primary/90"
 				>
 					Get Started

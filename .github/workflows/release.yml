@@ -16,36 +16,84 @@ jobs:
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
       paths_released: ${{ steps.release.outputs.paths_released }}
+      docs_release_created: ${{ steps.release.outputs['apps/docs--release_created'] }}
     steps:
+      - name: Generate GitHub App token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3
+        id: app-token
+        with:
+          client-id: ${{ secrets.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5
         id: release
         env:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         with:
+          token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
   publish:
-    name: Publish to npm
+    name: Publish ${{ matrix.path }}
+    runs-on: ubuntu-latest
     needs: release-please
     if: needs.release-please.outputs.releases_created == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        path: ${{ fromJSON(needs.release-please.outputs.paths_released) }}
+        exclude:
+          - path: apps/docs
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: ./.github/actions/prepare
+        with:
+          registry-url: https://registry.npmjs.org
+
+      - name: Build
+        run: pnpm exec turbo run build --filter="./${{ matrix.path }}..."
+
+      - uses: ./.github/actions/publish-packages
+        with:
+          filter: "./${{ matrix.path }}"
+          tag: beta
+          provenance: "true"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Promote to latest
+        working-directory: ${{ matrix.path }}
+        run: |
+          set -euo pipefail
+          PKG_NAME=$(node -e "console.log(require('./package.json').name)")
+          PKG_VERSION=$(node -e "console.log(require('./package.json').version)")
+          npm dist-tag add "${PKG_NAME}@${PKG_VERSION}" latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  deploy-docs:
+    name: Deploy docs
     runs-on: ubuntu-latest
+    needs: release-please
+    if: needs.release-please.outputs.docs_release_created == 'true'
+    environment: production
+    concurrency:
+      group: deploy-docs
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - uses: ./.github/actions/prepare
 
       - name: Build
-        run: pnpm build
+        run: pnpm exec turbo run build --filter=@sundayceo/docs...
 
-      - name: Publish @sundayceo/framework
-        if: contains(needs.release-please.outputs.paths_released, 'packages/framework')
-        run: pnpm --filter @sundayceo/framework publish --no-git-checks --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Publish @sundayceo/create
-        if: contains(needs.release-please.outputs.paths_released, 'packages/cli')
-        run: pnpm --filter @sundayceo/create publish --no-git-checks --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/docs
+          command: deploy

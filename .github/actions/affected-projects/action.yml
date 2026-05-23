@@ -1,0 +1,82 @@
+name: Affected Projects
+description: Query Turborepo for affected publishable packages and expose GitHub Actions outputs.
+
+inputs:
+  base:
+    description: Git ref to compare from.
+    required: true
+  head:
+    description: Git ref to compare to.
+    default: HEAD
+  task:
+    description: Turbo task used to calculate affected projects.
+    default: build
+  package-glob:
+    description: Package manifest glob used to map workspace metadata.
+    default: packages/*/package.json
+
+outputs:
+  projects:
+    description: JSON array of affected projects with name, path, and slug.
+    value: ${{ steps.projects.outputs.projects }}
+  has-projects:
+    description: Whether any affected projects matched.
+    value: ${{ steps.projects.outputs.has-projects }}
+
+runs:
+  using: composite
+  steps:
+    - id: projects
+      shell: bash
+      run: |
+        set -euo pipefail
+        shopt -s nullglob
+
+        turbo_stderr="$(mktemp)"
+        if ! affected="$(pnpm exec turbo query affected --tasks "${{ inputs.task }}" --base "${{ inputs.base }}" --head "${{ inputs.head }}" 2> "$turbo_stderr" | sed -n '/^{/,$p')"; then
+          cat "$turbo_stderr" >&2
+          exit 1
+        fi
+        rm "$turbo_stderr"
+
+        affected_names="$(jq -c '[.data.affectedTasks.items[].package.name] | unique' <<< "$affected")"
+        projects="[]"
+
+        for manifest in ${{ inputs.package-glob }}; do
+          path="${manifest%/package.json}"
+
+          if jq -e \
+            --argjson affected_names "$affected_names" \
+            --arg task "${{ inputs.task }}" '
+              (.name as $name | $affected_names | index($name) != null)
+              and (.private != true)
+              and (.scripts[$task] | type == "string")
+              and (.files | type == "array" and index("dist") != null)
+            ' "$manifest" > /dev/null; then
+            name="$(jq -r '.name' "$manifest")"
+            slug="$(jq -nr --arg name "$name" '$name | sub("^@"; "") | gsub("[^a-zA-Z0-9]+"; "-") | sub("^-"; "") | sub("-$"; "")')"
+            projects="$(jq -c --arg name "$name" --arg path "$path" --arg slug "$slug" '. + [{ name: $name, path: $path, slug: $slug }]' <<< "$projects")"
+          fi
+        done
+
+        projects="$(jq -c 'sort_by(.name)' <<< "$projects")"
+        count="$(jq 'length' <<< "$projects")"
+
+        echo "projects=$projects" >> "$GITHUB_OUTPUT"
+        echo "has-projects=$([[ "$count" -gt 0 ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+        if [[ "$count" -gt 0 ]]; then
+          {
+            echo "### Affected Packages"
+            echo
+            echo "| Package | Path |"
+            echo "| --- | --- |"
+            jq -r '.[] | "| \(.name) | `\(.path)` |"' <<< "$projects"
+          } >> "$GITHUB_STEP_SUMMARY"
+        else
+          {
+            echo "### Affected Packages"
+            echo
+            echo "No affected packages."
+          } >> "$GITHUB_STEP_SUMMARY"
+        fi
