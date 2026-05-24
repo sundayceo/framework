@@ -2,11 +2,10 @@
 
 ## [0.1.0-beta.2](https://github.com/sundayceo/framework/compare/docs-v0.1.0-beta.1...docs-v0.1.0-beta.2) (2026-05-24)
 
-
 ### Features
 
-* **repo:** add favicons and SEO metadata to docs site ([#203](https://github.com/sundayceo/framework/issues/203)) ([26f1ec8](https://github.com/sundayceo/framework/commit/26f1ec86865325a748abe585044780a5aa5da537)), closes [#202](https://github.com/sundayceo/framework/issues/202)
-* **repo:** add llms.txt endpoints for AI agent optimization ([#205](https://github.com/sundayceo/framework/issues/205)) ([9298943](https://github.com/sundayceo/framework/commit/92989437111ea0313886e17431ac4d42944dd8c0))
+- **repo:** add favicons and SEO metadata to docs site ([#203](https://github.com/sundayceo/framework/issues/203)) ([26f1ec8](https://github.com/sundayceo/framework/commit/26f1ec86865325a748abe585044780a5aa5da537)), closes [#202](https://github.com/sundayceo/framework/issues/202)
+- **repo:** add llms.txt endpoints for AI agent optimization ([#205](https://github.com/sundayceo/framework/issues/205)) ([9298943](https://github.com/sundayceo/framework/commit/92989437111ea0313886e17431ac4d42944dd8c0))
 
 ## [0.1.0-beta.1](https://github.com/sundayceo/framework/compare/docs-v0.1.0-beta.0...docs-v0.1.0-beta.1) (2026-05-23)
 
