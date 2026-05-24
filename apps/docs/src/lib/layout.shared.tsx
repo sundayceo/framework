@@ -45,6 +45,14 @@ export function baseOptions(): BaseLayoutProps {
 				),
 				external: true,
 			},
+			{
+				type: "icon",
+				label: "npm",
+				text: "npm",
+				url: "https://www.npmjs.com/package/@sundayceo/framework",
+				icon: <img src="/npm.svg" alt="npm" className="h-5" />,
+				external: true,
+			},
 		],
 	};
 }
