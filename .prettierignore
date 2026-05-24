@@ -6,3 +6,4 @@ templates/
 **/.next/
 **/*.mdx
 **/routeTree.gen.ts
+**/CHANGELOG.md
