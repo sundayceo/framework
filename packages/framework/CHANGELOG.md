@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.2](https://github.com/sundayceo/framework/compare/framework-v0.1.0-beta.1...framework-v0.1.0-beta.2) (2026-05-24)
+
+
+### Features
+
+* **repo:** add favicons and SEO metadata to docs site ([#203](https://github.com/sundayceo/framework/issues/203)) ([26f1ec8](https://github.com/sundayceo/framework/commit/26f1ec86865325a748abe585044780a5aa5da537)), closes [#202](https://github.com/sundayceo/framework/issues/202)
+
 ## [0.1.0-beta.1](https://github.com/sundayceo/framework/compare/framework-v0.1.0-beta.0...framework-v0.1.0-beta.1) (2026-05-23)
 
 ### Features
