@@ -12,10 +12,25 @@ export const Route = createRootRoute({
 			{ title: "sundayceo framework" },
 			{
 				name: "description",
-				content: "Server-first React framework with selective hydration.",
+				content:
+					"A lightweight, React-based TypeScript framework for Cloudflare Workers with selective hydration.",
 			},
+			{ property: "og:title", content: "sundayceo framework" },
+			{
+				property: "og:description",
+				content:
+					"A lightweight, React-based TypeScript framework for Cloudflare Workers with selective hydration.",
+			},
+			{ property: "og:type", content: "website" },
+			{ property: "og:url", content: "https://framework.sundayceo.com" },
 		],
-		links: [{ rel: "icon", href: "/favicon.ico" }],
+		links: [
+			{ rel: "icon", href: "/favicon.ico" },
+			{ rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+			{ rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
+			{ rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+			{ rel: "manifest", href: "/site.webmanifest" },
+		],
 	}),
 	component: RootComponent,
 });
