@@ -11,6 +11,10 @@ A lightweight, React-based TypeScript framework for Cloudflare Workers. Pages sh
 
 **[framework.sundayceo.com](https://framework.sundayceo.com)**
 
+## npm
+
+[<img src="npm.svg" alt="npm" height="24">](https://www.npmjs.com/package/@sundayceo/framework)
+
 ## Quick start
 
 ```bash
