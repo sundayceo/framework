@@ -28,6 +28,12 @@ function HomePage() {
 				>
 					GitHub
 				</a>
+				<a
+					href="https://www.npmjs.com/package/@sundayceo/framework"
+					className="rounded-lg border border-fd-border px-6 py-3 text-sm font-medium transition-colors hover:bg-fd-accent"
+				>
+					<img src="/npm.svg" alt="npm" className="inline h-4" />
+				</a>
 			</div>
 		</main>
 	);
