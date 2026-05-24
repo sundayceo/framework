@@ -54,7 +54,7 @@ function Page() {
 	const data = useFumadocsLoader(Route.useLoaderData());
 
 	return (
-		<DocsLayout {...baseOptions()} tree={data.pageTree} tabs={{}}>
+		<DocsLayout {...baseOptions()} tree={data.pageTree}>
 			<Suspense>{clientLoader.useContent(data.path, data)}</Suspense>
 		</DocsLayout>
 	);
