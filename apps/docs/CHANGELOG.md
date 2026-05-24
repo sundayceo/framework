@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.3](https://github.com/sundayceo/framework/compare/docs-v0.1.0-beta.2...docs-v0.1.0-beta.3) (2026-05-24)
+
+
+### Bug Fixes
+
+* **repo:** include package READMEs in release ([d94211a](https://github.com/sundayceo/framework/commit/d94211a6031dc7331512fdaaa21c5fb5f32a22b2))
+
 ## [0.1.0-beta.2](https://github.com/sundayceo/framework/compare/docs-v0.1.0-beta.1...docs-v0.1.0-beta.2) (2026-05-24)
 
 ### Features
