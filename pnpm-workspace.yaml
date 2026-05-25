@@ -1,5 +1,6 @@
 packages:
   - apps/*
+  - examples/*
   - packages/*
 catalog:
   "@commitlint/cli": 21.0.1
