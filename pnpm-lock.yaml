@@ -18,12 +18,18 @@ catalogs:
     '@ianvs/prettier-plugin-sort-imports':
       specifier: ^4.4.1
       version: 4.7.1
+    '@types/node':
+      specifier: ^25.7.0
+      version: 25.9.1
     '@types/react':
       specifier: ^19.2.14
       version: 19.2.15
     '@types/react-dom':
       specifier: ^19.2.3
       version: 19.2.3
+    eslint:
+      specifier: ^10.0.0
+      version: 10.4.0
     eslint-plugin-boundaries:
       specifier: ^6.0.0
       version: 6.0.2
@@ -175,7 +181,7 @@ importers:
         specifier: ^4.93.0
         version: 4.94.0
 
-  apps/example-cloudflare:
+  examples/cloudflare:
     dependencies:
       '@sundayceo/framework':
         specifier: workspace:*
@@ -215,7 +221,7 @@ importers:
         specifier: ^4.20.0
         version: 4.94.0
 
-  apps/example-hono:
+  examples/hono:
     dependencies:
       '@hono/node-server':
         specifier: ^2.0.3
