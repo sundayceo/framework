@@ -12,7 +12,10 @@ jobs:
     if: github.event.label.name == 'in-progress'
     runs-on: ubuntu-latest
     steps:
-      - name: Assign actor to issue
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh issue edit ${{ github.event.issue.number }} --repo ${{ github.repository }} --add-assignee ${{ github.actor }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const run = require('./.github/scripts/auto-assign-pickup.js');
+            await run({ github, context });

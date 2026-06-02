@@ -12,37 +12,10 @@ jobs:
     name: Enforce label state machine
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
       - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
-            const added = context.payload.label.name;
-
-            const transitions = {
-              'ready-for-agent':  ['needs-triage'],
-              'ready-for-human':  ['needs-triage'],
-              'needs-info':       ['needs-triage'],
-              'wontfix':          ['needs-triage'],
-              'in-progress':      ['ready-for-agent', 'ready-for-human'],
-              'ready-for-review': ['ready-for-agent', 'ready-for-human', 'needs-info', 'in-progress'],
-            };
-
-            const toRemove = transitions[added];
-            if (!toRemove) return;
-
-            for (const label of toRemove) {
-              try {
-                await github.rest.issues.removeLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.issue.number,
-                  name: label,
-                });
-                console.log(`Removed '${label}' from #${context.issue.number}`);
-              } catch (e) {
-                if (e.status === 404) {
-                  console.log(`Label '${label}' not present on #${context.issue.number} — skipping`);
-                } else {
-                  throw e;
-                }
-              }
-            }
+            const run = require('./.github/scripts/label-transitions.js');
+            await run({ github, context });

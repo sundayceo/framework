@@ -15,59 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.event == 'pull_request' }}
     steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
       - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
-            const runId = context.payload.workflow_run.id;
-            const conclusion = context.payload.workflow_run.conclusion;
-
-            // Find the PR associated with this workflow run
-            const prs = context.payload.workflow_run.pull_requests;
-            if (!prs || prs.length === 0) {
-              console.log('No pull requests associated with this workflow run.');
-              return;
-            }
-
-            const prNumber = prs[0].number;
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-            });
-
-            if (conclusion === 'success') {
-              // Parse the PR body for closing keywords (case-insensitive)
-              const body = pr.body || '';
-              const pattern = /(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#(\d+)/gi;
-              const issueNumbers = new Set();
-              let match;
-              while ((match = pattern.exec(body)) !== null) {
-                issueNumbers.add(Number(match[1]));
-              }
-
-              if (issueNumbers.size === 0) {
-                console.log('No linked issues found in PR body.');
-                return;
-              }
-
-              for (const issueNumber of issueNumbers) {
-                await github.rest.issues.addLabels({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issueNumber,
-                  labels: ['ready-for-review'],
-                });
-
-                console.log(`Issue #${issueNumber}: added ready-for-review`);
-              }
-            } else if (conclusion === 'failure') {
-              const runUrl = `${context.payload.workflow_run.html_url}`;
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNumber,
-                body: `CI failed for this pull request.\n\n[View the failed run](${runUrl})`,
-              });
-
-              console.log(`Posted CI failure comment on PR #${prNumber}`);
-            }
+            const run = require('./.github/scripts/ci-status-labels.js');
+            await run({ github, context });
