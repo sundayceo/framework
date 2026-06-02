@@ -66,3 +66,6 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Test workflow scripts
+        run: pnpm test:scripts

@@ -48,8 +48,9 @@ issue so that CI automation can transition labels automatically.
 ## 6. Stop
 
 After the PR is opened, the agent's job is done. CI runs automatically and, on
-success, the `ci-status-labels` workflow removes `in-progress` and adds
-`ready-for-review` to the linked issue. Do not wait for CI or merge the PR.
+success, the `ci-status-labels` workflow adds `ready-for-review` to the linked
+issue. The `label-transitions` workflow then removes `in-progress` (and other
+conflicting labels) automatically. Do not wait for CI or merge the PR.
 
 ## 7. Clean up
 
