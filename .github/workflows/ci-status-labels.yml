@@ -51,18 +51,6 @@ jobs:
               }
 
               for (const issueNumber of issueNumbers) {
-                try {
-                  await github.rest.issues.removeLabel({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: issueNumber,
-                    name: 'in-progress',
-                  });
-                } catch (e) {
-                  // Label may not exist on the issue — ignore
-                  console.log(`Could not remove in-progress from #${issueNumber}: ${e.message}`);
-                }
-
                 await github.rest.issues.addLabels({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -70,7 +58,7 @@ jobs:
                   labels: ['ready-for-review'],
                 });
 
-                console.log(`Issue #${issueNumber}: removed in-progress, added ready-for-review`);
+                console.log(`Issue #${issueNumber}: added ready-for-review`);
               }
             } else if (conclusion === 'failure') {
               const runUrl = `${context.payload.workflow_run.html_url}`;
