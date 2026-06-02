@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.0-beta.4](https://github.com/sundayceo/framework/compare/docs-v0.1.0-beta.3...docs-v0.1.0-beta.4) (2026-05-25)
+
+
+### Features
+
+* **repo:** add canary/beta release channels and versioned docs ([#194](https://github.com/sundayceo/framework/issues/194)) ([76242a2](https://github.com/sundayceo/framework/commit/76242a2e573cfce85cc2d43421d436a563bf6c9f))
+* **repo:** add complete documentation site with Fumadocs ([#193](https://github.com/sundayceo/framework/issues/193)) ([b81dcc9](https://github.com/sundayceo/framework/commit/b81dcc966a8e7d4e6af9f62130eeb3b8e2f84f91))
+* **repo:** add favicons and SEO metadata to docs site ([#203](https://github.com/sundayceo/framework/issues/203)) ([09b2baa](https://github.com/sundayceo/framework/commit/09b2baa86ba618bbca8e978dcc1f0fe6dd6d228a)), closes [#202](https://github.com/sundayceo/framework/issues/202)
+* **repo:** add llms.txt endpoints for AI agent optimization ([#205](https://github.com/sundayceo/framework/issues/205)) ([2c4ac85](https://github.com/sundayceo/framework/commit/2c4ac85b0551bfe15566c206f9e5ebdd13f474e7))
+
+
+### Bug Fixes
+
+* **repo:** seed prerelease versions so release-please creates beta releases ([#195](https://github.com/sundayceo/framework/issues/195)) ([797d822](https://github.com/sundayceo/framework/commit/797d822c7f11e1d8a0c5a757b9c30110d21e2819))
+* **repo:** use minor bumps for feat commits pre-1.0 ([#197](https://github.com/sundayceo/framework/issues/197)) ([06e11e3](https://github.com/sundayceo/framework/commit/06e11e3988dd87e8c7ea3d88234781e37037fde7))
+
 ## [0.1.0-beta.3](https://github.com/sundayceo/framework/compare/docs-v0.1.0-beta.2...docs-v0.1.0-beta.3) (2026-05-24)
 
 

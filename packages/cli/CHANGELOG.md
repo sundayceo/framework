@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.0-beta.4](https://github.com/sundayceo/framework/compare/cli-v0.1.0-beta.3...cli-v0.1.0-beta.4) (2026-05-25)
+
+
+### Features
+
+* **cli:** implement create scaffolding CLI ([#82](https://github.com/sundayceo/framework/issues/82)) ([c265a7c](https://github.com/sundayceo/framework/commit/c265a7c22c8160ce98330fe50e32c0290d0f182c))
+* **cli:** update scaffold template with server entry and Cloudflare config ([#91](https://github.com/sundayceo/framework/issues/91)) ([#102](https://github.com/sundayceo/framework/issues/102)) ([f2fe90a](https://github.com/sundayceo/framework/commit/f2fe90ab89144924d2eba2309d770f1cf8548de3))
+* **repo:** add release infrastructure with commit linting and changelog generation ([#33](https://github.com/sundayceo/framework/issues/33)) ([0ab0dd7](https://github.com/sundayceo/framework/commit/0ab0dd719563fdf41edf9af61ba5397e78345362))
+* scaffold monorepo with Turborepo + pnpm ([#32](https://github.com/sundayceo/framework/issues/32)) ([6d94b0f](https://github.com/sundayceo/framework/commit/6d94b0fec02c7e3a89f5ebc9b2f0b27e86a12cae))
+
+
+### Bug Fixes
+
+* **repo:** seed prerelease versions so release-please creates beta releases ([#195](https://github.com/sundayceo/framework/issues/195)) ([797d822](https://github.com/sundayceo/framework/commit/797d822c7f11e1d8a0c5a757b9c30110d21e2819))
+* **repo:** use minor bumps for feat commits pre-1.0 ([#197](https://github.com/sundayceo/framework/issues/197)) ([06e11e3](https://github.com/sundayceo/framework/commit/06e11e3988dd87e8c7ea3d88234781e37037fde7))
+
 ## [0.1.0-beta.3](https://github.com/sundayceo/framework/compare/cli-v0.1.0-beta.2...cli-v0.1.0-beta.3) (2026-05-24)
 
 
