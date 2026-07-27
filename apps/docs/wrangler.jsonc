@@ -1,8 +1,11 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "sundayceo-docs",
+	"name": "framework-docs",
 	"compatibility_date": "2025-05-01",
 	"compatibility_flags": ["nodejs_compat"],
 	"main": "@tanstack/react-start/server-entry",
 	"observability": { "enabled": true },
+	"routes": [{ "pattern": "framework.sundayceo.com", "custom_domain": true }],
+	"workers_dev": false,
+	"preview_urls": false,
 }
