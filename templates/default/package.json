@@ -10,12 +10,11 @@
 		"check-types": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@sundayceo/framework": "0.0.0",
+		"@sundayceo/framework": "{{frameworkVersion}}",
 		"react": "^19.2.5",
 		"react-dom": "^19.2.5"
 	},
 	"devDependencies": {
-		"@sundayceo/typescript-config": "0.0.0",
 		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.3",
 		"typescript": "^6.0.0",
