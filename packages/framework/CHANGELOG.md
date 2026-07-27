@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.5](https://github.com/sundayceo/framework/compare/framework-v0.1.0-beta.4...framework-v0.1.0-beta.5) (2026-07-27)
+
+
+### Bug Fixes
+
+* **framework:** quote generated template and route param keys ([#229](https://github.com/sundayceo/framework/issues/229)) ([7bc6e76](https://github.com/sundayceo/framework/commit/7bc6e766e91500be21c0d605bc188e9367501bdc))
+
 ## [0.1.0-beta.4](https://github.com/sundayceo/framework/compare/framework-v0.1.0-beta.3...framework-v0.1.0-beta.4) (2026-05-25)
 
 
