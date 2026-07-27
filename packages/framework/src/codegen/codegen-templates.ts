@@ -8,7 +8,7 @@ export function generateTemplateRegistry(filePaths: string[]): string {
 	const lines = [
 		'declare module "@sundayceo/framework" {',
 		"\tinterface TemplateRegistry {",
-		...entries.map((id) => `\t\t${id}: typeof import("./templates/${id}").default;`),
+		...entries.map((id) => `\t\t"${id}": typeof import("./templates/${id}").default;`),
 		"\t}",
 		"}",
 		"",

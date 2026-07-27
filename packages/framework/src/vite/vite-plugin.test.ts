@@ -311,8 +311,7 @@ describe("vite-plugin transform", () => {
 		].join("\n");
 
 		const result = (await plugin.transform(jsxCode, "\0virtual:hydrate/demo/main.jsx")) as
-			| { code: string }
-			| undefined;
+			{ code: string } | undefined;
 		expect(result).toBeDefined();
 		expect(result?.code).toContain("jsx");
 	});
