@@ -3,8 +3,8 @@ packages:
   - examples/*
   - packages/*
 catalog:
-  "@commitlint/cli": 21.0.2
-  "@commitlint/config-conventional": 21.0.2
+  "@commitlint/cli": 21.2.1
+  "@commitlint/config-conventional": 21.2.0
   "@eslint/js": ^10.0.0
   "@ianvs/prettier-plugin-sort-imports": ^4.4.1
   "@types/node": ^25.7.0
