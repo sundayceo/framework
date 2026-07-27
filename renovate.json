@@ -11,8 +11,12 @@
 	"minimumReleaseAge": "2 days",
 	"rebaseWhen": "auto",
 	"labels": ["dependencies"],
-	"ignoreDeps": ["@sundayceo/*"],
 	"packageRules": [
+		{
+			"description": "Internal workspace packages are never resolved from the registry",
+			"matchPackageNames": ["@sundayceo/**"],
+			"enabled": false
+		},
 		{
 			"description": "React ecosystem",
 			"matchPackageNames": [
