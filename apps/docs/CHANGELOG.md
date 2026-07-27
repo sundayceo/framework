@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.6](https://github.com/sundayceo/framework/compare/docs-v0.1.0-beta.5...docs-v0.1.0-beta.6) (2026-07-27)
+
+
+### Bug Fixes
+
+* **repo:** serve docs worker on framework.sundayceo.com ([#232](https://github.com/sundayceo/framework/issues/232)) ([d894a50](https://github.com/sundayceo/framework/commit/d894a50941bebc26a790fae45108ecbaeb65e256))
+
 ## [0.1.0-beta.5](https://github.com/sundayceo/framework/compare/docs-v0.1.0-beta.4...docs-v0.1.0-beta.5) (2026-07-27)
 
 ## [0.1.0-beta.4](https://github.com/sundayceo/framework/compare/docs-v0.1.0-beta.3...docs-v0.1.0-beta.4) (2026-05-25)
