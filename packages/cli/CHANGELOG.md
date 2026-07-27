@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.1.0-beta.5](https://github.com/sundayceo/framework/compare/cli-v0.1.0-beta.4...cli-v0.1.0-beta.5) (2026-07-27)
+
 ## [0.1.0-beta.4](https://github.com/sundayceo/framework/compare/cli-v0.1.0-beta.3...cli-v0.1.0-beta.4) (2026-05-25)
 
 
