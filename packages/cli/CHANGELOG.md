@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.7](https://github.com/sundayceo/framework/compare/cli-v0.1.0-beta.6...cli-v0.1.0-beta.7) (2026-07-27)
+
+
+### Bug Fixes
+
+* **cli:** make scaffolded projects installable ([#236](https://github.com/sundayceo/framework/issues/236)) ([aed1fb8](https://github.com/sundayceo/framework/commit/aed1fb8aeee3f9be8e6340158873e378519cea4f)), closes [#235](https://github.com/sundayceo/framework/issues/235)
+
 ## [0.1.0-beta.6](https://github.com/sundayceo/framework/compare/cli-v0.1.0-beta.5...cli-v0.1.0-beta.6) (2026-07-27)
 
 ## [0.1.0-beta.5](https://github.com/sundayceo/framework/compare/cli-v0.1.0-beta.4...cli-v0.1.0-beta.5) (2026-07-27)
