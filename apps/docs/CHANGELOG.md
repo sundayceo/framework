@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.1.0-beta.7](https://github.com/sundayceo/framework/compare/docs-v0.1.0-beta.6...docs-v0.1.0-beta.7) (2026-07-27)
+
 ## [0.1.0-beta.6](https://github.com/sundayceo/framework/compare/docs-v0.1.0-beta.5...docs-v0.1.0-beta.6) (2026-07-27)
 
 
