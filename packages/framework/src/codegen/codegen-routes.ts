@@ -5,7 +5,7 @@ function formatParamType(params: string[]): string {
 	if (params.length === 0) {
 		return "{}";
 	}
-	return `{ ${params.map((p) => `${p}: string`).join("; ")} }`;
+	return `{ ${params.map((p) => `"${p}": string`).join("; ")} }`;
 }
 
 /** Generates a TypeScript RouteMap declaration from route file paths. */

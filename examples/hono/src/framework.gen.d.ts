@@ -2,8 +2,8 @@ export {};
 
 declare module "@sundayceo/framework" {
 	interface TemplateRegistry {
-		default: typeof import("./templates/default").default;
-		minimal: typeof import("./templates/minimal").default;
+		"default": typeof import("./templates/default").default;
+		"minimal": typeof import("./templates/minimal").default;
 	}
 }
 
@@ -14,10 +14,10 @@ declare module "@sundayceo/framework" {
 		"/api/health": {};
 		"/app-context": {};
 		"/async-data": {};
-		"/blog/[slug]": { slug: string };
+		"/blog/[slug]": { "slug": string };
 		"/blog/featured": {};
 		"/counter": {};
-		"/docs/[...slug]": { slug: string };
+		"/docs/[...slug]": { "slug": string };
 		"/full-hydration": {};
 		"/meta-dynamic": {};
 		"/meta-static": {};
@@ -30,6 +30,6 @@ declare module "@sundayceo/framework" {
 		"/trigger-500": {};
 		"/trigger-redirect": {};
 		"/typo-slot": {};
-		"/users/[id]/posts/[postId]": { id: string; postId: string };
+		"/users/[id]/posts/[postId]": { "id": string; "postId": string };
 	}
 }

@@ -1,6 +1,11 @@
+import { parse } from "@babel/parser";
 import { describe, expect, test } from "vitest";
 
 import { generateRouteMap } from "./codegen-routes";
+
+function parseDeclaration(source: string): void {
+	parse(source, { sourceType: "module", plugins: ["typescript"] });
+}
 
 describe("generateRouteMap", () => {
 	test("generates declaration for static routes", () => {
@@ -14,13 +19,13 @@ describe("generateRouteMap", () => {
 	test("generates param types for dynamic routes", () => {
 		const result = generateRouteMap(["blog/[slug].tsx"]);
 
-		expect(result).toContain('"/blog/[slug]": { slug: string };');
+		expect(result).toContain('"/blog/[slug]": { "slug": string };');
 	});
 
 	test("generates multiple param types for nested dynamic routes", () => {
 		const result = generateRouteMap(["users/[id]/posts/[postId].tsx"]);
 
-		expect(result).toContain("{ id: string; postId: string }");
+		expect(result).toContain('{ "id": string; "postId": string }');
 	});
 
 	test("filters out test files", () => {
@@ -63,13 +68,35 @@ describe("generateRouteMap", () => {
 	test("generates catch-all route with string param type", () => {
 		const result = generateRouteMap(["docs/[...slug].tsx"]);
 
-		expect(result).toContain('"/docs/[...slug]": { slug: string };');
+		expect(result).toContain('"/docs/[...slug]": { "slug": string };');
 	});
 
 	test("generates top-level catch-all route", () => {
 		const result = generateRouteMap(["[...path].tsx"]);
 
-		expect(result).toContain('"/[...path]": { path: string };');
+		expect(result).toContain('"/[...path]": { "path": string };');
+	});
+
+	test("quotes dashed param names", () => {
+		const result = generateRouteMap(["blog/[post-id].tsx"]);
+
+		expect(result).toContain('"/blog/[post-id]": { "post-id": string };');
+	});
+
+	test("produces parseable output for dashed param names", () => {
+		const result = generateRouteMap(["blog/[post-id].tsx", "docs/[...doc-path].tsx"]);
+
+		expect(() => {
+			parseDeclaration(result);
+		}).not.toThrow();
+	});
+
+	test("produces parseable output for identifier-safe param names", () => {
+		const result = generateRouteMap(["blog/[slug].tsx", "users/[id]/posts/[postId].tsx"]);
+
+		expect(() => {
+			parseDeclaration(result);
+		}).not.toThrow();
 	});
 
 	test("strips route group folders from type declarations", () => {

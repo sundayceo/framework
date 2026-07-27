@@ -25,8 +25,8 @@ export const routes = [
 ];
 
 export const templates = {
-  default: () => import("./templates/default"),
-  minimal: () => import("./templates/minimal"),
+  "default": () => import("./templates/default"),
+  "minimal": () => import("./templates/minimal"),
 };
 
 export const errorPages = {

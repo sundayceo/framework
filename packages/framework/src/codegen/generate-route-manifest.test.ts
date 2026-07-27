@@ -1,6 +1,11 @@
+import { parse } from "@babel/parser";
 import { describe, expect, test } from "vitest";
 
 import { generateRouteManifest } from "./generate-route-manifest";
+
+function parseManifest(source: string): void {
+	parse(source, { sourceType: "module", plugins: ["typescript"] });
+}
 
 describe("generateRouteManifest", () => {
 	test("generates route entries with import paths", () => {
@@ -23,7 +28,7 @@ describe("generateRouteManifest", () => {
 		});
 
 		expect(result).toContain("export const templates = {");
-		expect(result).toContain('default: () => import("./templates/default")');
+		expect(result).toContain('"default": () => import("./templates/default")');
 	});
 
 	test("separates error pages from regular routes", () => {
@@ -98,8 +103,8 @@ describe("generateRouteManifest", () => {
 			templatePaths: ["wide.tsx", "default.tsx"],
 		});
 
-		const defaultIdx = result.indexOf("default:");
-		const wideIdx = result.indexOf("wide:");
+		const defaultIdx = result.indexOf('"default":');
+		const wideIdx = result.indexOf('"wide":');
 		expect(defaultIdx).toBeLessThan(wideIdx);
 	});
 
@@ -109,8 +114,39 @@ describe("generateRouteManifest", () => {
 			templatePaths: ["default.tsx", "readme.md"],
 		});
 
-		expect(result).toContain("default:");
+		expect(result).toContain('"default":');
 		expect(result).not.toContain("readme");
+	});
+
+	test("quotes kebab-case template names", () => {
+		const result = generateRouteManifest({
+			routePaths: ["index.tsx"],
+			templatePaths: ["blog-post.tsx"],
+		});
+
+		expect(result).toContain('"blog-post": () => import("./templates/blog-post")');
+	});
+
+	test("produces parseable output for template names that are not bare identifiers", () => {
+		const result = generateRouteManifest({
+			routePaths: ["index.tsx", "404.tsx"],
+			templatePaths: ["blog-post.tsx", "2col.tsx", "my template.tsx"],
+		});
+
+		expect(() => {
+			parseManifest(result);
+		}).not.toThrow();
+	});
+
+	test("produces parseable output for identifier-safe template names", () => {
+		const result = generateRouteManifest({
+			routePaths: ["index.tsx", "404.tsx"],
+			templatePaths: ["default.tsx", "wide.tsx"],
+		});
+
+		expect(() => {
+			parseManifest(result);
+		}).not.toThrow();
 	});
 
 	test("catch-all routes use wildcard pattern", () => {

@@ -49,7 +49,7 @@ export function generateRouteManifest(input: GenerateRouteManifestInput): string
 		.sort((a, b) => a.name.localeCompare(b.name));
 
 	const templateLines = templateEntries.map(
-		(t) => `  ${t.name}: () => import("./templates/${t.importPath}"),`,
+		(t) => `  "${t.name}": () => import("./templates/${t.importPath}"),`,
 	);
 
 	const errorPageLines = errorPages.map(
